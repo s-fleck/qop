@@ -2,6 +2,7 @@ from typhon import OperationQueue
 import pytest
 import atexit
 
+
 def test_OperationDelete(tmp_path):
     """OperationDelete can be instantiated"""
     temp_file = tmp_path.joinpath("foo")
@@ -19,5 +20,5 @@ def test_OperationDelete(tmp_path):
 def test_OperationDelete_init_fails_on_missing_file():
     """OperationDelete raises an error if target file does not exist"""
     with pytest.raises(FileNotFoundError):
-        OperationQueue.OperationDelete("foo")
+        OperationQueue.OperationDelete('foo')
 
