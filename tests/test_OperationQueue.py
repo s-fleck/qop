@@ -1,16 +1,34 @@
 from typhon import OperationQueue
 import pytest
-import atexit
 
 
-def test_Operation_fails_on_missing_src():
-    """OperationDelete raises an error if target file does not exist"""
+def test_Operation_fails_on_missing_src(tmp_path):
+    src = tmp_path.joinpath("foo")
+    """instantiating Operation raises an error if target file does not exist"""
+
+    # GIVEN src does not exists
+    # WHEN instantiating Operation
+    # THEN raise FileNotFoundError
     with pytest.raises(FileNotFoundError):
-        OperationQueue.OperationDelete('foo')
+        OperationQueue.Operation(src)
+
+    # GIVEN src exists
+    # WHEN instantiating Operation
+    # THEN succeed
+    src.touch()
+    op = OperationQueue.Operation(src)
+    op.validate()
+
+    # GIVEN src does not exist
+    # WHEN validating Operation
+    # THEN raise FileNotFoundError
+    src.unlink()
+    with pytest.raises(FileNotFoundError):
+        op.validate()
 
 
 def test_OperationDelete(tmp_path):
-    """OperationDelete can be instantiated"""
+    """OperationDelete deletes files"""
     src = tmp_path.joinpath("foo")
     src.touch()
 
