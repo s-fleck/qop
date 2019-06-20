@@ -1,5 +1,6 @@
 from typhon import OperationQueue
 import pytest
+import queue
 
 
 def test_Operation_fails_on_missing_src(tmp_path):
@@ -25,6 +26,19 @@ def test_Operation_fails_on_missing_src(tmp_path):
     src.unlink()
     with pytest.raises(FileNotFoundError):
         op.validate()
+
+
+def test_Operations_can_be_compared():
+    """Operations can be compared"""
+    op1 = OperationQueue.Operation('one', priority=1, validate=False)
+    op2 = OperationQueue.Operation('two', priority=2, validate=False)
+    op3 = OperationQueue.Operation('three', priority=3, validate=False)
+
+    assert op1 == op1
+    assert op1 != op2
+    assert op1 < op2
+    assert op1 < op3
+    assert op3 > op1
 
 
 def test_OperationDelete(tmp_path):
@@ -88,3 +102,22 @@ def test_OperationMove(tmp_path):
     op.execute()
     assert not op.src.exists()
     assert op.dst.exists()
+
+
+def test_OperationQueue_sorts_by_priority():
+    """Operations are inserted into the OperationsQueue by their priority"""
+    op1 = OperationQueue.Operation('one', priority=1, validate=False)
+    op2 = OperationQueue.Operation('two', priority=2, validate=False)
+    op3 = OperationQueue.Operation('three', priority=3, validate=False)
+
+    l = OperationQueue.OperationQueue()
+    l.put(op2)
+    l.put(op1)
+    l.put(op3)
+
+    assert l.get_op(timeout=1) == op1
+    assert l.get_op(timeout=1) == op2
+    assert l.get_op(timeout=1) == op3
+
+    with pytest.raises(queue.Empty):
+        l.get_op(timeout=0.01)

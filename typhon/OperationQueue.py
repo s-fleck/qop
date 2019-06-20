@@ -1,28 +1,34 @@
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
+from queue import PriorityQueue
 import shutil
-
-class OperationQueue:
-    def add_delete(self):
-        raise NotImplementedError
-
-    def push(self):
-        raise NotImplementedError
-
-    def remove(id):
-        raise NotImplementedError
 
 
 class Operation:
-    def __init__(self, src: Union[Path, str]) -> None:
+    def __init__(self, src: Union[Path, str], priority: int = 1, validate: bool = True) -> None:
+        self.priority = priority
         self.src = Path(src).resolve()
-        self.validate()
+        if validate:
+            self.validate()
 
     def validate(self) -> None:
         if not self.src.exists():
             raise FileNotFoundError
         elif not (self.src.is_dir() or self.src.is_file()):
             raise TypeError(f'{self.src.as_posix()} is neither a file nor directory')
+
+    def __lt__(self, other) -> bool:
+        return self.priority < other.priority
+
+    def __gt__(self, other) -> bool:
+        return self.priority > other.priority
+
+    def __eq__(self, other) -> bool:
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other) -> bool:
+        return self.__dict__ != other.__dict__
+
 
 
 class OperationDelete(Operation):
@@ -55,3 +61,26 @@ class OperationMove(OperationCopy):
     def execute(self) -> None:
         self.validate()
         shutil.move(self.src, self.dst)
+
+
+class OperationQueue:
+    def __init__(self) -> None:
+        self.ops = PriorityQueue()
+        self.ok = PriorityQueue()
+        self.failed = PriorityQueue()
+
+    def put(self, op: Operation, priority: Optional[int] = None) -> None:
+        if priority is not None:
+            op.priority = priority
+        self.ops.put(op)
+
+    def get_op(self, timeout=0) -> Operation:
+        op = self.ops.get(timeout=timeout)
+        self.ops.task_done()
+        return op
+
+    def run(self) -> None:
+        op = self.ops.get()
+        op.execute()
+        self.ok.put(op)
+        self.ops.task_done()
