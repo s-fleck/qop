@@ -1,11 +1,12 @@
 from typhon import Converter, utils
+from pathlib import Path
 import pytest
 
 
-def test_OggConverter(tmp_path):
+@pytest.mark.parametrize("src", utils.get_project_root("tests", "test_Converter").glob("*"))
+def test_OggConverter(tmp_path, src):
     """OggConverter converts src to .ogg"""
-    src = utils.get_project_root("tests", "test_Converter", "16b.flac")
-    dst = tmp_path.joinpath("16b.ogg")
+    dst = Path(tmp_path.joinpath(src.stem + ".ogg"))
 
     co = Converter.OggConverter()
 
