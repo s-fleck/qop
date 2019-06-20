@@ -72,8 +72,6 @@ class ConvertOperation(CopyOperation):
         self.converter.run(self.src, self.dst)
 
 
-
-
 class OperationQueue:
     def __init__(self) -> None:
         self.ops = PriorityQueue()
