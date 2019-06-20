@@ -3,7 +3,7 @@ import pytest
 import atexit
 
 
-def test_Operation_fails_on_missing_file():
+def test_Operation_fails_on_missing_src():
     """OperationDelete raises an error if target file does not exist"""
     with pytest.raises(FileNotFoundError):
         OperationQueue.OperationDelete('foo')
@@ -35,6 +35,28 @@ def test_OperationCopy(tmp_path):
     assert op.dst.exists()
 
 
+def test_OperationCopy_fails_on_existing_dst(tmp_path):
+    """OperationCopy fails if target exists"""
+    src = tmp_path.joinpath("foo")
+    dst = tmp_path.joinpath("bar")
+    src.touch()
+
+    op = OperationQueue.OperationCopy(src, dst)
+    op.execute()
+
+    # GIVEN dst exists
+    # WHEN executing OperationCopy
+    # THEN raise FileExistsError
+    with pytest.raises(FileExistsError):
+        op.execute()
+
+    # GIVEN dst exists
+    # WHEN instantiating OperationCopy
+    # THEN raise FileExistsError
+    with pytest.raises(FileExistsError):
+        OperationQueue.OperationCopy(src, dst)
+
+
 def test_OperationMove(tmp_path):
     """OperationMove moves a file"""
     src = tmp_path.joinpath("foo")
@@ -48,3 +70,5 @@ def test_OperationMove(tmp_path):
     op.execute()
     assert not op.src.exists()
     assert op.dst.exists()
+
+
