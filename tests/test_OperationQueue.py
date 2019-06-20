@@ -46,7 +46,7 @@ def test_OperationDelete(tmp_path):
     src = tmp_path.joinpath("foo")
     src.touch()
 
-    op = OperationQueue.OperationDelete(src)
+    op = OperationQueue.DeleteOperation(src)
     assert op.src.exists()
     op.execute()
     assert not op.src.exists()
@@ -58,11 +58,11 @@ def test_OperationCopy(tmp_path):
     dst = tmp_path.joinpath("bar")
     src.touch()
 
-    op = OperationQueue.OperationCopy(src, dst)
+    op = OperationQueue.CopyOperation(src, dst)
 
     assert op.src.exists()
     assert not op.dst.exists()
-    op.execute()
+    op.run()
     assert op.src.exists()
     assert op.dst.exists()
 
@@ -73,20 +73,20 @@ def test_OperationCopy_fails_on_existing_dst(tmp_path):
     dst = tmp_path.joinpath("bar")
     src.touch()
 
-    op = OperationQueue.OperationCopy(src, dst)
-    op.execute()
+    op = OperationQueue.CopyOperation(src, dst)
+    op.run()
 
     # GIVEN dst exists
     # WHEN executing OperationCopy
     # THEN raise FileExistsError
     with pytest.raises(FileExistsError):
-        op.execute()
+        op.run()
 
     # GIVEN dst exists
     # WHEN instantiating OperationCopy
     # THEN raise FileExistsError
     with pytest.raises(FileExistsError):
-        OperationQueue.OperationCopy(src, dst)
+        OperationQueue.CopyOperation(src, dst)
 
 
 def test_OperationMove(tmp_path):
@@ -95,11 +95,11 @@ def test_OperationMove(tmp_path):
     dst = tmp_path.joinpath("bar")
     src.touch()
 
-    op = OperationQueue.OperationMove(src, dst)
+    op = OperationQueue.MoveOperation(src, dst)
 
     assert op.src.exists()
     assert not op.dst.exists()
-    op.execute()
+    op.run()
     assert not op.src.exists()
     assert op.dst.exists()
 

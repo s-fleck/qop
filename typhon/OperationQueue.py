@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Union, Optional
 from queue import PriorityQueue
+from typhon import Converter
 import shutil
 
 
@@ -30,8 +31,7 @@ class Operation:
         return self.__dict__ != other.__dict__
 
 
-
-class OperationDelete(Operation):
+class DeleteOperation(Operation):
     def execute(self) -> None:
         self.validate()
         if self.src.is_file():
@@ -42,7 +42,7 @@ class OperationDelete(Operation):
             raise
 
 
-class OperationCopy(Operation):
+class CopyOperation(Operation):
     def __init__(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         self.dst = Path(dst).resolve()
         super().__init__(src)
@@ -52,15 +52,23 @@ class OperationCopy(Operation):
         if self.dst.exists():
             raise FileExistsError
 
-    def execute(self) -> None:
+    def run(self) -> None:
         self.validate()
         shutil.copy(self.src, self.dst)
 
 
-class OperationMove(OperationCopy):
-    def execute(self) -> None:
+class MoveOperation(CopyOperation):
+    def run(self) -> None:
         self.validate()
         shutil.move(self.src, self.dst)
+
+
+class ConvertOperation(CopyOperation):
+    def __init__(self, converter: Converter) -> None:
+        super.__init__()
+        converter.run(self.src, src.dst)
+
+
 
 
 class OperationQueue:
@@ -81,6 +89,6 @@ class OperationQueue:
 
     def run(self) -> None:
         op = self.ops.get()
-        op.execute()
+        op.run()
         self.ok.put(op)
         self.ops.task_done()
