@@ -4,7 +4,7 @@ import pytest
 
 def test_Operation_fails_on_missing_src(tmp_path):
     src = tmp_path.joinpath("foo")
-    """instantiating Operation raises an error if target file does not exist"""
+    """instantiating or validating Operation raises an error if file does not exist"""
 
     # GIVEN src does not exists
     # WHEN instantiating Operation
@@ -28,7 +28,7 @@ def test_Operation_fails_on_missing_src(tmp_path):
 
 
 def test_OperationDelete(tmp_path):
-    """OperationDelete deletes files"""
+    """OperationDelete deletes a file"""
     src = tmp_path.joinpath("foo")
     src.touch()
 
@@ -54,7 +54,7 @@ def test_OperationCopy(tmp_path):
 
 
 def test_OperationCopy_fails_on_existing_dst(tmp_path):
-    """OperationCopy fails if target exists"""
+    """OperationCopy fails if dst file exists"""
     src = tmp_path.joinpath("foo")
     dst = tmp_path.joinpath("bar")
     src.touch()
@@ -88,5 +88,3 @@ def test_OperationMove(tmp_path):
     op.execute()
     assert not op.src.exists()
     assert op.dst.exists()
-
-
