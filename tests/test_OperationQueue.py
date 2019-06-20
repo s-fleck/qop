@@ -1,4 +1,4 @@
-from typhon import OperationQueue
+from typhon import OperationQueue, Converter
 import pytest
 import queue
 
@@ -101,6 +101,21 @@ def test_OperationMove(tmp_path):
     assert not op.dst.exists()
     op.run()
     assert not op.src.exists()
+    assert op.dst.exists()
+
+
+def test_ConvertOperation(tmp_path):
+    """Dummy CopyConverter just copies a file"""
+    src = tmp_path.joinpath("foo")
+    dst = tmp_path.joinpath("bar")
+    src.touch()
+
+    op = OperationQueue.ConvertOperation(src, dst, Converter.CopyConverter())
+
+    assert op.src.exists()
+    assert not op.dst.exists()
+    op.run()
+    assert op.src.exists()
     assert op.dst.exists()
 
 

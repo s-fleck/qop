@@ -64,9 +64,12 @@ class MoveOperation(CopyOperation):
 
 
 class ConvertOperation(CopyOperation):
-    def __init__(self, converter: Converter) -> None:
-        super.__init__()
-        converter.run(self.src, src.dst)
+    def __init__(self, src: Union[Path, str], dst: Union[Path, str], converter: Converter) -> None:
+        super().__init__(src, dst)
+        self.converter = converter
+
+    def run(self) -> None:
+        self.converter.run(self.src, self.dst)
 
 
 
