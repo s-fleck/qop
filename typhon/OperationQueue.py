@@ -14,45 +14,44 @@ class OperationQueue:
 
 
 class Operation:
-    def __init__(self, path: Union[Path, str]) -> None:
-        self.path = Path(path).resolve()
+    def __init__(self, src: Union[Path, str]) -> None:
+        self.src = Path(src).resolve()
         self.validate()
 
     def validate(self) -> None:
-        if not self.path.exists():
+        if not self.src.exists():
             raise FileNotFoundError
-        elif not (self.path.is_dir() or self.path.is_file()):
-            raise TypeError(f'{self.path.as_posix()} is neither a file nor directory')
+        elif not (self.src.is_dir() or self.src.is_file()):
+            raise TypeError(f'{self.src.as_posix()} is neither a file nor directory')
 
 
 class OperationDelete(Operation):
     def execute(self) -> None:
         self.validate()
-        if self.path.is_file():
-            self.path.unlink()
-        elif self.path.is_dir():
-            self.path.rmdir()
+        if self.src.is_file():
+            self.src.unlink()
+        elif self.src.is_dir():
+            self.src.rmdir()
         else:
             raise
 
 
 class OperationCopy(Operation):
-    def __init__(self, path: Union[Path, str], path2: Union[Path, str]) -> None:
-        super().__init__(path)
-        self.path2 = Path(path2).resolve()
-        self.validate()
+    def __init__(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
+        self.dst = Path(dst).resolve()
+        super().__init__(src)
 
     def validate(self) -> None:
         super().validate()
-        if self.path2.exists():
+        if self.dst.exists():
             raise FileExistsError
 
     def execute(self) -> None:
         self.validate()
-        shutil.move(self.path, self.path2)
+        shutil.copy(self.src, self.dst)
 
 
 class OperationMove(OperationCopy):
     def execute(self) -> None:
         self.validate()
-        shutil.copy(self.path, self.path2)
+        shutil.move(self.src, self.dst)
