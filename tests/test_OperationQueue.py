@@ -1,6 +1,5 @@
 from typhon import OperationQueue, Converter
 import pytest
-import queue
 
 
 def test_Operation_fails_on_missing_src(tmp_path):
@@ -119,20 +118,25 @@ def test_ConvertOperation(tmp_path):
     assert op.dst.exists()
 
 
-def test_OperationQueue_sorts_by_priority():
+def test_OperationQueue_sorts_by_priority(tmp_path):
     """Operations are inserted into the OperationsQueue by their priority"""
     op1 = OperationQueue.Operation('one', priority=1, validate=False)
     op2 = OperationQueue.Operation('two', priority=2, validate=False)
     op3 = OperationQueue.Operation('three', priority=3, validate=False)
 
-    l = OperationQueue.OperationQueue()
+    db = tmp_path.joinpath("typhon.db")
+    l = OperationQueue.OperationQueue(path=db)
+
     l.put(op2)
     l.put(op1)
     l.put(op3)
 
-    assert l.get_op(timeout=1) == op1
-    assert l.get_op(timeout=1) == op2
-    assert l.get_op(timeout=1) == op3
+    assert l.get_op(timeout=1).serialize() == op1.serialize()
+    assert l.get_op(timeout=1).serialize() == op2.serialize()
+    assert l.get_op(timeout=1).serialize() == op3.serialize()
 
-    with pytest.raises(queue.Empty):
+    with pytest.raises(IndexError):
         l.get_op(timeout=0.01)
+
+    l.conn.close()
+    db.unlink()

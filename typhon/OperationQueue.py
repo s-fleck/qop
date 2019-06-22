@@ -1,8 +1,19 @@
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, Dict
 from queue import PriorityQueue
 from typhon import Converter
 import shutil
+
+
+# notes
+#
+# serialize to db
+# priority int
+# src text
+# des text
+# type int
+# args text/json
+
 
 
 class Operation:
@@ -30,6 +41,9 @@ class Operation:
     def __ne__(self, other) -> bool:
         return self.__dict__ != other.__dict__
 
+    def serialize(self) -> Dict:
+        return {"type": 1, "src": self.src.as_posix(), "dst": None, "priority": self.priority}
+
 
 class DeleteOperation(Operation):
     def execute(self) -> None:
@@ -40,6 +54,9 @@ class DeleteOperation(Operation):
             self.src.rmdir()
         else:
             raise
+
+    def serialize(self) -> Dict:
+        return {"type": 1, "src": self.src.as_posix(), "dst": None, "priority": self.priority}
 
 
 class CopyOperation(Operation):
@@ -56,6 +73,9 @@ class CopyOperation(Operation):
         self.validate()
         shutil.copy(self.src, self.dst)
 
+    def serialize(self) -> Dict:
+        return {"type": 2, "src": self.src.as_posix(), "dst": self.dst.as_posix(), "priority": self.priority}
+
 
 class MoveOperation(CopyOperation):
     def run(self) -> None:
@@ -71,25 +91,50 @@ class ConvertOperation(CopyOperation):
     def run(self) -> None:
         self.converter.run(self.src, self.dst)
 
+    def serialize(self) -> Dict:
+        return {"priority": self.priority, "type": 3, "src": self.src.as_posix(), "dst": self.dst.as_posix()}
+
 
 class OperationQueue:
-    def __init__(self) -> None:
-        self.ops = PriorityQueue()
-        self.ok = PriorityQueue()
-        self.failed = PriorityQueue()
+    def __init__(self, path='typhon.db') -> None:
+        import sqlite3
+        self.conn = sqlite3.connect(path)
+
+        cur = self.conn.cursor()
+        cur.execute("""
+           CREATE TABLE IF NOT EXISTS operations (
+              priority INTEGER,
+              type INTEGER,
+              src TEXT,
+              dst TEXT 
+            )              
+        """)
+        self.conn.commit()
 
     def put(self, op: Operation, priority: Optional[int] = None) -> None:
+        dd = op.serialize()
+
         if priority is not None:
-            op.priority = priority
-        self.ops.put(op)
+            dd.priority = priority
+
+        cur = self.conn.cursor()
+        cur.execute("""
+            INSERT INTO OPERATIONS
+                VALUES (:priority, :type, :src, :dst)
+        """, dd)
 
     def get_op(self, timeout=0) -> Operation:
-        op = self.ops.get(timeout=timeout)
-        self.ops.task_done()
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT _ROWID_, priority, type, src, dst FROM operations ORDER BY priority LIMIT 1        
+        """)
+
+        record = cur.fetchall()[0]
+
+        cur.execute("DELETE FROM operations WHERE _ROWID_ = :id", {"id": record[0].__str__()})
+        self.conn.commit()
+        op = Operation(priority=record[1], src=record[3], validate=False)
         return op
 
     def run(self) -> None:
-        op = self.ops.get()
-        op.run()
-        self.ok.put(op)
-        self.ops.task_done()
+        raise NotImplementedError
