@@ -130,13 +130,26 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     l.put(op2)
     l.put(op1)
     l.put(op3)
+    res = l.conn.cursor().execute("SELECT status from operations").fetchall()
+    assert all([el[0] == 2 for el in res])
 
-    assert l.get_op(timeout=1).serialize() == op1.serialize()
-    assert l.get_op(timeout=1).serialize() == op2.serialize()
-    assert l.get_op(timeout=1).serialize() == op3.serialize()
+    or1 = l.get()
+    or2 = l.get()
+    or3 = l.get()
+    res = l.conn.cursor().execute("SELECT status from operations").fetchall()
+    assert all([el[0] == 1 for el in res])
+    assert or1.serialize() == op1.serialize()
+    assert or2.serialize() == op2.serialize()
+    assert or3.serialize() == op3.serialize()
 
     with pytest.raises(IndexError):
-        l.get_op(timeout=0.01)
+        l.get(timeout=0.01)
+
+    l.mark_done(or1)
+    l.mark_done(or2)
+    l.mark_done(or3)
+    res = l.conn.cursor().execute("SELECT status from operations").fetchall()
+    assert all([el[0] == 0 for el in res])
 
     l.conn.close()
     db.unlink()

@@ -1,6 +1,6 @@
 from typhon import Scanner, Converter, utils
 import pytest
-import queue
+
 
 @pytest.mark.skip
 def test_Scanner_scanns(tmp_path):

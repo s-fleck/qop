@@ -1,19 +1,7 @@
 from pathlib import Path
 from typing import Union, Optional, Dict
-from queue import PriorityQueue
 from typhon import Converter
 import shutil
-
-
-# notes
-#
-# serialize to db
-# priority int
-# src text
-# des text
-# type int
-# args text/json
-
 
 
 class Operation:
@@ -106,7 +94,8 @@ class OperationQueue:
               priority INTEGER,
               type INTEGER,
               src TEXT,
-              dst TEXT 
+              dst TEXT,
+              status INTEGER
             )              
         """)
         self.conn.commit()
@@ -120,21 +109,28 @@ class OperationQueue:
         cur = self.conn.cursor()
         cur.execute("""
             INSERT INTO OPERATIONS
-                VALUES (:priority, :type, :src, :dst)
+                VALUES (:priority, :type, :src, :dst, 2)
         """, dd)
 
-    def get_op(self, timeout=0) -> Operation:
+    def get(self, timeout=0) -> Operation:
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT _ROWID_, priority, type, src, dst FROM operations ORDER BY priority LIMIT 1        
+            SELECT _ROWID_, priority, type, src, dst FROM operations WHERE status = 2 ORDER BY priority LIMIT 1        
         """)
-
         record = cur.fetchall()[0]
-
-        cur.execute("DELETE FROM operations WHERE _ROWID_ = :id", {"id": record[0].__str__()})
+        cur.execute("UPDATE operations SET status = 1 where _ROWID_ = :id AND status = 2",  {"id": record[0].__str__()})
         self.conn.commit()
         op = Operation(priority=record[1], src=record[3], validate=False)
+        op.oid = record[0]
         return op
+
+    def mark_done(self, op):
+        cur = self.conn.cursor()
+        cur.execute("UPDATE operations SET status = 0 where _ROWID_ = :id AND status = 1", {"id": op.oid})
+        self.conn.commit()
+        cur.execute("SELECT * FROM operations WHERE _ROWID_ = :id", {"id": op.oid})
+        res = cur.fetchall()
+        assert len(res) == 1
 
     def run(self) -> None:
         raise NotImplementedError
