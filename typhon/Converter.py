@@ -2,11 +2,18 @@ import shutil
 import pydub
 from pathlib import Path
 from typing import Union, Optional
+import json
 
 
 class Converter:
     def serialize(self):
         {}
+
+    def __eq__(self, other) -> bool:
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other) -> bool:
+        return self.__dict__ != other.__dict__
 
 
 class CopyConverter(Converter):
@@ -31,4 +38,13 @@ class OggConverter(Converter):
         x.export(dst, format="ogg", bitrate=self.bitrate)
 
     def serialize(self):
-        {"bitrate": self.bitrate}
+        return {"type": 1, "bitrate": self.bitrate}
+
+
+def from_json(s: str) -> Converter:
+    dd = json.loads(s=s)
+
+    if dd["type"] == 1:
+        return OggConverter(bitrate=dd["bitrate"])
+    else:
+        raise ImportError("Unknown 'type': {}")
