@@ -130,13 +130,13 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     l.put(op2)
     l.put(op1)
     l.put(op3)
-    res = l.conn.cursor().execute("SELECT status from operations").fetchall()
+    res = l.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 2 for el in res])
 
     or1 = l.get()
     or2 = l.get()
     or3 = l.get()
-    res = l.conn.cursor().execute("SELECT status from operations").fetchall()
+    res = l.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 1 for el in res])
     assert or1.serialize() == op1.serialize()
     assert or2.serialize() == op2.serialize()
@@ -148,5 +148,35 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     l.mark_done(or1)
     l.mark_done(or2)
     l.mark_done(or3)
-    res = l.conn.cursor().execute("SELECT status from operations").fetchall()
+    res = l.con.cursor().execute("SELECT status from operations").fetchall()
+    assert all([el[0] == 0 for el in res])
+
+
+def test_ConvertOperation_serializes_properly(tmp_path):
+    """ConvertOperations can be inserted into the OperationsQueue"""
+    op1 = OperationQueue.ConvertOperation('one', 'od', priority=1, validate=False, converter=Converter.CopyConverter())
+    op2 = OperationQueue.ConvertOperation('two', 'td', priority=2, validate=False, converter=Converter.OggConverter())
+
+    db = tmp_path.joinpath("typhon.db")
+    l = OperationQueue.OperationQueue(path=db)
+
+    l.put(op2)
+    l.put(op1)
+    res = l.con.cursor().execute("SELECT status from operations").fetchall()
+    assert all([el[0] == 2 for el in res])
+
+    or1 = l.get()
+    or2 = l.get()
+    res = l.con.cursor().execute("SELECT status from operations").fetchall()
+    assert all([el[0] == 1 for el in res])
+    assert or1.serialize() == op1.serialize()
+    assert or2.serialize() == op2.serialize()
+
+    with pytest.raises(IndexError):
+        l.get(timeout=0.01)
+
+    l.mark_done(or1)
+    l.mark_done(or2)
+    l.mark_done(or3)
+    res = l.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 0 for el in res])

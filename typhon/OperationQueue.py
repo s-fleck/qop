@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Union, Optional, Dict
 from typhon import Converter
+import json
 import shutil
 
 
@@ -48,9 +49,9 @@ class DeleteOperation(Operation):
 
 
 class CopyOperation(Operation):
-    def __init__(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
+    def __init__(self, src: Union[Path, str], dst: Union[Path, str], priority: int = 1, validate: bool = True) -> None:
         self.dst = Path(dst).resolve()
-        super().__init__(src)
+        super().__init__(src, priority=priority, validate=validate)
 
     def validate(self) -> None:
         super().validate()
@@ -72,8 +73,8 @@ class MoveOperation(CopyOperation):
 
 
 class ConvertOperation(CopyOperation):
-    def __init__(self, src: Union[Path, str], dst: Union[Path, str], converter: Converter) -> None:
-        super().__init__(src, dst)
+    def __init__(self, src: Union[Path, str], dst: Union[Path, str], converter: Converter, priority: int = 1, validate: bool = True) -> None:
+        super().__init__(src, dst, priority=priority, validate=validate)
         self.converter = converter
 
     def run(self) -> None:
@@ -86,9 +87,9 @@ class ConvertOperation(CopyOperation):
 class OperationQueue:
     def __init__(self, path='typhon.db') -> None:
         import sqlite3
-        self.conn = sqlite3.connect(path)
+        self.con = sqlite3.connect(path)
 
-        cur = self.conn.cursor()
+        cur = self.con.cursor()
         cur.execute("""
            CREATE TABLE IF NOT EXISTS operations (
               priority INTEGER,
@@ -100,23 +101,27 @@ class OperationQueue:
               owner INTEGER
             )              
         """)
-        self.conn.commit()
+        self.con.commit()
 
-    def put(self, op: Operation, priority: Optional[int] = None) -> None:
+    def put(self, op: Union[Operation, ConvertOperation], priority: Optional[int] = None) -> None:
         dd = op.serialize()
 
         if priority is not None:
             dd.priority = priority
 
-        cur = self.conn.cursor()
-        cur.execute("""
-            INSERT INTO OPERATIONS
-                VALUES (:priority, :type, :src, :dst, NULL, 2, NULL)
-        """, dd)
+        cur = self.con.cursor()
+
+        if type(op).__name__ == "ConvertOperation":
+            dd["opts"] = json.dumps(op.converter.serialize())
+        else:
+            dd["opts"] = None
+
+        cur.execute("INSERT INTO OPERATIONS VALUES (:priority, :type, :src, :dst, :opts, 2, NULL)", dd)
+        self.con.commit()
 
     def get(self, timeout=0) -> Operation:
         """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
-        cur = self.conn.cursor()
+        cur = self.con.cursor()
         cur.execute("""
             SELECT _ROWID_ from operations WHERE status = 2 ORDER BY priority LIMIT 1        
         """)
@@ -126,7 +131,7 @@ class OperationQueue:
             "UPDATE operations SET status = 1, owner = :owner where _ROWID_ = :oid AND status = 2",
             {"oid": oid, "owner": id(self)},
         )
-        self.conn.commit()
+        self.con.commit()
 
         cur.execute("SELECT owner, priority, type, src, dst, opts FROM operations WHERE _ROWID_ = ?", oid)
         record = cur.fetchall()[0]
@@ -139,9 +144,9 @@ class OperationQueue:
 
     def mark_done(self, op):
         """Marks operation as "done" (0)"""
-        cur = self.conn.cursor()
+        cur = self.con.cursor()
         cur.execute("UPDATE operations SET status = 0, owner = NULL where _ROWID_ = ? AND status = 1", op.oid)
-        self.conn.commit()
+        self.con.commit()
         cur.execute("SELECT status FROM operations WHERE _ROWID_ = ?", op.oid)
         res = cur.fetchall()
         assert len(res) == 1

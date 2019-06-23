@@ -5,10 +5,11 @@ from typing import Union, Optional
 
 
 class Converter:
-    pass
+    def serialize(self):
+        {}
 
 
-class CopyConverter:
+class CopyConverter(Converter):
     """Dummy converter that only copies a file without any processing"""
     def __init__(self) -> None:
         pass
@@ -17,7 +18,7 @@ class CopyConverter:
         shutil.copy(src, dst)
 
 
-class OggConverter:
+class OggConverter(Converter):
     """Convert audio files to ogg vorbis"""
     def __init__(self, bitrate: str = "192k") -> None:
         self.bitrate = bitrate
@@ -28,3 +29,6 @@ class OggConverter:
         dst = Path(dst).resolve()
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="ogg", bitrate=self.bitrate)
+
+    def serialize(self):
+        {"bitrate": self.bitrate}
