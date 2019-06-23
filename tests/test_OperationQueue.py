@@ -150,6 +150,3 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     l.mark_done(or3)
     res = l.conn.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 0 for el in res])
-
-    l.conn.close()
-    db.unlink()

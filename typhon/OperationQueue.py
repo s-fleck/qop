@@ -95,7 +95,9 @@ class OperationQueue:
               type INTEGER,
               src TEXT,
               dst TEXT,
-              status INTEGER
+              opts TEXT,
+              status INTEGER,
+              owner INTEGER
             )              
         """)
         self.conn.commit()
@@ -109,28 +111,46 @@ class OperationQueue:
         cur = self.conn.cursor()
         cur.execute("""
             INSERT INTO OPERATIONS
-                VALUES (:priority, :type, :src, :dst, 2)
+                VALUES (:priority, :type, :src, :dst, NULL, 2, NULL)
         """, dd)
 
     def get(self, timeout=0) -> Operation:
+        """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
         cur = self.conn.cursor()
         cur.execute("""
-            SELECT _ROWID_, priority, type, src, dst FROM operations WHERE status = 2 ORDER BY priority LIMIT 1        
+            SELECT _ROWID_ from operations WHERE status = 2 ORDER BY priority LIMIT 1        
         """)
         record = cur.fetchall()[0]
-        cur.execute("UPDATE operations SET status = 1 where _ROWID_ = :id AND status = 2",  {"id": record[0].__str__()})
+        oid = record[0].__str__()
+        cur.execute(
+            "UPDATE operations SET status = 1, owner = :owner where _ROWID_ = :oid AND status = 2",
+            {"oid": oid, "owner": id(self)},
+        )
         self.conn.commit()
+
+        cur.execute("SELECT owner, priority, type, src, dst, opts FROM operations WHERE _ROWID_ = ?", oid)
+        record = cur.fetchall()[0]
+        if record[0] != id(self):
+            raise AlreadyUnderEvaluationError
+
         op = Operation(priority=record[1], src=record[3], validate=False)
-        op.oid = record[0]
+        op.oid = oid
         return op
 
     def mark_done(self, op):
+        """Marks operation as "done" (0)"""
         cur = self.conn.cursor()
-        cur.execute("UPDATE operations SET status = 0 where _ROWID_ = :id AND status = 1", {"id": op.oid})
+        cur.execute("UPDATE operations SET status = 0, owner = NULL where _ROWID_ = ? AND status = 1", op.oid)
         self.conn.commit()
-        cur.execute("SELECT * FROM operations WHERE _ROWID_ = :id", {"id": op.oid})
+        cur.execute("SELECT status FROM operations WHERE _ROWID_ = ?", op.oid)
         res = cur.fetchall()
         assert len(res) == 1
+        assert res[0][0] == 0
 
     def run(self) -> None:
         raise NotImplementedError
+
+
+class AlreadyUnderEvaluationError(Exception):
+    """This Operation is already being processed by a different worker"""
+    pass
