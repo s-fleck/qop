@@ -1,13 +1,13 @@
 import shutil
 import pydub
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, Dict
 import json
 
 
 class Converter:
-    def serialize(self):
-        {}
+    def serialize(self) -> Dict:
+        return {}
 
     def __eq__(self, other) -> bool:
         return self.__dict__ == other.__dict__
@@ -24,6 +24,9 @@ class CopyConverter(Converter):
     def run(self, src: Union[Path, str], dst: Union[Path, str]):
         shutil.copy(src, dst)
 
+    def serialize(self) -> Dict:
+        return {"type": 0}
+
 
 class OggConverter(Converter):
     """Convert audio files to ogg vorbis"""
@@ -37,14 +40,16 @@ class OggConverter(Converter):
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="ogg", bitrate=self.bitrate)
 
-    def serialize(self):
+    def serialize(self) -> Dict:
         return {"type": 1, "bitrate": self.bitrate}
 
 
 def from_json(s: str) -> Converter:
     dd = json.loads(s=s)
 
-    if dd["type"] == 1:
+    if dd["type"] == 0:
+        return CopyConverter()
+    elif dd["type"] == 1:
         return OggConverter(bitrate=dd["bitrate"])
     else:
         raise ImportError("Unknown 'type': {}")

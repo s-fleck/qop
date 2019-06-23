@@ -31,7 +31,7 @@ class Operation:
         return self.__dict__ != other.__dict__
 
     def serialize(self) -> Dict:
-        return {"type": 1, "src": self.src.as_posix(), "dst": None, "priority": self.priority}
+        return {"type": 0, "src": self.src.as_posix(), "dst": None, "priority": self.priority}
 
 
 class DeleteOperation(Operation):
@@ -119,7 +119,7 @@ class OperationQueue:
         cur.execute("INSERT INTO OPERATIONS VALUES (:priority, :type, :src, :dst, :opts, 2, NULL)", dd)
         self.con.commit()
 
-    def get(self, timeout=0) -> Operation:
+    def get(self) -> Operation:
         """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
         cur = self.con.cursor()
         cur.execute("""
@@ -133,12 +133,17 @@ class OperationQueue:
         )
         self.con.commit()
 
-        cur.execute("SELECT owner, priority, type, src, dst, opts FROM operations WHERE _ROWID_ = ?", oid)
+        cur.execute("SELECT priority, type, src, dst, opts, owner FROM operations WHERE _ROWID_ = ?", oid)
         record = cur.fetchall()[0]
-        if record[0] != id(self):
+        if record[5] != id(self):
             raise AlreadyUnderEvaluationError
 
-        op = Operation(priority=record[1], src=record[3], validate=False)
+        if record[1] == 3:
+            cv = Converter.from_json(record[4])
+            op = ConvertOperation(priority=record[0], src=record[2], dst=record[3], converter=cv)
+        else:
+            op = Operation(priority=record[0], src=record[2], validate=False)
+
         op.oid = oid
         return op
 
