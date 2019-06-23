@@ -18,10 +18,6 @@ class Scanner:
         print(pat)
         self.whitelist = pat
 
-
     def run(self, path: Path) -> None:
         files = path.rglob("|".join(self.whitelist))
         self.queue = files
-
-
-
