@@ -2,7 +2,7 @@ import shutil
 import pydub
 from pathlib import Path
 from typing import Union, Optional, Generator
-from typhon import Converter
+from qcp import Converter
 import re
 
 class Scanner:

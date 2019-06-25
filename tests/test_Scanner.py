@@ -1,4 +1,4 @@
-from typhon import Scanner, Converter, utils
+from qcp import Scanner, Converter, utils
 import pytest
 
 

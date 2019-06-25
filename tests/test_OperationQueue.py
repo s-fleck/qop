@@ -1,4 +1,4 @@
-from typhon import OperationQueue, Converter, utils
+from qcp import OperationQueue, Converter, utils
 import pytest
 
 
@@ -124,7 +124,7 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     op2 = OperationQueue.Operation('two', priority=2, validate=False)
     op3 = OperationQueue.Operation('three', priority=3, validate=False)
 
-    db = tmp_path.joinpath("typhon.db")
+    db = tmp_path.joinpath("qcp.db")
     l = OperationQueue.OperationQueue(path=db)
 
     l.put(op2)
@@ -158,7 +158,7 @@ def test_ConvertOperation_serializes_properly(tmp_path):
     op1 = OperationQueue.ConvertOperation(f1, 'od', priority=1, validate=False, converter=Converter.CopyConverter())
     op2 = OperationQueue.ConvertOperation(f1, 'td', priority=2, validate=False, converter=Converter.OggConverter())
 
-    db = tmp_path.joinpath("typhon.db")
+    db = tmp_path.joinpath("qcp.db")
     l = OperationQueue.OperationQueue(path=db)
 
     l.put(op2)

@@ -1,4 +1,4 @@
-from typhon import Converter, utils
+from qcp import Converter, utils
 from pathlib import Path
 import pytest
 import json
