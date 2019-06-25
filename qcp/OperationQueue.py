@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Union, Optional, Dict
-from typhon import Converter
+from qcp import Converter
 import json
 import shutil
 
@@ -85,9 +85,9 @@ class ConvertOperation(CopyOperation):
 
 
 class OperationQueue:
-    def __init__(self, path='typhon.db') -> None:
+    def __init__(self, path='qcp.db') -> None:
         import sqlite3
-        self.con = sqlite3.connect(path)
+        self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
 
         cur = self.con.cursor()
         cur.execute("""
@@ -119,7 +119,7 @@ class OperationQueue:
         cur.execute("INSERT INTO OPERATIONS VALUES (:priority, :type, :src, :dst, :opts, 2, NULL)", dd)
         self.con.commit()
 
-    def get(self) -> Operation:
+    def get(self) -> Union[Operation, ConvertOperation]:
         """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
         cur = self.con.cursor()
         cur.execute("""
