@@ -124,60 +124,77 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     op2 = OperationQueue.Operation('two', priority=2, validate=False)
     op3 = OperationQueue.Operation('three', priority=3, validate=False)
 
-    db = tmp_path.joinpath("qcp.db")
-    l = OperationQueue.OperationQueue(path=db)
+    oq = OperationQueue.OperationQueue(path=tmp_path.joinpath("qcp.db"))
+    oq.put(op2)
+    oq.put(op1)
+    oq.put(op3)
 
-    l.put(op2)
-    l.put(op1)
-    l.put(op3)
-    res = l.con.cursor().execute("SELECT status from operations").fetchall()
+    res = oq.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 2 for el in res])
 
-    or1 = l.pop()
-    or2 = l.pop()
-    or3 = l.pop()
-    res = l.con.cursor().execute("SELECT status from operations").fetchall()
+    or1 = oq.pop()
+    or2 = oq.pop()
+    or3 = oq.pop()
+    res = oq.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 1 for el in res])
     assert or1.serialize() == op1.serialize()
     assert or2.serialize() == op2.serialize()
     assert or3.serialize() == op3.serialize()
 
     with pytest.raises(IndexError):
-        l.pop()
+        oq.pop()
 
-    l.mark_done(or1)
-    l.mark_done(or2)
-    l.mark_done(or3)
-    res = l.con.cursor().execute("SELECT status from operations").fetchall()
+    oq.mark_done(or1)
+    oq.mark_done(or2)
+    oq.mark_done(or3)
+    res = oq.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 0 for el in res])
 
 
 def test_ConvertOperation_serializes_properly(tmp_path):
     """ConvertOperations can be inserted into the OperationsQueue"""
     f1 = utils.get_project_root("tests", "test_Converter", "16b.flac")
+
     op1 = OperationQueue.ConvertOperation(f1, 'od', priority=1, validate=False, converter=Converter.CopyConverter())
     op2 = OperationQueue.ConvertOperation(f1, 'td', priority=2, validate=False, converter=Converter.OggConverter())
 
-    db = tmp_path.joinpath("qcp.db")
-    l = OperationQueue.OperationQueue(path=db)
+    oq = OperationQueue.OperationQueue(path=tmp_path.joinpath("qcp.db"))
+    oq.put(op2)
+    oq.put(op1)
 
-    l.put(op2)
-    l.put(op1)
-    res = l.con.cursor().execute("SELECT status from operations").fetchall()
+    res = oq.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 2 for el in res])
 
-    or1 = l.pop()
-    or2 = l.pop()
-    res = l.con.cursor().execute("SELECT status from operations").fetchall()
+    or1 = oq.pop()
+    or2 = oq.pop()
+    res = oq.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 1 for el in res])
     assert or1.serialize() == op1.serialize()
     assert or2.converter.serialize() == op2.converter.serialize()
     assert or2.converter.serialize() == op2.converter.serialize()
 
     with pytest.raises(IndexError):
-        l.pop()
+        oq.pop()
 
-    l.mark_done(or1)
-    l.mark_done(or2)
-    res = l.con.cursor().execute("SELECT status from operations").fetchall()
+    oq.mark_done(or1)
+    oq.mark_done(or2)
+    res = oq.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 0 for el in res])
+
+
+def test_OperationQueue_peek(tmp_path):
+    """OperationQueue peek() behaves like pop() but without removing the element from the list"""
+
+    op1 = OperationQueue.Operation('one', priority=1, validate=False)
+    op2 = OperationQueue.Operation('two', priority=2, validate=False)
+    op3 = OperationQueue.Operation('three', priority=3, validate=False)
+
+    oq = OperationQueue.OperationQueue(path=tmp_path.joinpath("qcp.db"))
+    oq.put(op2)
+    oq.put(op1)
+    oq.put(op3)
+
+    o1 = oq.peek()
+    o2 = oq.peek()
+
+    assert o1 == o2

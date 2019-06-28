@@ -3,6 +3,7 @@ from typing import Union, Optional, Dict
 from qcp import Converter
 import json
 import shutil
+import sqlite3
 
 
 class Operation:
@@ -86,7 +87,6 @@ class ConvertOperation(CopyOperation):
 
 class OperationQueue:
     def __init__(self, path='qcp.db') -> None:
-        import sqlite3
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
         self.path = path
 
@@ -138,6 +138,23 @@ class OperationQueue:
         record = cur.fetchall()[0]
         if record[5] != id(self):
             raise AlreadyUnderEvaluationError
+
+        if record[1] == 3:
+            cv = Converter.from_json(record[4])
+            op = ConvertOperation(priority=record[0], src=record[2], dst=record[3], converter=cv)
+        else:
+            op = Operation(priority=record[0], src=record[2], validate=False)
+
+        op.oid = oid
+        return op
+
+    def peek(self, n: int = 1) -> Union[Operation, ConvertOperation]:
+        """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
+        assert isinstance(n, int) and n > 0
+        cur = self.con.cursor()
+        cur.execute("SELECT * from operations ORDER BY priority LIMIT ?", str(n))
+        record = cur.fetchall()[0]
+        oid = record[0].__str__()
 
         if record[1] == 3:
             cv = Converter.from_json(record[4])
