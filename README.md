@@ -1,4 +1,4 @@
-# typhon
+# qcp
 
 A simple but efficient tool for transfering large collections of audio files to mobile devices.
 
