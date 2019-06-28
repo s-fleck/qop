@@ -1,9 +1,37 @@
 import struct
 import json
 from typing import Dict
-
+import tempfile
+from qcp import OperationQueue
+from pathlib import Path
 
 PREHEADER_LEN: int = 2
+
+
+
+class QcpDaemon:
+    port = 54993
+    stats = None  # container that implements transfer statistics
+    queue = None
+
+    def __init__(self, port: int = 54993, queue_path=tempfile.mkstemp(".sqlite3")):
+        self.port =  port
+        self.queue = OperationQueue.OperationQueue(path=queue_path)
+
+    def start(self):
+        pass
+
+    def handle_request(self):
+        pass
+
+    def serve_queue(self, n = 100):
+        pass
+
+    def stop(self):
+        pass
+
+    def new_queue(self, queue_path: Path = tempfile.mkstemp(".sqlite3")):
+        pass
 
 
 class Request:

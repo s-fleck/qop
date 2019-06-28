@@ -88,6 +88,7 @@ class OperationQueue:
     def __init__(self, path='qcp.db') -> None:
         import sqlite3
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
+        self.path = path
 
         cur = self.con.cursor()
         cur.execute("""
