@@ -120,7 +120,7 @@ class OperationQueue:
         cur.execute("INSERT INTO OPERATIONS VALUES (:priority, :type, :src, :dst, :opts, 2, NULL)", dd)
         self.con.commit()
 
-    def get(self) -> Union[Operation, ConvertOperation]:
+    def pop(self) -> Union[Operation, ConvertOperation]:
         """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
         cur = self.con.cursor()
         cur.execute("""

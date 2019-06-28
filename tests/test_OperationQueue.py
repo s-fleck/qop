@@ -133,9 +133,9 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     res = l.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 2 for el in res])
 
-    or1 = l.get()
-    or2 = l.get()
-    or3 = l.get()
+    or1 = l.pop()
+    or2 = l.pop()
+    or3 = l.pop()
     res = l.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 1 for el in res])
     assert or1.serialize() == op1.serialize()
@@ -143,7 +143,7 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     assert or3.serialize() == op3.serialize()
 
     with pytest.raises(IndexError):
-        l.get()
+        l.pop()
 
     l.mark_done(or1)
     l.mark_done(or2)
@@ -166,8 +166,8 @@ def test_ConvertOperation_serializes_properly(tmp_path):
     res = l.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 2 for el in res])
 
-    or1 = l.get()
-    or2 = l.get()
+    or1 = l.pop()
+    or2 = l.pop()
     res = l.con.cursor().execute("SELECT status from operations").fetchall()
     assert all([el[0] == 1 for el in res])
     assert or1.serialize() == op1.serialize()
@@ -175,7 +175,7 @@ def test_ConvertOperation_serializes_properly(tmp_path):
     assert or2.converter.serialize() == op2.converter.serialize()
 
     with pytest.raises(IndexError):
-        l.get()
+        l.pop()
 
     l.mark_done(or1)
     l.mark_done(or2)
