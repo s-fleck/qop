@@ -7,6 +7,8 @@ import sqlite3
 
 
 class Operation:
+    oid = None
+
     def __init__(self, src: Union[Path, str], priority: int = 1, validate: bool = True) -> None:
         self.priority = priority
         self.src = Path(src).resolve()
@@ -34,6 +36,9 @@ class Operation:
     def serialize(self) -> Dict:
         return {"type": 0, "src": self.src.as_posix(), "dst": None, "priority": self.priority}
 
+    def __repr__(self) -> str:
+        return f'NULL {self.src}'
+
     @staticmethod
     def unserialize(op):
         if op[1] == 3:
@@ -55,6 +60,9 @@ class DeleteOperation(Operation):
         else:
             raise
 
+    def __repr__(self) -> str:
+        return f'DEL {self.src}'
+
     def serialize(self) -> Dict:
         return {"type": 1, "src": self.src.as_posix(), "dst": None, "priority": self.priority}
 
@@ -63,6 +71,9 @@ class CopyOperation(Operation):
     def __init__(self, src: Union[Path, str], dst: Union[Path, str], priority: int = 1, validate: bool = True) -> None:
         self.dst = Path(dst).resolve()
         super().__init__(src, priority=priority, validate=validate)
+
+    def __repr__(self) -> str:
+        return f'COPY {self.src} -> {self.dst}'
 
     def validate(self) -> None:
         super().validate()
@@ -82,6 +93,9 @@ class MoveOperation(CopyOperation):
         self.validate()
         shutil.move(self.src, self.dst)
 
+    def __repr__(self) -> str:
+        return f'MOVE {self.src} -> {self.dst}'
+
 
 class ConvertOperation(CopyOperation):
     def __init__(self, src: Union[Path, str], dst: Union[Path, str], converter: Converter, priority: int = 1, validate: bool = True) -> None:
@@ -93,6 +107,9 @@ class ConvertOperation(CopyOperation):
 
     def serialize(self) -> Dict:
         return {"priority": self.priority, "type": 3, "src": self.src.as_posix(), "dst": self.dst.as_posix()}
+
+    def __repr__(self) -> str:
+        return f'CONV {self.src} -> {self.dst}'
 
 
 class OperationQueue:
@@ -114,6 +131,27 @@ class OperationQueue:
         """)
         self.con.commit()
 
+    @property
+    def n_ops(self) -> int:
+        cur = self.con.cursor()
+        return cur.execute("SELECT COUNT(1) from operations").fetchall()[0][0]
+
+    def n_pending(self) -> int:
+        cur = self.con.cursor()
+        return cur.execute("SELECT COUNT(1) FROM operations WHERE status = 0").fetchall()[0][0]
+
+    def n_running(self) -> int:
+        cur = self.con.cursor()
+        return cur.execute("SELECT COUNT(1) FROM operations WHERE status = 1").fetchall()[0][0]
+
+    def n_done(self) -> int:
+        cur = self.con.cursor()
+        return cur.execute("SELECT COUNT(1) from operations WHERE status = 2").fetchall()[0][0]
+
+    def n_failed(self) -> int:
+        cur = self.con.cursor()
+        return cur.execute("SELECT COUNT(1) from operations WHERE status = -1").fetchall()[0][0]
+
     def put(self, op: Union[Operation, ConvertOperation], priority: Optional[int] = None) -> None:
         dd = op.serialize()
 
@@ -127,22 +165,15 @@ class OperationQueue:
         else:
             dd["opts"] = None
 
-        cur.execute("INSERT INTO OPERATIONS VALUES (:priority, :type, :src, :dst, :opts, 2, NULL)", dd)
+        cur.execute("INSERT INTO OPERATIONS VALUES (:priority, :type, :src, :dst, :opts, 0, NULL)", dd)
         self.con.commit()
 
     def pop(self) -> Union[Operation, ConvertOperation]:
         """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
         cur = self.con.cursor()
-        cur.execute("""
-            SELECT _ROWID_ from operations WHERE status = 2 ORDER BY priority LIMIT 1        
-        """)
-        record = cur.fetchall()[0]
-        oid = record[0].__str__()
-        cur.execute(
-            "UPDATE operations SET status = 1, owner = :owner where _ROWID_ = :oid AND status = 2",
-            {"oid": oid, "owner": id(self)},
-        )
-        self.con.commit()
+        cur.execute("SELECT _ROWID_ from operations WHERE status = 0 ORDER BY priority LIMIT 1")
+        oid = cur.fetchall()[0][0].__str__()
+        self.mark_running(oid, id(self))
 
         cur.execute("SELECT priority, type, src, dst, opts, owner FROM operations WHERE _ROWID_ = ?", oid)
         record = cur.fetchall()[0]
@@ -157,7 +188,7 @@ class OperationQueue:
         """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
         assert isinstance(n, int) and n > 0
         cur = self.con.cursor()
-        cur.execute("SELECT * from operations ORDER BY priority LIMIT ?", str(n))
+        cur.execute("SELECT * from operations ORDER BY priority LIMIT ?", (str(n), ))
 
         record = cur.fetchall()[0]
         oid = record[0].__str__()
@@ -172,15 +203,35 @@ class OperationQueue:
         records = cur.fetchall()
         return map(Operation.unserialize, records)
 
-    def mark_done(self, op):
-        """Marks operation as "done" (0)"""
+    def print_queue(self, n: int = 10):
+        q = self.get_queue(n=n)
+        print(f'\nQueue with {self.n_ops} queued Operations')
+        [print(el) for el in q]
+
+    def mark_pending(self, oid: int):
+        """Mark the operation with the _ROWID_ `oid` as "pending" (0)"""
         cur = self.con.cursor()
-        cur.execute("UPDATE operations SET status = 0, owner = NULL where _ROWID_ = ? AND status = 1", op.oid)
+        cur.execute("UPDATE operations SET status = 0, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
-        cur.execute("SELECT status FROM operations WHERE _ROWID_ = ?", op.oid)
-        res = cur.fetchall()
-        assert len(res) == 1
-        assert res[0][0] == 0
+
+    def mark_running(self, oid: int, owner: int):
+        """Mark the operation with the _ROWID_ `oid` as "running" (1). The "owner" Id is to ensure no two processes
+        are trying to execute the same operation"""
+        cur = self.con.cursor()
+        cur.execute("UPDATE operations SET status = 1, owner = ? where _ROWID_ = ?", (owner, oid))
+        self.con.commit()
+
+    def mark_done(self, oid: int) -> None:
+        """Mark the operation with the _ROWID_ `oid` as "done" (2)"""
+        cur = self.con.cursor()
+        cur.execute("UPDATE operations SET status = 2, owner = NULL where _ROWID_ = ?", (oid, ))
+        self.con.commit()
+
+    def mark_failed(self, oid: int) -> None:
+        """Mark the operation with the _ROWID_ `oid` as "failed" (-1)"""
+        cur = self.con.cursor()
+        cur.execute("UPDATE operations SET status = -1, owner = NULL where _ROWID_ = ?", (oid, ))
+        self.con.commit()
 
     def run(self) -> None:
         raise NotImplementedError

@@ -130,7 +130,8 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     oq.put(op3)
 
     res = oq.con.cursor().execute("SELECT status from operations").fetchall()
-    assert all([el[0] == 2 for el in res])
+    assert all([el[0] == 0 for el in res])
+    assert oq.n_ops == 3
 
     or1 = oq.pop()
     or2 = oq.pop()
@@ -144,11 +145,11 @@ def test_OperationQueue_sorts_by_priority(tmp_path):
     with pytest.raises(IndexError):
         oq.pop()
 
-    oq.mark_done(or1)
-    oq.mark_done(or2)
-    oq.mark_done(or3)
+    oq.mark_done(or1.oid)
+    oq.mark_done(or2.oid)
+    oq.mark_done(or3.oid)
     res = oq.con.cursor().execute("SELECT status from operations").fetchall()
-    assert all([el[0] == 0 for el in res])
+    assert all([el[0] == 2 for el in res])
 
 
 def test_ConvertOperation_serializes_properly(tmp_path):
@@ -163,7 +164,7 @@ def test_ConvertOperation_serializes_properly(tmp_path):
     oq.put(op1)
 
     res = oq.con.cursor().execute("SELECT status from operations").fetchall()
-    assert all([el[0] == 2 for el in res])
+    assert all([el[0] == 0 for el in res])
 
     or1 = oq.pop()
     or2 = oq.pop()
@@ -176,10 +177,10 @@ def test_ConvertOperation_serializes_properly(tmp_path):
     with pytest.raises(IndexError):
         oq.pop()
 
-    oq.mark_done(or1)
-    oq.mark_done(or2)
+    oq.mark_done(or1.oid)
+    oq.mark_done(or2.oid)
     res = oq.con.cursor().execute("SELECT status from operations").fetchall()
-    assert all([el[0] == 0 for el in res])
+    assert all([el[0] == 2 for el in res])
 
 
 def test_OperationQueue_peek(tmp_path):
@@ -206,17 +207,22 @@ def test_OperationQueue_get_queue(tmp_path):
     """OperationQueue peek() behaves like pop() but without removing the element from the list"""
 
     op1 = OperationQueue.Operation('one', priority=1, validate=False)
-    op2 = OperationQueue.Operation('two', priority=2, validate=False)
-    op3 = OperationQueue.Operation('three', priority=3, validate=False)
+    op2 = OperationQueue.CopyOperation('two', "2", priority=2, validate=False)
+    op3 = OperationQueue.DeleteOperation('three', priority=3, validate=False)
+
+    print(op1)
+    print(op2)
+    print(op3)
 
     oq = OperationQueue.OperationQueue(path=tmp_path.joinpath("qcp.db"))
     oq.put(op2)
     oq.put(op1)
     oq.put(op3)
 
+    oq.print_queue()
+
     ol = list(oq.get_queue())
 
     assert ol[0].serialize() == op1.serialize()
     assert ol[1].serialize() == op2.serialize()
     assert ol[2].serialize() == op3.serialize()
-
