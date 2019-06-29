@@ -196,5 +196,27 @@ def test_OperationQueue_peek(tmp_path):
 
     o1 = oq.peek()
     o2 = oq.peek()
+    o3 = oq.pop()
 
-    assert o1 == o2
+    assert o1.serialize() == o2.serialize()
+    assert o1.serialize() == o3.serialize()
+
+
+def test_OperationQueue_get_queue(tmp_path):
+    """OperationQueue peek() behaves like pop() but without removing the element from the list"""
+
+    op1 = OperationQueue.Operation('one', priority=1, validate=False)
+    op2 = OperationQueue.Operation('two', priority=2, validate=False)
+    op3 = OperationQueue.Operation('three', priority=3, validate=False)
+
+    oq = OperationQueue.OperationQueue(path=tmp_path.joinpath("qcp.db"))
+    oq.put(op2)
+    oq.put(op1)
+    oq.put(op3)
+
+    ol = list(oq.get_queue())
+
+    assert ol[0].serialize() == op1.serialize()
+    assert ol[1].serialize() == op2.serialize()
+    assert ol[2].serialize() == op3.serialize()
+

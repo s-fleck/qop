@@ -34,6 +34,16 @@ class Operation:
     def serialize(self) -> Dict:
         return {"type": 0, "src": self.src.as_posix(), "dst": None, "priority": self.priority}
 
+    @staticmethod
+    def unserialize(op):
+        if op[1] == 3:
+            cv = Converter.from_json(op[4])
+            res = ConvertOperation(priority=op[0], src=op[2], dst=op[3], converter=cv)
+        else:
+            res = Operation(priority=op[0], src=op[2], validate=False)
+
+        return res
+
 
 class DeleteOperation(Operation):
     def execute(self) -> None:
@@ -139,12 +149,7 @@ class OperationQueue:
         if record[5] != id(self):
             raise AlreadyUnderEvaluationError
 
-        if record[1] == 3:
-            cv = Converter.from_json(record[4])
-            op = ConvertOperation(priority=record[0], src=record[2], dst=record[3], converter=cv)
-        else:
-            op = Operation(priority=record[0], src=record[2], validate=False)
-
+        op = Operation.unserialize(record)
         op.oid = oid
         return op
 
@@ -153,17 +158,19 @@ class OperationQueue:
         assert isinstance(n, int) and n > 0
         cur = self.con.cursor()
         cur.execute("SELECT * from operations ORDER BY priority LIMIT ?", str(n))
+
         record = cur.fetchall()[0]
         oid = record[0].__str__()
-
-        if record[1] == 3:
-            cv = Converter.from_json(record[4])
-            op = ConvertOperation(priority=record[0], src=record[2], dst=record[3], converter=cv)
-        else:
-            op = Operation(priority=record[0], src=record[2], validate=False)
-
+        op = Operation.unserialize(record)
         op.oid = oid
         return op
+
+    def get_queue(self, n: int = 10):
+        assert isinstance(n, int) and n > 0
+        cur = self.con.cursor()
+        cur.execute("SELECT * from operations ORDER BY priority LIMIT ?", (str(n), ))
+        records = cur.fetchall()
+        return map(Operation.unserialize, records)
 
     def mark_done(self, op):
         """Marks operation as "done" (0)"""
