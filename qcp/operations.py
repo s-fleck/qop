@@ -1,15 +1,19 @@
 from pathlib import Path
-from typing import Union, Optional, Dict
-from qcp import Converter
-import json
+from typing import Union, Dict, Optional
 import shutil
+import json
 import sqlite3
+from qcp import converters
+
+
+Pathish = Union[Path, str]
+Converter_ = converters.Converter
 
 
 class Operation:
     oid = None
 
-    def __init__(self, src: Union[Path, str], priority: int = 1, validate: bool = True) -> None:
+    def __init__(self, src: Pathish, priority: int = 1, validate: bool = True) -> None:
         self.priority = priority
         self.src = Path(src).resolve()
         if validate:
@@ -33,21 +37,11 @@ class Operation:
     def __ne__(self, other) -> bool:
         return self.__dict__ != other.__dict__
 
-    def serialize(self) -> Dict:
+    def to_dict(self) -> Dict:
         return {"type": 0, "src": self.src.as_posix(), "dst": None, "priority": self.priority}
 
     def __repr__(self) -> str:
         return f'NULL {self.src}'
-
-    @staticmethod
-    def unserialize(op):
-        if op[1] == 3:
-            cv = Converter.from_json(op[4])
-            res = ConvertOperation(priority=op[0], src=op[2], dst=op[3], converter=cv)
-        else:
-            res = Operation(priority=op[0], src=op[2], validate=False)
-
-        return res
 
 
 class DeleteOperation(Operation):
@@ -63,12 +57,12 @@ class DeleteOperation(Operation):
     def __repr__(self) -> str:
         return f'DEL {self.src}'
 
-    def serialize(self) -> Dict:
+    def to_dict(self) -> Dict:
         return {"type": 1, "src": self.src.as_posix(), "dst": None, "priority": self.priority}
 
 
 class CopyOperation(Operation):
-    def __init__(self, src: Union[Path, str], dst: Union[Path, str], priority: int = 1, validate: bool = True) -> None:
+    def __init__(self, src: Pathish, dst: Pathish, priority: int = 1, validate: bool = True) -> None:
         self.dst = Path(dst).resolve()
         super().__init__(src, priority=priority, validate=validate)
 
@@ -84,7 +78,7 @@ class CopyOperation(Operation):
         self.validate()
         shutil.copy(self.src, self.dst)
 
-    def serialize(self) -> Dict:
+    def to_dict(self) -> Dict:
         return {"type": 2, "src": self.src.as_posix(), "dst": self.dst.as_posix(), "priority": self.priority}
 
 
@@ -98,24 +92,37 @@ class MoveOperation(CopyOperation):
 
 
 class ConvertOperation(CopyOperation):
-    def __init__(self, src: Union[Path, str], dst: Union[Path, str], converter: Converter, priority: int = 1, validate: bool = True) -> None:
+    def __init__(self, src: Pathish, dst: Pathish, converter: Converter_, priority: int = 1, validate: bool = True) -> None:
         super().__init__(src, dst, priority=priority, validate=validate)
         self.converter = converter
 
     def run(self) -> None:
         self.converter.run(self.src, self.dst)
 
-    def serialize(self) -> Dict:
+    def to_dict(self) -> Dict:
         return {"priority": self.priority, "type": 3, "src": self.src.as_posix(), "dst": self.dst.as_posix()}
 
     def __repr__(self) -> str:
         return f'CONV {self.src} -> {self.dst}'
 
 
+Operation_ = Union[Operation, ConvertOperation]
+
+
+def from_dict(op) -> Operation_:
+    if op[1] == 3:
+        cv = converters.from_json(op[4])
+        res = ConvertOperation(priority=op[0], src=op[2], dst=op[3], converter=cv)
+    else:
+        res = Operation(priority=op[0], src=op[2], validate=False)
+
+    return res
+
+
 class OperationQueue:
-    def __init__(self, path='qcp.db') -> None:
+    def __init__(self, path: Pathish = 'qcp.db') -> None:
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
-        self.path = path
+        self.path = Path(path)
 
         cur = self.con.cursor()
         cur.execute("""
@@ -152,8 +159,8 @@ class OperationQueue:
         cur = self.con.cursor()
         return cur.execute("SELECT COUNT(1) from operations WHERE status = -1").fetchall()[0][0]
 
-    def put(self, op: Union[Operation, ConvertOperation], priority: Optional[int] = None) -> None:
-        dd = op.serialize()
+    def put(self, op: Operation_, priority: Optional[int] = None) -> None:
+        dd = op.to_dict()
 
         if priority is not None:
             dd.priority = priority
@@ -161,14 +168,14 @@ class OperationQueue:
         cur = self.con.cursor()
 
         if type(op).__name__ == "ConvertOperation":
-            dd["opts"] = json.dumps(op.converter.serialize())
+            dd["opts"] = json.dumps(op.converter.to_dict())
         else:
             dd["opts"] = None
 
         cur.execute("INSERT INTO OPERATIONS VALUES (:priority, :type, :src, :dst, :opts, 0, NULL)", dd)
         self.con.commit()
 
-    def pop(self) -> Union[Operation, ConvertOperation]:
+    def pop(self) -> Operation_:
         """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
         cur = self.con.cursor()
         cur.execute("SELECT _ROWID_ from operations WHERE status = 0 ORDER BY priority LIMIT 1")
@@ -180,11 +187,11 @@ class OperationQueue:
         if record[5] != id(self):
             raise AlreadyUnderEvaluationError
 
-        op = Operation.unserialize(record)
+        op = from_dict(record)
         op.oid = oid
         return op
 
-    def peek(self, n: int = 1) -> Union[Operation, ConvertOperation]:
+    def peek(self, n: int = 1) -> Operation_:
         """Retrieves Operation object and sets status of Operation in database to "in progress" (1)"""
         assert isinstance(n, int) and n > 0
         cur = self.con.cursor()
@@ -192,7 +199,7 @@ class OperationQueue:
 
         record = cur.fetchall()[0]
         oid = record[0].__str__()
-        op = Operation.unserialize(record)
+        op = from_dict(record)
         op.oid = oid
         return op
 
@@ -201,7 +208,7 @@ class OperationQueue:
         cur = self.con.cursor()
         cur.execute("SELECT * from operations ORDER BY priority LIMIT ?", (str(n), ))
         records = cur.fetchall()
-        return map(Operation.unserialize, records)
+        return map(from_dict, records)
 
     def print_queue(self, n: int = 10):
         q = self.get_queue(n=n)

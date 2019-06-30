@@ -1,9 +1,6 @@
-import shutil
-import pydub
 from pathlib import Path
-from typing import Union, Optional, Generator
-from qcp import Converter
 import re
+
 
 class Scanner:
 

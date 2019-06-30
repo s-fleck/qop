@@ -6,7 +6,7 @@ import json
 
 
 class Converter:
-    def serialize(self) -> Dict:
+    def to_dict(self) -> Dict:
         return {}
 
     def __eq__(self, other) -> bool:
@@ -18,18 +18,20 @@ class Converter:
 
 class CopyConverter(Converter):
     """Dummy converter that only copies a file without any processing"""
+
     def __init__(self) -> None:
         pass
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]):
         shutil.copy(src, dst)
 
-    def serialize(self) -> Dict:
+    def to_dict(self) -> Dict:
         return {"type": 0}
 
 
 class OggConverter(Converter):
     """Convert audio files to ogg vorbis"""
+
     def __init__(self, bitrate: str = "192k") -> None:
         self.bitrate = bitrate
         pass
@@ -40,11 +42,18 @@ class OggConverter(Converter):
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="ogg", bitrate=self.bitrate)
 
-    def serialize(self) -> Dict:
+    def to_dict(self) -> Dict:
         return {"type": 1, "bitrate": self.bitrate}
 
 
-def from_json(s: str) -> Converter:
+Converter_ = Union[Converter, OggConverter]
+
+
+def from_json(s: str) -> Converter_:
+    """
+
+    :rtype: object
+    """
     dd = json.loads(s=s)
 
     if dd["type"] == 0:
@@ -53,3 +62,6 @@ def from_json(s: str) -> Converter:
         return OggConverter(bitrate=dd["bitrate"])
     else:
         raise ImportError("Unknown 'type': {}")
+
+
+

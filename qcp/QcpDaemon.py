@@ -2,11 +2,10 @@ import struct
 import json
 from typing import Dict
 import tempfile
-from qcp import OperationQueue
+from qcp.operations import OperationQueue
 from pathlib import Path
 
 PREHEADER_LEN: int = 2
-
 
 
 class QcpDaemon:
