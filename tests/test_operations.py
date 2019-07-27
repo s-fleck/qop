@@ -156,8 +156,8 @@ def test_ConvertOperation_serializes_properly(tmp_path):
     """ConvertOperations can be inserted into the OperationsQueue"""
     f1 = utils.get_project_root("tests", "test_Converter", "16b.flac")
 
-    op1 = operations.ConvertOperation(f1, 'od', priority=1, validate=False, converter=Converter.CopyConverter())
-    op2 = operations.ConvertOperation(f1, 'td', priority=2, validate=False, converter=Converter.OggConverter())
+    op1 = operations.ConvertOperation(f1, 'od', priority=1, validate=False, converter=converters.CopyConverter())
+    op2 = operations.ConvertOperation(f1, 'td', priority=2, validate=False, converter=converters.OggConverter())
 
     oq = operations.OperationQueue(path=tmp_path.joinpath("qcp.db"))
     oq.put(op2)
@@ -195,34 +195,9 @@ def test_OperationQueue_peek(tmp_path):
     oq.put(op1)
     oq.put(op3)
 
-    o1 = oq.peek()
-    o2 = oq.peek()
-    o3 = oq.pop()
+    o1 = oq.peek().to_dict()
+    o2 = oq.peek().to_dict()
+    o3 = oq.pop().to_dict()
 
-    assert o1.to_dict() == o2.to_dict()
-    assert o1.to_dict() == o3.to_dict()
-
-
-def test_OperationQueue_get_queue(tmp_path):
-    """OperationQueue peek() behaves like pop() but without removing the element from the list"""
-
-    op1 = operations.Operation('one', priority=1, validate=False)
-    op2 = operations.CopyOperation('two', "2", priority=2, validate=False)
-    op3 = operations.DeleteOperation('three', priority=3, validate=False)
-
-    print(op1)
-    print(op2)
-    print(op3)
-
-    oq = operations.OperationQueue(path=tmp_path.joinpath("qcp.db"))
-    oq.put(op2)
-    oq.put(op1)
-    oq.put(op3)
-
-    oq.print_queue()
-
-    ol = list(oq.get_queue())
-
-    assert ol[0].to_dict() == op1.to_dict()
-    assert ol[1].to_dict() == op2.to_dict()
-    assert ol[2].to_dict() == op3.to_dict()
+    assert o1 == o2
+    assert o1 == o3
