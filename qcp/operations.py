@@ -48,6 +48,17 @@ class EchoOperation(Operation):
     def __init__(self,  src: Pathish, priority: int = 1) -> None:
         self.priority = priority
         self.src = Path(src).resolve()
+        super().__init__(src=src, priority=priority, validate=False)
+
+
+class KillOperation(Operation):
+    def __init__(self,  src: Pathish, priority: int = 1) -> None:
+        self.priority = priority
+        self.src = Path(src).resolve()
+        super().__init__(src=src, priority=priority, validate=False)
+
+    def to_dict(self) -> Dict:
+        return {"type": -1, "src": None, "dst": None, "priority": self.priority}
 
 
 class DeleteOperation(Operation):

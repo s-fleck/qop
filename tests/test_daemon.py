@@ -3,7 +3,9 @@ import pytest
 import threading
 import socket
 from qcp import operations
+from pathlib import Path
 
+tmp_path = Path("/tmp")
 
 def test_daemon_can_be_started(tmp_path):
 
@@ -24,6 +26,14 @@ def test_daemon_can_be_started(tmp_path):
     res = daemon.RawMessage(res).decode()
 
     assert(req.__dict__ == res.__dict__)
+
+    req = daemon.Message(operations.KillOperation("").to_dict())
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect(("127.0.0.1", 9393))
+    client.sendall(req.encode())
+    client.close()
+    qcpd_thread.join()
+    qcpd_thread.is_alive()
 
 
 def test_Operation_fails_on_missing_src(tmp_path):

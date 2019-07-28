@@ -31,9 +31,14 @@ class QcpDaemon:
             client, address = server.accept()
             lg.info(f'client connected: {address}')
             req = client.recv(1024)
-            if not req:
-                break
+
             rsp = self.handle_request(req)
+
+            if rsp.body["type"] == -1:
+                lg.debug(f"Kill operation received; shutting down server: {rsp.encode()}")
+                server.close()
+                break
+
             lg.debug(f"message received: {rsp.encode()}")
             client.sendall(rsp.encode())
 
