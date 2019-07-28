@@ -44,6 +44,12 @@ class Operation:
         return f'NULL {self.src}'
 
 
+class EchoOperation(Operation):
+    def __init__(self,  src: Pathish, priority: int = 1) -> None:
+        self.priority = priority
+        self.src = Path(src).resolve()
+
+
 class DeleteOperation(Operation):
     def execute(self) -> None:
         self.validate()

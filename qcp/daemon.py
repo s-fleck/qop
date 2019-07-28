@@ -2,8 +2,10 @@ import struct
 import json
 from typing import Dict
 import tempfile
-from qcp.operations import OperationQueue
+from qcp import operations
 from pathlib import Path
+import logging
+import socket
 
 PREHEADER_LEN: int = 2
 
@@ -14,28 +16,43 @@ class QcpDaemon:
     queue = None
 
     def __init__(self, port: int = 54993, queue_path=tempfile.mkstemp(".sqlite3")):
-        self.port =  port
-        self.queue = OperationQueue.OperationQueue(path=queue_path)
+        self.port = port
+        self.queue_path = queue_path
+        self.new_queue()
 
-    def start(self):
-        pass
+    def start(self, port=9393):
+        lg = logging.getLogger(__name__)
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # ADDRESS_FAMILY: INTERNET (ip4), tcp
+        server.bind(("127.0.0.1", port))
+        server.listen(10)
+        lg.info(f"qcp-daemon listening on port {9393}")
 
-    def handle_request(self):
-        pass
+        while True:
+            client, address = server.accept()
+            lg.info(f'client connected: {address}')
+            req = client.recv(1024)
+            if not req:
+                break
+            rsp = self.handle_request(req)
+            lg.debug(f"message received: {rsp.encode()}")
+            client.sendall(rsp.encode())
 
-    def serve_queue(self, n = 100):
+    def handle_request(self, req):
+        return RawMessage(req).decode()
+
+    def serve_queue(self, n=100):
         pass
 
     def stop(self):
         pass
 
-    def new_queue(self, queue_path: Path = tempfile.mkstemp(".sqlite3")):
-        pass
+    def new_queue(self, queue_path: Path = tempfile.mkstemp(".sqlite3")[1]):
+        self.queue = operations.OperationQueue(path=queue_path)
 
 
-class Request:
+class Message:
     """Container for requests sent to the qcp daemon"""
-    def __init__(self, body) -> None:
+    def __init__(self, body: Dict) -> None:
         assert isinstance(body, dict)
         self.body = body
 
@@ -52,12 +69,18 @@ class Request:
             return header_len + header + body
 
 
-class Response:
+class RawMessage:
     """Container for responses from the qcp daemon"""
 
     def __init__(self, raw) -> None:
         assert isinstance(raw, bytes)
         self.raw: bytes = raw
+
+    def encode(self) -> bytes:
+        return self.raw
+
+    def decode(self) -> Message:
+        return Message(self.body)
 
     @property
     def header_len(self) -> int:
