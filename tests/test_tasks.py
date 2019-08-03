@@ -126,6 +126,12 @@ def test_ConvertTask(tmp_path):
     assert op.dst.exists()
 
 
+def test_from_dict():
+    tsk = tasks.EchoTask("test")
+    assert tsk == tasks.from_dict(tsk.__dict__)
+
+
+
 def test_TaskQueue_sorts_by_priority(tmp_path):
     """tasks are inserted into the TasksQueue by their priority"""
     op1 = tasks.EchoTask('one')
@@ -146,18 +152,24 @@ def test_TaskQueue_sorts_by_priority(tmp_path):
     or3 = oq.pop()
     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
     assert all([el[0] == 1 for el in res])
+
+    # marking an object as done changes is status
+    oq.mark_done(or1.oid)
+    oq.mark_done(or2.oid)
+    oq.mark_done(or3.oid)
+    res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
+    assert all([el[0] == 2 for el in res])
+
+    # object has not changed by serialisation (except for oid attribute)
+    or1.__delattr__("oid")
+    or2.__delattr__("oid")
+    or3.__delattr__("oid")
     assert or1 == op1
     assert or2 == op2
     assert or3 == op3
 
     with pytest.raises(IndexError):
         oq.pop()
-
-    oq.mark_done(or1.oid)
-    oq.mark_done(or2.oid)
-    oq.mark_done(or3.oid)
-    res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
-    assert all([el[0] == 2 for el in res])
 
 
 def test_ConvertTask_serializes_properly(tmp_path):

@@ -20,15 +20,11 @@ class Task:
     def __repr__(self) -> str:
         return 'NULL'
 
+    def __eq__(self, other) -> bool:
+        return self.__dict__ == other.__dict__
 
-class EchoTask(Task):
-    def __init__(self,  msg: str) -> None:
-        self.msg = msg
-        self.type = 1
-        super().__init__()
-
-    def __repr__(self) -> str:
-        return f'Echo: "{self.msg}"'
+    def __ne__(self, other) -> bool:
+        return self.__dict__ != other.__dict__
 
 
 class KillTask(Task):
@@ -40,6 +36,16 @@ class KillTask(Task):
         return 'KILL'
 
 
+class EchoTask(Task):
+    def __init__(self,  msg: str) -> None:
+        super().__init__()
+        self.msg = msg
+        self.type = 1
+
+    def __repr__(self) -> str:
+        return f'Echo: "{self.msg}"'
+
+
 class FileTask(Task):
     def __init__(self, src: Pathish, validate: bool = True) -> None:
         self.src = Path(src)
@@ -47,6 +53,7 @@ class FileTask(Task):
         if validate:
             self.__validate__()
         super().__init__()
+        self.type = 2
 
     def __validate__(self) -> None:
         if not self.src.exists():
@@ -57,8 +64,8 @@ class FileTask(Task):
 
 class DeleteTask(FileTask):
     def __init__(self, src: Pathish, validate: bool = True) -> None:
-        self.type = 2
         super().__init__(src=src, validate=validate)
+        self.type = 3
 
     def run(self):
         os.unlink(self.src)
@@ -69,9 +76,9 @@ class DeleteTask(FileTask):
 
 class CopyTask(FileTask):
     def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
-        self.type = 3
         self.dst = Path(dst)
         super().__init__(src=src, validate=validate)
+        self.type = 4
 
     def __repr__(self) -> str:
         return f'COPY {self.src} -> {self.dst}'
@@ -89,7 +96,7 @@ class CopyTask(FileTask):
 class MoveTask(CopyTask):
     def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
         super().__init__(src=src, dst=dst, validate=validate)
-        self.type = 4
+        self.type = 5
 
     def run(self) -> None:
         super().__validate__()
@@ -103,7 +110,7 @@ class ConvertTask(CopyTask):
     def __init__(self, src: Pathish, dst: Pathish, converter: Converter_, validate: bool = True) -> None:
         super().__init__(src, dst, validate=validate)
         self.converter = converter
-        self.type = 5
+        self.type = 6
 
     def run(self) -> None:
         self.converter.run(self.src, self.dst)
@@ -136,12 +143,12 @@ class TaskQueueElement:
 Task_ = Union[Task, ConvertTask]
 
 
-def from_dict(op) -> Task_:
-    if op[1] == 3:
-        cv = converters.from_json(op[4])
-        res = ConvertTask(priority=op[0], src=op[2], dst=op[3], converter=cv)
-    else:
-        res = Task(priority=op[0], src=op[2], validate=False)
+def from_dict(x) -> Task_:
+    res = {
+        "-1": KillTask(),
+        "0":  Task(),
+        "1":  EchoTask(x["msg"])
+    }[x["type"].__str__()]
 
     return res
 
@@ -199,11 +206,10 @@ class TaskQueue:
 
         cur.execute("SELECT owner, task FROM tasks WHERE _ROWID_ = ?", oid)
         record = cur.fetchall()[0]
-        print(record)
         if record[0] != id(self):
             raise AlreadyUnderEvaluationError
 
-        task = from_dict(record)[1]
+        task = from_dict(json.loads(record[1]))
         task.oid = oid
         return task
 
