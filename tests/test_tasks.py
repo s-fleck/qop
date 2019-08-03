@@ -59,7 +59,7 @@ def test_TaskDelete(tmp_path):
     assert not op.src.exists()
 
 
-def test_TaskCopy(tmp_path):
+def test_CopyTask(tmp_path):
     """TaskCopy copies a file"""
     src = tmp_path.joinpath("foo")
     dst = tmp_path.joinpath("bar")
@@ -73,8 +73,17 @@ def test_TaskCopy(tmp_path):
     assert op.src.exists()
     assert op.dst.exists()
 
+def test_CopyTask_can_be_serialized(tmp_path):
+    """TaskCopy copies a file"""
+    src = tmp_path.joinpath("foo")
+    dst = tmp_path.joinpath("bar")
+    src.touch()
 
-def test_TaskCopy_fails_on_existing_dst(tmp_path):
+    tsk = tasks.CopyTask(src, dst)
+    assert tsk == tasks.from_dict(tsk.__dict__)
+
+
+def test_CopyTask_fails_on_existing_dst(tmp_path):
     """TaskCopy fails if dst file exists"""
     src = tmp_path.joinpath("foo")
     dst = tmp_path.joinpath("bar")
@@ -96,7 +105,7 @@ def test_TaskCopy_fails_on_existing_dst(tmp_path):
         tasks.CopyTask(src, dst)
 
 
-def test_TaskMove(tmp_path):
+def test_MoveTask(tmp_path):
     """TaskMove moves a file"""
     src = tmp_path.joinpath("foo")
     dst = tmp_path.joinpath("bar")
@@ -109,6 +118,16 @@ def test_TaskMove(tmp_path):
     op.run()
     assert not op.src.exists()
     assert op.dst.exists()
+
+
+def test_MoveTask_can_be_serialized(tmp_path):
+    """TaskCopy copies a file"""
+    src = tmp_path.joinpath("foo")
+    dst = tmp_path.joinpath("bar")
+    src.touch()
+
+    tsk = tasks.MoveTask(src, dst)
+    assert tsk == tasks.from_dict(tsk.__dict__)
 
 
 def test_ConvertTask(tmp_path):
@@ -126,10 +145,14 @@ def test_ConvertTask(tmp_path):
     assert op.dst.exists()
 
 
-def test_from_dict():
-    tsk = tasks.EchoTask("test")
-    assert tsk == tasks.from_dict(tsk.__dict__)
+def test_ConvertTask_can_be_serialized(tmp_path):
+    """TaskCopy copies a file"""
+    src = tmp_path.joinpath("foo")
+    dst = tmp_path.joinpath("bar")
+    src.touch()
 
+    tsk = tasks.ConvertTask(src, dst, converters.CopyConverter())
+    assert tsk == tasks.from_dict(tsk.__dict__)
 
 
 def test_TaskQueue_sorts_by_priority(tmp_path):
@@ -176,8 +199,8 @@ def test_ConvertTask_serializes_properly(tmp_path):
     """ConvertTasks can be inserted into the TasksQueue"""
     f1 = utils.get_project_root("tests", "test_Converter", "16b.flac")
 
-    op1 = tasks.ConvertTask(f1, 'od', priority=1, validate=False, converter=converters.CopyConverter())
-    op2 = tasks.ConvertTask(f1, 'td', priority=2, validate=False, converter=converters.OggConverter())
+    op1 = tasks.ConvertTask(f1, 'od', validate=False, converter=converters.CopyConverter())
+    op2 = tasks.ConvertTask(f1, 'td', validate=False, converter=converters.OggConverter())
 
     oq = tasks.TaskQueue(path=tmp_path.joinpath("qcp.db"))
     oq.put(op2)

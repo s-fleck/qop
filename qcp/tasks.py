@@ -48,12 +48,12 @@ class EchoTask(Task):
 
 class FileTask(Task):
     def __init__(self, src: Pathish, validate: bool = True) -> None:
-        self.src = Path(src)
+        super().__init__()
         self.validate = validate
+        self.src = Path(src)
+        self.type = 2
         if validate:
             self.__validate__()
-        super().__init__()
-        self.type = 2
 
     def __validate__(self) -> None:
         if not self.src.exists():
@@ -76,9 +76,12 @@ class DeleteTask(FileTask):
 
 class CopyTask(FileTask):
     def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
+        super().__init__(src=src, validate=False)
         self.dst = Path(dst)
-        super().__init__(src=src, validate=validate)
         self.type = 4
+        self.validate = validate
+        if validate:
+            self.__validate__()
 
     def __repr__(self) -> str:
         return f'COPY {self.src} -> {self.dst}'
@@ -144,13 +147,27 @@ Task_ = Union[Task, ConvertTask]
 
 
 def from_dict(x) -> Task_:
-    res = {
-        "-1": KillTask(),
-        "0":  Task(),
-        "1":  EchoTask(x["msg"])
-    }[x["type"].__str__()]
 
-    return res
+    task_type = x["type"]
+
+    if task_type == -1:
+        return KillTask()
+    elif task_type == 0:
+        return Task()
+    elif task_type == 1:
+        return EchoTask(x["msg"])
+    elif task_type == 2:
+        return FileTask(x["src"])
+    elif task_type == 3:
+        return DeleteTask(x["src"])
+    elif task_type == 4:
+        return CopyTask(x["src"], x["dst"])
+    elif task_type == 5:
+        return MoveTask(x["src"], x["dst"])
+    elif task_type == 6:
+        raise NotImplementedError
+    else:
+        raise ValueError
 
 
 class TaskQueue:
