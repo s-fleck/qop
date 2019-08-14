@@ -229,18 +229,43 @@ def test_ConvertTask_serializes_properly(tmp_path):
 def test_TaskQueue_peek(tmp_path):
     """TaskQueue peek() behaves like pop() but without removing the element from the list"""
 
-    op1 = tasks.Task('one', priority=1, validate=False)
-    op2 = tasks.Task('two', priority=2, validate=False)
-    op3 = tasks.Task('three', priority=3, validate=False)
+    op1 = tasks.EchoTask('one')
+    op2 = tasks.EchoTask('two')
+    op3 = tasks.EchoTask('three')
 
     oq = tasks.TaskQueue(path=tmp_path.joinpath("qcp.db"))
-    oq.put(op2)
-    oq.put(op1)
-    oq.put(op3)
+    oq.put(op2, 1)
+    oq.put(op1, 1)
+    oq.put(op3, 3)
 
-    o1 = oq.peek().to_dict()
-    o2 = oq.peek().to_dict()
-    o3 = oq.pop().to_dict()
+    o1 = oq.peek().task.__dict__
+    o2 = oq.peek().task.__dict__
+    o3 = oq.pop().task.__dict__
 
     assert o1 == o2
     assert o1 == o3
+
+
+def test_TaskQueue(tmp_path):
+    """TaskQueue run example"""
+    src = tmp_path.joinpath("foo")
+    src.touch()
+
+    q = tasks.TaskQueue(tmp_path.joinpath("qcp.db"))
+    q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
+    q.run(1)
+    assert tmp_path.joinpath("copied_file").is_file()
+    q.put(tasks.MoveTask(tmp_path.joinpath("copied_file"), tmp_path.joinpath("moved_file")))
+    q.run(1)
+    assert not tmp_path.joinpath("copied_file").is_file()
+    assert tmp_path.joinpath("moved_file").is_file()
+    q.put(tasks.DeleteTask(tmp_path.joinpath("moved_file")))
+    q.run(1)
+    assert not tmp_path.joinpath("moved_file").is_file()
+
+    assert src.is_file()
+
+
+
+
+

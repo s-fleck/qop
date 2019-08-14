@@ -8,6 +8,8 @@ from qcp import converters
 
 
 Pathish = Union[Path, str]
+
+
 Converter_ = converters.Converter
 
 
@@ -16,6 +18,30 @@ class Task:
 
     def __init__(self) -> None:
         self.type = 0
+
+    @staticmethod
+    def from_dict(x, validate: bool = False) -> Union["Task", "ConvertTask"]:
+
+        task_type = x["type"]
+
+        if task_type == -1:
+            return KillTask()
+        elif task_type == 0:
+            return Task()
+        elif task_type == 1:
+            return EchoTask(x["msg"])
+        elif task_type == 2:
+            return FileTask(x["src"], validate=validate)
+        elif task_type == 3:
+            return DeleteTask(x["src"], validate=validate)
+        elif task_type == 4:
+            return CopyTask(x["src"], x["dst"], validate=validate)
+        elif task_type == 5:
+            return MoveTask(x["src"], x["dst"], validate=validate)
+        elif task_type == 6:
+            raise NotImplementedError
+        else:
+            raise ValueError
 
     def __repr__(self) -> str:
         return 'NULL'
@@ -42,6 +68,9 @@ class EchoTask(Task):
         self.msg = msg
         self.type = 1
 
+    def run(self) -> None:
+        print(self.msg)
+
     def __repr__(self) -> str:
         return f'Echo: "{self.msg}"'
 
@@ -50,16 +79,16 @@ class FileTask(Task):
     def __init__(self, src: Pathish, validate: bool = True) -> None:
         super().__init__()
         self.validate = validate
-        self.src = Path(src)
+        self.src = Path(src).as_posix()
         self.type = 2
         if validate:
             self.__validate__()
 
     def __validate__(self) -> None:
-        if not self.src.exists():
+        if not Path(self.src).exists():
             raise FileNotFoundError(f'{self.src} does not exist')
-        elif not (self.src.is_dir() or self.src.is_file()):
-            raise TypeError(f'{self.src.as_posix()} is neither a file nor directory')
+        elif not (Path(self.src).is_dir() or Path(self.src).is_file()):
+            raise TypeError(f'{self.src} is neither a file nor directory')
 
 
 class DeleteTask(FileTask):
@@ -77,7 +106,7 @@ class DeleteTask(FileTask):
 class CopyTask(FileTask):
     def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
         super().__init__(src=src, validate=False)
-        self.dst = Path(dst)
+        self.dst = Path(dst).as_posix()
         self.type = 4
         self.validate = validate
         if validate:
@@ -88,7 +117,7 @@ class CopyTask(FileTask):
 
     def __validate__(self) -> None:
         super().__validate__()
-        if self.dst.exists():
+        if Path(self.dst).exists():
             raise FileExistsError
 
     def run(self) -> None:
@@ -141,35 +170,6 @@ class TaskQueueElement:
         return self.__dict__ != other.__dict__
 
 
-
-
-Task_ = Union[Task, ConvertTask]
-
-
-def from_dict(x) -> Task_:
-
-    task_type = x["type"]
-
-    if task_type == -1:
-        return KillTask()
-    elif task_type == 0:
-        return Task()
-    elif task_type == 1:
-        return EchoTask(x["msg"])
-    elif task_type == 2:
-        return FileTask(x["src"])
-    elif task_type == 3:
-        return DeleteTask(x["src"])
-    elif task_type == 4:
-        return CopyTask(x["src"], x["dst"])
-    elif task_type == 5:
-        return MoveTask(x["src"], x["dst"])
-    elif task_type == 6:
-        raise NotImplementedError
-    else:
-        raise ValueError
-
-
 class TaskQueue:
     def __init__(self, path: Pathish = 'qcp.db') -> None:
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
@@ -207,14 +207,14 @@ class TaskQueue:
         cur = self.con.cursor()
         return cur.execute("SELECT COUNT(1) from tasks WHERE status = -1").fetchall()[0][0]
 
-    def put(self, task: Task_, priority: Optional[int] = None) -> None:
+    def put(self, task: "Task", priority: Optional[int] = None) -> None:
         cur = self.con.cursor()
         cur.execute(
             "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, json.dumps(task.__dict__), 0)
         )
         self.con.commit()
 
-    def pop(self) -> Task_:
+    def pop(self) -> "Task_":
         """Retrieves Task object and sets status of Task in database to "in progress" (1)"""
         cur = self.con.cursor()
         cur.execute("SELECT _ROWID_ from tasks WHERE status = 0 ORDER BY priority LIMIT 1")
@@ -226,20 +226,19 @@ class TaskQueue:
         if record[0] != id(self):
             raise AlreadyUnderEvaluationError
 
-        task = from_dict(json.loads(record[1]))
+        task = Task.from_dict(json.loads(record[1]))
         task.oid = oid
         return task
 
-    def peek(self, n: int = 1) -> Task_:
+    def peek(self, n: int = 1) -> "Task":
         """Retrieves Task object and sets status of Task in database to "in progress" (1)"""
         assert isinstance(n, int) and n > 0
         assert n == 1  # currently only 1 is supported
         cur = self.con.cursor()
         cur.execute("SELECT * from tasks ORDER BY priority LIMIT ?", (str(n), ))
-
         record = cur.fetchall()[0]
         oid = record[0].__str__()
-        task = from_dict(record)
+        task = Task.from_dict(json.loads(record[1]), validate = False)
         task.oid = oid
         return task
 
@@ -248,7 +247,7 @@ class TaskQueue:
         cur = self.con.cursor()
         cur.execute("SELECT * from tasks ORDER BY priority LIMIT ?", (str(n), ))
         records = cur.fetchall()
-        return map(from_dict, records)
+        return map(Task.from_dict, records)
 
     def print_queue(self, n: int = 10):
         q = self.get_queue(n=n)
@@ -280,8 +279,13 @@ class TaskQueue:
         cur.execute("UPDATE tasks SET status = -1, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
 
-    def run(self) -> None:
-        raise NotImplementedError
+    def run(self, n: Union[int, None]) -> None:
+        if self.n_ops < 1:
+            raise ValueError("Queue is empty")
+
+        op = self.pop()
+        op.run()
+        self.mark_done(op.oid)
 
 
 class AlreadyUnderEvaluationError(Exception):
