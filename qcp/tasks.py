@@ -1,27 +1,28 @@
 from pathlib import Path
-from typing import Union, Dict, Optional
+from typing import Union, Optional
 import shutil
 import os
 import json
 import sqlite3
-from qcp import converters
 
+import logging
 
 Pathish = Union[Path, str]
 
 
-Converter_ = converters.Converter
-
-
 class Task:
-    oid = None
+    """Abstract class for qcp Tasks. Should not be instantiated directly."""
 
     def __init__(self) -> None:
         self.type = 0
 
-    @staticmethod
-    def from_dict(x, validate: bool = False) -> Union["Task", "ConvertTask"]:
+    def run(self) -> None:
+        """Run the Task"""
+        pass
 
+    @staticmethod
+    def from_dict(x, validate: bool = False) -> "Task":
+        """Create a Task of the appropriate subclass from a python dict"""
         task_type = x["type"]
 
         if task_type == -1:
@@ -54,15 +55,20 @@ class Task:
 
 
 class KillTask(Task):
+    """Kill the qcp server"""
     def __init__(self) -> None:
         self.type = -1
         super().__init__()
+
+    def run(self) -> None:
+        raise NotImplementedError
 
     def __repr__(self) -> str:
         return 'KILL'
 
 
 class EchoTask(Task):
+    """Log a message"""
     def __init__(self,  msg: str) -> None:
         super().__init__()
         self.msg = msg
@@ -76,6 +82,7 @@ class EchoTask(Task):
 
 
 class FileTask(Task):
+    """Abstract class for all file-based tasks"""
     def __init__(self, src: Pathish, validate: bool = True) -> None:
         super().__init__()
         self.validate = validate
@@ -92,11 +99,12 @@ class FileTask(Task):
 
 
 class DeleteTask(FileTask):
+    """Delete a file"""
     def __init__(self, src: Pathish, validate: bool = True) -> None:
         super().__init__(src=src, validate=validate)
         self.type = 3
 
-    def run(self):
+    def run(self) -> None:
         os.unlink(self.src)
 
     def __repr__(self) -> str:
@@ -104,6 +112,7 @@ class DeleteTask(FileTask):
 
 
 class CopyTask(FileTask):
+    """Copy a file"""
     def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
         super().__init__(src=src, validate=False)
         self.dst = Path(dst).as_posix()
@@ -126,6 +135,7 @@ class CopyTask(FileTask):
 
 
 class MoveTask(CopyTask):
+    """Move a file"""
     def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
         super().__init__(src=src, dst=dst, validate=validate)
         self.type = 5
@@ -138,23 +148,15 @@ class MoveTask(CopyTask):
         return f'MOVE {self.src} -> {self.dst}'
 
 
-class ConvertTask(CopyTask):
-    def __init__(self, src: Pathish, dst: Pathish, converter: Converter_, validate: bool = True) -> None:
-        super().__init__(src, dst, validate=validate)
-        self.converter = converter
-        self.type = 6
-
-    def run(self) -> None:
-        self.converter.run(self.src, self.dst)
-
-    def __repr__(self) -> str:
-        return f'CONV {self.src} -> {self.dst}'
-
-
 class TaskQueueElement:
-    def __init__(self, task: Task, priority: 1):
+    """An enqueued Task"""
+
+    task = None  #: A Task
+    status = None  #: Status of the queued Task
+    priority = None  #: Priority of the queued Task
+
+    def __init__(self, task: Task, priority: 1) -> None:
         self.task = task
-        self.status = None
         self.priority = priority
 
     def __lt__(self, other) -> bool:
@@ -171,7 +173,15 @@ class TaskQueueElement:
 
 
 class TaskQueue:
+    """A prioritzed queue for tasks"""
     def __init__(self, path: Pathish = 'qcp.db') -> None:
+        """
+        Instantiate a TaskQueue
+
+        :param path: Path to store the persistent queue
+        :type path: Path or str
+        """
+
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
         self.path = Path(path)
 
@@ -187,35 +197,58 @@ class TaskQueue:
         self.con.commit()
 
     @property
-    def n_ops(self) -> int:
+    def n_total(self) -> int:
+        """Count of all tasks in queue (including failed and completed)"""
         cur = self.con.cursor()
         return cur.execute("SELECT COUNT(1) from tasks").fetchall()[0][0]
 
+    @property
     def n_pending(self) -> int:
+        """Number of pending tasks"""
         cur = self.con.cursor()
         return cur.execute("SELECT COUNT(1) FROM tasks WHERE status = 0").fetchall()[0][0]
 
+    @property
     def n_running(self) -> int:
+        """Count of currently running tasks"""
         cur = self.con.cursor()
         return cur.execute("SELECT COUNT(1) FROM tasks WHERE status = 1").fetchall()[0][0]
 
+    @property
     def n_done(self) -> int:
+        """count of completed tasks"""
         cur = self.con.cursor()
         return cur.execute("SELECT COUNT(1) from tasks WHERE status = 2").fetchall()[0][0]
 
+    @property
     def n_failed(self) -> int:
+        """count of completed tasks"""
         cur = self.con.cursor()
         return cur.execute("SELECT COUNT(1) from tasks WHERE status = -1").fetchall()[0][0]
 
     def put(self, task: "Task", priority: Optional[int] = None) -> None:
+        """
+        Enqueue a task
+
+        :param task: Task to be added to the queue
+        :type task: Task
+        :param priority: (optional) priority for executing `task` (tasks with lower priority will be executed earlier)
+        :type priority: int
+        """
+
         cur = self.con.cursor()
         cur.execute(
             "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, json.dumps(task.__dict__), 0)
         )
         self.con.commit()
 
-    def pop(self) -> "Task_":
-        """Retrieves Task object and sets status of Task in database to "in progress" (1)"""
+    def pop(self) -> "Task":
+        """
+        Retrieves Task object and sets status of Task in database to "in progress" (1)
+
+        :raises AlreadyUnderEvaluationError: If trying to pop a tasks that is already being processed  (i.e. if a race
+        condition occurs if the queue is processed in parallel)
+        """
         cur = self.con.cursor()
         cur.execute("SELECT _ROWID_ from tasks WHERE status = 0 ORDER BY priority LIMIT 1")
         oid = cur.fetchall()[0][0].__str__()
@@ -230,62 +263,86 @@ class TaskQueue:
         task.oid = oid
         return task
 
-    def peek(self, n: int = 1) -> "Task":
-        """Retrieves Task object and sets status of Task in database to "in progress" (1)"""
-        assert isinstance(n, int) and n > 0
-        assert n == 1  # currently only 1 is supported
+    def peek(self) -> "Task":
+        """
+        Retrieves Task object without changing its status in the queue
+        """
         cur = self.con.cursor()
-        cur.execute("SELECT * from tasks ORDER BY priority LIMIT ?", (str(n), ))
+        cur.execute("SELECT * from tasks ORDER BY priority LIMIT 1")
         record = cur.fetchall()[0]
         oid = record[0].__str__()
-        task = Task.from_dict(json.loads(record[1]), validate = False)
+        task = Task.from_dict(json.loads(record[1]), validate=False)
         task.oid = oid
         return task
 
-    def get_queue(self, n: int = 10):
+    def print(self, n: int = 10) -> None:
+        """
+        Print an overview of the queue
+
+        :param n: number of tasks to preview
+        :type n: int
+        """
         assert isinstance(n, int) and n > 0
         cur = self.con.cursor()
-        cur.execute("SELECT * from tasks ORDER BY priority LIMIT ?", (str(n), ))
+        cur.execute("SELECT status, task from tasks ORDER BY priority LIMIT ?", (str(n), ))
         records = cur.fetchall()
-        return map(Task.from_dict, records)
+        for record in records:
+            print(f"[{record[0]}] {Task.from_dict(json.loads(record[1]))}")
 
-    def print_queue(self, n: int = 10):
-        q = self.get_queue(n=n)
-        print(f'\nQueue with {self.n_ops} queued Tasks')
-        [print(el) for el in q]
+    def mark_pending(self, oid: int) -> None:
+        """
+        Mark the operation with the _ROWID_ `oid` as "pending" (0)
 
-    def mark_pending(self, oid: int):
-        """Mark the operation with the _ROWID_ `oid` as "pending" (0)"""
+        :param oid: ID of the task to mark
+        :type oid: int
+        """
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 0, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
 
-    def mark_running(self, oid: int, owner: int):
+    def mark_running(self, oid: int, owner: int) -> None:
         """Mark the operation with the _ROWID_ `oid` as "running" (1). The "owner" Id is to ensure no two processes
-        are trying to execute the same operation"""
+        are trying to execute the same operation
+
+        :param oid: ID of the task to mark
+        :type oid: int
+        :param owner: Id of the process that is handling the operation
+        :type owner: int
+        """
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 1, owner = ? where _ROWID_ = ?", (owner, oid))
         self.con.commit()
 
     def mark_done(self, oid: int) -> None:
-        """Mark the operation with the _ROWID_ `oid` as "done" (2)"""
+        """
+        Mark the operation with the _ROWID_ `oid` as "done" (2)
+        :param oid: ID of the task to mark
+        :type oid: int
+        """
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 2, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
 
     def mark_failed(self, oid: int) -> None:
-        """Mark the operation with the _ROWID_ `oid` as "failed" (-1)"""
+        """
+        Mark the operation with the _ROWID_ `oid` as "failed" (-1)
+
+        :param oid: ID of the task to mark
+        :type oid: int
+        """
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = -1, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
 
-    def run(self, n: Union[int, None]) -> None:
-        if self.n_ops < 1:
-            raise ValueError("Queue is empty")
+    def run(self) -> None:
+        """Execute all pending tasks"""
+        if self.n_pending < 1:
+            logging.getLogger().warn("Queue is empty")
 
-        op = self.pop()
-        op.run()
-        self.mark_done(op.oid)
+        while self.n_pending > 0:
+            op = self.pop()
+            op.run()
+            self.mark_done(op.oid)
 
 
 class AlreadyUnderEvaluationError(Exception):

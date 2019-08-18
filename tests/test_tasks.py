@@ -168,7 +168,7 @@ def test_TaskQueue_sorts_by_priority(tmp_path):
 
     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
     assert all([el[0] == 0 for el in res])
-    assert oq.n_ops == 3
+    assert oq.n_total == 3
 
     or1 = oq.pop()
     or2 = oq.pop()
@@ -238,31 +238,30 @@ def test_TaskQueue_peek(tmp_path):
     oq.put(op1, 1)
     oq.put(op3, 3)
 
-    o1 = oq.peek().task.__dict__
-    o2 = oq.peek().task.__dict__
-    o3 = oq.pop().task.__dict__
+    o1 = oq.peek().__dict__
+    o2 = oq.peek().__dict__
+    o3 = oq.pop().__dict__
 
     assert o1 == o2
     assert o1 == o3
 
 
 def test_TaskQueue(tmp_path):
-    """TaskQueue run example"""
+    """TaskQueue can queue and execute tasks"""
     src = tmp_path.joinpath("foo")
     src.touch()
 
     q = tasks.TaskQueue(tmp_path.joinpath("qcp.db"))
     q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
-    q.run(1)
+    q.run()
     assert tmp_path.joinpath("copied_file").is_file()
     q.put(tasks.MoveTask(tmp_path.joinpath("copied_file"), tmp_path.joinpath("moved_file")))
-    q.run(1)
+    q.run()
     assert not tmp_path.joinpath("copied_file").is_file()
     assert tmp_path.joinpath("moved_file").is_file()
     q.put(tasks.DeleteTask(tmp_path.joinpath("moved_file")))
-    q.run(1)
+    q.run()
     assert not tmp_path.joinpath("moved_file").is_file()
-
     assert src.is_file()
 
 
