@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, Dict, Tuple, List
 import shutil
 import os
 import json
@@ -17,13 +17,16 @@ class Task:
         self.type = 0
 
     def run(self) -> None:
-        """Run the Task"""
-        pass
+        """Run a task"""
+        raise NotImplementedError
 
     @staticmethod
-    def from_dict(x, validate: bool = False) -> "Task":
+    def from_dict(x: Dict, validate: Optional[bool] = None) -> "Task":
         """Create a Task of the appropriate subclass from a python dict"""
         task_type = x["type"]
+
+        if validate is None and "validate" in x.keys():
+            validate = x["validate"]
 
         if task_type == -1:
             return KillTask()
@@ -59,9 +62,6 @@ class KillTask(Task):
     def __init__(self) -> None:
         self.type = -1
         super().__init__()
-
-    def run(self) -> None:
-        raise NotImplementedError
 
     def __repr__(self) -> str:
         return 'KILL'
@@ -275,19 +275,58 @@ class TaskQueue:
         task.oid = oid
         return task
 
-    def print(self, n: int = 10) -> None:
+    def print(self, status: Union[Tuple, int, None] = None, n: int = 10) -> None:
         """
         Print an overview of the queue
 
-        :param n: number of tasks to preview
+        :param n: number of tasks to fetch
         :type n: int
+        :param status: If not None, only fetch Tasks of the given status(es)
+        :type status: `int`, `None` or a `tuple` of `int`
         """
-        assert isinstance(n, int) and n > 0
-        cur = self.con.cursor()
-        cur.execute("SELECT status, task from tasks ORDER BY priority LIMIT ?", (str(n), ))
-        records = cur.fetchall()
+        assert isinstance(n, int) and (n > 0)
+        records = self.fetch(n=n, status=status)
         for record in records:
             print(f"[{record[0]}] {Task.from_dict(json.loads(record[1]))}")
+
+    def fetch(self, status: Union[Tuple, int, None], n: Optional[int] = None) -> List:
+        """
+        Print an overview of the queue
+
+        :param n: number of tasks to fetch
+        :type n: int
+        :param status: If not None, only fetch Tasks of the given status(es)
+        :type status: `int`, `None` or a `tuple` of `int`
+
+        :return a dict containing n queued tasks
+        """
+        cur = self.con.cursor()
+
+        if isinstance(status, int):
+            status = (status, )
+
+        if status:
+            if n:
+                cur.execute(
+                    f"SELECT status, task FROM tasks "
+                    f"WHERE status IN ({','.join(['?' for x in status])}) "
+                    f"ORDER BY priority LIMIT ?",
+                    status + (n,)
+                )
+            else:
+                cur.execute(
+                    f"SELECT status, task FROM tasks "
+                    f"WHERE status IN ({','.join(['?' for x in status])})" 
+                    "ORDER BY priority",
+                    status
+                )
+        else:
+            if n:
+                cur.execute("SELECT status, task from tasks ORDER BY priority LIMIT ?", (str(n), ))
+            else:
+                cur.execute("SELECT status, task from tasks ORDER BY priority")
+
+        return cur.fetchall()
 
     def mark_pending(self, oid: int) -> None:
         """

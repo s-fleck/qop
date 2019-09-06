@@ -1,4 +1,5 @@
 from qcp import utils, tasks, converters
+from pathlib import Path
 import pytest
 
 
@@ -54,9 +55,9 @@ def test_TaskDelete(tmp_path):
     src.touch()
 
     op = tasks.DeleteTask(src)
-    assert op.src.exists()
+    assert Path(op.src).exists()
     op.run()
-    assert not op.src.exists()
+    assert not Path(op.src).exists()
 
 
 def test_CopyTask(tmp_path):
@@ -67,11 +68,12 @@ def test_CopyTask(tmp_path):
 
     op = tasks.CopyTask(src, dst)
 
-    assert op.src.exists()
-    assert not op.dst.exists()
+    assert Path(op.src).exists()
+    assert not Path(op.dst).exists()
     op.run()
-    assert op.src.exists()
-    assert op.dst.exists()
+    assert Path(op.src).exists()
+    assert Path(op.dst).exists()
+
 
 def test_CopyTask_can_be_serialized(tmp_path):
     """TaskCopy copies a file"""
@@ -80,7 +82,8 @@ def test_CopyTask_can_be_serialized(tmp_path):
     src.touch()
 
     tsk = tasks.CopyTask(src, dst)
-    assert tsk == tasks.from_dict(tsk.__dict__)
+    # validate gets overwritten by from_dict
+    assert tsk == tasks.Task.from_dict(tsk.__dict__)
 
 
 def test_CopyTask_fails_on_existing_dst(tmp_path):
@@ -113,11 +116,11 @@ def test_MoveTask(tmp_path):
 
     op = tasks.MoveTask(src, dst)
 
-    assert op.src.exists()
-    assert not op.dst.exists()
+    assert Path(op.src).exists()
+    assert not Path(op.dst).exists()
     op.run()
-    assert not op.src.exists()
-    assert op.dst.exists()
+    assert not Path(op.src).exists()
+    assert Path(op.dst).exists()
 
 
 def test_MoveTask_can_be_serialized(tmp_path):
@@ -127,32 +130,34 @@ def test_MoveTask_can_be_serialized(tmp_path):
     src.touch()
 
     tsk = tasks.MoveTask(src, dst)
-    assert tsk == tasks.from_dict(tsk.__dict__)
 
+    # validate field gets overwritten by from_dict
+    assert tsk == tasks.Task.from_dict(tsk.__dict__, validate=True)
 
-def test_ConvertTask(tmp_path):
-    """Dummy CopyConverter just copies a file"""
-    src = tmp_path.joinpath("foo")
-    dst = tmp_path.joinpath("bar")
-    src.touch()
-
-    op = tasks.ConvertTask(src, dst, converters.CopyConverter())
-
-    assert op.src.exists()
-    assert not op.dst.exists()
-    op.run()
-    assert op.src.exists()
-    assert op.dst.exists()
-
-
-def test_ConvertTask_can_be_serialized(tmp_path):
-    """TaskCopy copies a file"""
-    src = tmp_path.joinpath("foo")
-    dst = tmp_path.joinpath("bar")
-    src.touch()
-
-    tsk = tasks.ConvertTask(src, dst, converters.CopyConverter())
-    assert tsk == tasks.from_dict(tsk.__dict__)
+#
+# def test_ConvertTask(tmp_path):
+#     """Dummy CopyConverter just copies a file"""
+#     src = tmp_path.joinpath("foo")
+#     dst = tmp_path.joinpath("bar")
+#     src.touch()
+#
+#     op = tasks.ConvertTask(src, dst, converters.CopyConverter())
+#
+#     assert op.src.exists()
+#     assert not op.dst.exists()
+#     op.run()
+#     assert op.src.exists()
+#     assert op.dst.exists()
+#
+#
+# def test_ConvertTask_can_be_serialized(tmp_path):
+#     """TaskCopy copies a file"""
+#     src = tmp_path.joinpath("foo")
+#     dst = tmp_path.joinpath("bar")
+#     src.touch()
+#
+#     tsk = tasks.ConvertTask(src, dst, converters.CopyConverter())
+#     assert tsk == tasks.from_dict(tsk.__dict__)
 
 
 def test_TaskQueue_sorts_by_priority(tmp_path):
@@ -263,6 +268,27 @@ def test_TaskQueue(tmp_path):
     q.run()
     assert not tmp_path.joinpath("moved_file").is_file()
     assert src.is_file()
+
+
+def test_TaskQueue_fetch(tmp_path):
+    """TaskQueue can queue and execute tasks"""
+    src = tmp_path.joinpath("foo")
+    src.touch()
+
+    q = tasks.TaskQueue(tmp_path.joinpath("qcp.db"))
+    q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
+    q.put(tasks.DeleteTask(tmp_path.joinpath("copied_file"), validate=False))
+    q.put(tasks.DeleteTask(tmp_path.joinpath("foo")))
+
+    assert len(q.fetch(status=None, n=5)) == 3
+    assert len(q.fetch(status=(0, 1), n=3)) == 3
+    assert len(q.fetch(status=None, n=None)) == 3
+    assert len(q.fetch(status=(0,), n=None)) == 3
+
+    q.run()
+    assert len(q.fetch(status=None, n=5)) == 3
+    assert len(q.fetch(status=0, n=5)) == 0
+    assert len(q.fetch(status=2, n=5)) == 3
 
 
 
