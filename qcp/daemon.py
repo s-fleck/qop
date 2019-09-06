@@ -1,8 +1,8 @@
 import struct
 import json
-from typing import Dict
+from typing import Dict, Union
 import tempfile
-from qcp import operations
+from qcp import tasks
 from pathlib import Path
 import logging
 import socket
@@ -35,7 +35,7 @@ class QcpDaemon:
             rsp = self.handle_request(req)
 
             if rsp.body["type"] == -1:
-                lg.debug(f"Kill operation received; shutting down server: {rsp.encode()}")
+                lg.debug(f"Kill Task received; shutting down server: {rsp.encode()}")
                 server.close()
                 break
 
@@ -52,13 +52,17 @@ class QcpDaemon:
         pass
 
     def new_queue(self, queue_path: Path = tempfile.mkstemp(".sqlite3")[1]):
-        self.queue = operations.OperationQueue(path=queue_path)
+        self.queue = tasks.TaskQueue(path=queue_path)
 
 
 class Message:
     """Container for requests sent to the qcp daemon"""
-    def __init__(self, body: Dict) -> None:
-        assert isinstance(body, dict)
+    def __init__(self, body: Union[Dict, tasks.Task]) -> None:
+        if isinstance(body, tasks.Task):
+            body = body.__dict__
+        else:
+            assert isinstance(body, dict)
+
         self.body = body
 
     def encode(self) -> bytes:
@@ -72,6 +76,9 @@ class Message:
             header_len: bytes = struct.pack("!H", len(header))  # network-endianess, unsigned long integer (4 bytes)
 
             return header_len + header + body
+
+    def __repr__(self) -> str:
+        return f"Message: {self.body.__repr__()}"
 
 
 class RawMessage:
@@ -107,3 +114,7 @@ class RawMessage:
     @property
     def body(self) -> Dict:
         return json.loads(self._body.decode("utf-8"))
+
+    def __repr__(self) -> str:
+        return f"RawMessage: {self.decode().__repr__()}"
+
