@@ -60,8 +60,8 @@ class Task:
 class KillTask(Task):
     """Kill the qcp server"""
     def __init__(self) -> None:
-        self.type = -1
         super().__init__()
+        self.type = -1
 
     def __repr__(self) -> str:
         return 'KILL'
