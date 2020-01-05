@@ -17,32 +17,46 @@ class QcpDaemon:
 
     def __init__(self, port: int = 54993, queue_path=tempfile.mkstemp(".sqlite3")):
         self.port = port
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
         self.queue_path = queue_path
         self.new_queue()
 
-    def start(self, port=9393):
+    def __enter__(self):
+        self._socket.bind(("127.0.0.1", self.port))
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        self._socket.shutdown(socket.SHUT_RDWR)
+        self._socket.close()
         lg = logging.getLogger(__name__)
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # ADDRESS_FAMILY: INTERNET (ip4), tcp
-        server.bind(("127.0.0.1", port))
-        server.listen(10)
-        lg.info(f"qcp-daemon listening on port {9393}")
+        lg.info("socket closed")
+
+    def listen(self, port=9393):
+        lg = logging.getLogger(__name__)
+
+        self._socket.listen(10)
+        lg.info(f"qcp-daemon listening on port {self.port}")
 
         while True:
-            client, address = server.accept()
+            client, address = self._socket.accept()
             lg.info(f'client connected: {address}')
             req = client.recv(1024)
-
             rsp = self.handle_request(req)
 
             if rsp.body["type"] == -1:
-                lg.debug(f"Kill Task received; shutting down server: {rsp.encode()}")
-                server.close()
+                lg.info(f"Kill Task received; shutting down server: {rsp.encode()}")
+                client.close()
+                self.close()
                 break
 
             lg.debug(f"message received: {rsp.encode()}")
             client.sendall(rsp.encode())
 
-    def handle_request(self, req):
+    @staticmethod
+    def handle_request(req):
         return RawMessage(req).decode()
 
     def serve_queue(self, n=100):
@@ -117,4 +131,3 @@ class RawMessage:
 
     def __repr__(self) -> str:
         return f"RawMessage: {self.decode().__repr__()}"
-
