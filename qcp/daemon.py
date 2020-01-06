@@ -14,10 +14,12 @@ class QcpDaemon:
     port = 54993
     stats = None  # container that implements transfer statistics
     queue = None
+    __is_listening = False
 
     def __init__(self, port: int = 54993, queue_path=tempfile.mkstemp(".sqlite3")):
         self.port = port
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
+        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.queue_path = queue_path
         self.new_queue()
 
@@ -26,19 +28,18 @@ class QcpDaemon:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        if self.is_listening:
+            self.close()
 
     def close(self):
         self._socket.shutdown(socket.SHUT_RDWR)
         self._socket.close()
-        lg = logging.getLogger(__name__)
-        lg.info("socket closed")
+        self.is_listening = False
 
     def listen(self, port=9393):
         lg = logging.getLogger(__name__)
-
         self._socket.listen(10)
-        lg.info(f"qcp-daemon listening on port {self.port}")
+        self.is_listening = True
 
         while True:
             client, address = self._socket.accept()
@@ -54,6 +55,21 @@ class QcpDaemon:
 
             lg.debug(f"message received: {rsp.encode()}")
             client.sendall(rsp.encode())
+
+    @property
+    def is_listening(self) -> bool:
+        return self.__is_listening
+
+    @is_listening.setter
+    def is_listening(self, x: bool) -> None:
+        lg = logging.getLogger(__name__)
+
+        if x:
+            lg.info(f"qcp-daemon listening on port {self.port}")
+        else:
+            lg.debug("socket closed")
+
+        self.__is_listening = x
 
     @staticmethod
     def handle_request(req):

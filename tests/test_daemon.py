@@ -6,9 +6,6 @@ from pathlib import Path
 
 tmp_path = Path("/tmp")
 
-import logging
-
-logging.basicConfig(level=10)
 
 @pytest.fixture()
 def dummy_daemon():
@@ -34,22 +31,15 @@ def test_daemon_can_be_started_and_stopped(tmp_path, dummy_daemon):
 
 
 def test_daemon_can_be_killed(dummy_daemon):
-    req_echo = daemon.Message(tasks.EchoTask("blah"))
     req_kill = daemon.Message(tasks.KillTask())
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-        client.connect(("127.0.0.1", 54993))
-        client.sendall(req_echo.encode())
-        res = client.recv(1024)
-        res = daemon.RawMessage(res).decode()
-        assert (req_echo.__dict__ == res.__dict__)
+    req_echo = daemon.Message(tasks.EchoTask("this should fail"))
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect(("127.0.0.1", 54993))
         client.sendall(req_kill.encode())
 
-        with pytest.raises(ZeroDivisionError):
-            client.sendall(req_echo.encode())
-            res = client.recv(1024)
-            print(daemon.RawMessage(res).decode())
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.connect(("127.0.0.1", 54993))
 
+        with pytest.raises(ConnectionResetError):
+            client.sendall(req_echo.encode())
