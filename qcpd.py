@@ -1,23 +1,15 @@
 import socket
 import logging
+from pathlib import Path
+from qcp import daemon
+from qcp import tasks
 
-lg = logging.getLogger(__name__)
+tmp_path = Path("/tmp")
+lg = logging.getLogger("qcp")
 logging.basicConfig(level="DEBUG")
 
-HEADERSIZE = 10
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # ADDRESS_FAMILY: INTERNET (ip4), tcp
-server.bind(("127.0.0.1", 9393))
-server.listen(10)
-lg.info("Started qcp daemon")
-
-while True:
-    client, address = server.accept()
-    lg.info(f'Established connection with client {address}')
-    cmd = client.recv(1024)
-
-    reply = f'{len(cmd):<{HEADERSIZE}}{cmd}' # add fixed length header that includes length of the message to the msg
-    lg.debug("Sending reply: " + reply)
-    client.send(bytes(reply, 'utf-8'))
+HEADERSIZE = 2
 
 
-
+with daemon.QcpDaemon(queue_path=tmp_path.joinpath("qcp.db")) as qcpd:
+    qcpd.listen()

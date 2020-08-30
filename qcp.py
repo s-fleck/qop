@@ -1,53 +1,27 @@
+import argparse
+from qcp import daemon
+from qcp import tasks
 import socket
-import subprocess
-import sys
+from pathlib import Path
 import logging
 
-lg = logging.getLogger(__name__)
 logging.basicConfig(level="DEBUG")
 
-HEADERSIZE = 10
+parser = argparse.ArgumentParser()
+parser.add_argument("--echo", help="makes the server log a string")
+parser.add_argument("--copy", help="copy a file")
+parser.add_argument("--destination", help="destination of the copy")
+args = parser.parse_args()
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(("127.0.0.1", 9393))
-print("connected to existing server")
+if args.echo:
+    req = daemon.Message(tasks.EchoTask(msg=args.echo))
 
-cmd = "command blah blah"
-cmd = f'{len(cmd):<{HEADERSIZE}}{cmd}'
-
-print(cmd)
-client.send(bytes(cmd, "utf-8"))
-
-while True:
-    msg = ""
-    is_new_msg = True
-
-    while True:
-        msg_part = client.recv(16)
-
-        if is_new_msg:
-            is_new_msg = False
-            lg.debug(f"received {msg_part}")
-            len_msg = int(msg_part[:HEADERSIZE])
-            lg.debug(f'new message length: {len_msg}')
-
-        msg += msg_part.decode("utf-8")
-        lg.debug(f'msg part {msg_part}')
-
-        if len(msg) - HEADERSIZE == len_msg:
-            lg.debug("full msg received")
-            lg.debug(msg[HEADERSIZE:])
-            msg = ""
-            is_new_msg = True
-            client.close()
+if args.copy:
+    req = daemon.Message(tasks.CopyTask(src=args.copy, dst=args.destination))
 
 
-# try:
-#     s.connect((socket.gethostname(), 9393))
-#     print("connected to existing server")
-# except:
-#     print("Launching server")
-#     subprocess.Popen((sys.executable, 'qcpd.py'))
-#     print('connecting')
-#     s.connect((socket.gethostname(), 9393))
-#     print("connected")
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+    client.connect(("127.0.0.1", 9393))
+    client.sendall(req.encode())
+    res = client.recv(1024)
+    logging.getLogger("qcp.daemon").info(res)

@@ -1,0 +1,479 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>qcp package &#8212; qcp 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">qcp 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="qcp-package">
+<h1>qcp package<a class="headerlink" href="#qcp-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qcp.Scanner">
+<span id="qcp-scanner-module"></span><h2>qcp.Scanner module<a class="headerlink" href="#module-qcp.Scanner" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qcp.Scanner.Scanner">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.Scanner.</code><code class="sig-name descname">Scanner</code><a class="headerlink" href="#qcp.Scanner.Scanner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="qcp.Scanner.Scanner.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">path: pathlib.Path</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.Scanner.Scanner.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-qcp.clean">
+<span id="qcp-clean-module"></span><h2>qcp.clean module<a class="headerlink" href="#module-qcp.clean" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="qcp.clean.list_duplicates">
+<code class="sig-prename descclassname">qcp.clean.</code><code class="sig-name descname">list_duplicates</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">recursive=True</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.clean.list_duplicates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="qcp.clean.list_trash">
+<code class="sig-prename descclassname">qcp.clean.</code><code class="sig-name descname">list_trash</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">recursive=True</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.clean.list_trash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qcp.client">
+<span id="qcp-client-module"></span><h2>qcp.client module<a class="headerlink" href="#module-qcp.client" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qcp.converters">
+<span id="qcp-converters-module"></span><h2>qcp.converters module<a class="headerlink" href="#module-qcp.converters" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="qcp.converters.Converter">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.converters.</code><code class="sig-name descname">Converter</code><a class="headerlink" href="#qcp.converters.Converter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="qcp.converters.Converter.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qcp.converters.Converter.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.converters.CopyConverter">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.converters.</code><code class="sig-name descname">CopyConverter</code><a class="headerlink" href="#qcp.converters.CopyConverter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcp.converters.Converter" title="qcp.converters.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcp.converters.Converter</span></code></a></p>
+<p>Dummy converter that only copies a file without any processing</p>
+<dl class="method">
+<dt id="qcp.converters.CopyConverter.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">src: Union[pathlib.Path, str], dst: Union[pathlib.Path, str]</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.converters.CopyConverter.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qcp.converters.CopyConverter.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qcp.converters.CopyConverter.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.converters.OggConverter">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.converters.</code><code class="sig-name descname">OggConverter</code><span class="sig-paren">(</span><em class="sig-param">bitrate: str = '192k'</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.converters.OggConverter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcp.converters.Converter" title="qcp.converters.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcp.converters.Converter</span></code></a></p>
+<p>Convert audio files to ogg vorbis</p>
+<dl class="method">
+<dt id="qcp.converters.OggConverter.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">src: Union[pathlib.Path, str], dst: Union[pathlib.Path, str]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.converters.OggConverter.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="qcp.converters.OggConverter.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qcp.converters.OggConverter.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="qcp.converters.from_json">
+<code class="sig-prename descclassname">qcp.converters.</code><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param">s: str</em><span class="sig-paren">)</span> &#x2192; Union[qcp.converters.Converter, qcp.converters.OggConverter]<a class="headerlink" href="#qcp.converters.from_json" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="qcp-daemon-module">
+<h2>qcp.daemon module<a class="headerlink" href="#qcp-daemon-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-qcp.tasks">
+<span id="qcp-tasks-module"></span><h2>qcp.tasks module<a class="headerlink" href="#module-qcp.tasks" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="qcp.tasks.AlreadyUnderEvaluationError">
+<em class="property">exception </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">AlreadyUnderEvaluationError</code><a class="headerlink" href="#qcp.tasks.AlreadyUnderEvaluationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>This Task is already being processed by a different worker</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.tasks.CopyTask">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">CopyTask</code><span class="sig-paren">(</span><em class="sig-param">src: Union[pathlib.Path, str], dst: Union[pathlib.Path, str], validate: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.tasks.CopyTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcp.tasks.FileTask" title="qcp.tasks.FileTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcp.tasks.FileTask</span></code></a></p>
+<p>Copy a file</p>
+<dl class="method">
+<dt id="qcp.tasks.CopyTask.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.CopyTask.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.tasks.DeleteTask">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">DeleteTask</code><span class="sig-paren">(</span><em class="sig-param">src: Union[pathlib.Path, str], validate: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.tasks.DeleteTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcp.tasks.FileTask" title="qcp.tasks.FileTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcp.tasks.FileTask</span></code></a></p>
+<p>Delete a file</p>
+<dl class="method">
+<dt id="qcp.tasks.DeleteTask.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.DeleteTask.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.tasks.EchoTask">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">EchoTask</code><span class="sig-paren">(</span><em class="sig-param">msg: str</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.tasks.EchoTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcp.tasks.Task" title="qcp.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcp.tasks.Task</span></code></a></p>
+<p>Log a message</p>
+<dl class="method">
+<dt id="qcp.tasks.EchoTask.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.EchoTask.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.tasks.FileTask">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">FileTask</code><span class="sig-paren">(</span><em class="sig-param">src: Union[pathlib.Path, str], validate: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.tasks.FileTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcp.tasks.Task" title="qcp.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcp.tasks.Task</span></code></a></p>
+<p>Abstract class for all file-based tasks</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.tasks.KillTask">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">KillTask</code><a class="headerlink" href="#qcp.tasks.KillTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcp.tasks.Task" title="qcp.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcp.tasks.Task</span></code></a></p>
+<p>Kill the qcp server</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.tasks.MoveTask">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">MoveTask</code><span class="sig-paren">(</span><em class="sig-param">src: Union[pathlib.Path, str], dst: Union[pathlib.Path, str], validate: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.tasks.MoveTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qcp.tasks.CopyTask" title="qcp.tasks.CopyTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qcp.tasks.CopyTask</span></code></a></p>
+<p>Move a file</p>
+<dl class="method">
+<dt id="qcp.tasks.MoveTask.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.MoveTask.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.tasks.Task">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">Task</code><a class="headerlink" href="#qcp.tasks.Task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract class for qcp Tasks. Should not be instantiated directly.</p>
+<dl class="method">
+<dt id="qcp.tasks.Task.from_dict">
+<em class="property">static </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">validate: bool = False</em><span class="sig-paren">)</span> &#x2192; qcp.tasks.Task<a class="headerlink" href="#qcp.tasks.Task.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Task of the appropriate subclass from a python dict</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.Task.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.Task.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.tasks.TaskQueue">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">TaskQueue</code><span class="sig-paren">(</span><em class="sig-param">path: Union[pathlib.Path</em>, <em class="sig-param">str] = 'qcp.db'</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.tasks.TaskQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A prioritzed queue for tasks</p>
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.fetch">
+<code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param">status: Union[Tuple, int, None], n: Optional[int] = None</em><span class="sig-paren">)</span> &#x2192; List<a class="headerlink" href="#qcp.tasks.TaskQueue.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print an overview of the queue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – number of tasks to fetch</p></li>
+<li><p><strong>status</strong> (<cite>int</cite>, <cite>None</cite> or a <cite>tuple</cite> of <cite>int</cite>) – If not None, only fetch Tasks of given status</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return a dict containing n queued tasks</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.mark_done">
+<code class="sig-name descname">mark_done</code><span class="sig-paren">(</span><em class="sig-param">oid: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.TaskQueue.mark_done" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark the operation with the _ROWID_ <cite>oid</cite> as “done” (2)
+:param oid: ID of the task to mark
+:type oid: int</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.mark_failed">
+<code class="sig-name descname">mark_failed</code><span class="sig-paren">(</span><em class="sig-param">oid: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.TaskQueue.mark_failed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark the operation with the _ROWID_ <cite>oid</cite> as “failed” (-1)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>oid</strong> (<em>int</em>) – ID of the task to mark</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.mark_pending">
+<code class="sig-name descname">mark_pending</code><span class="sig-paren">(</span><em class="sig-param">oid: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.TaskQueue.mark_pending" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark the operation with the _ROWID_ <cite>oid</cite> as “pending” (0)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>oid</strong> (<em>int</em>) – ID of the task to mark</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.mark_running">
+<code class="sig-name descname">mark_running</code><span class="sig-paren">(</span><em class="sig-param">oid: int</em>, <em class="sig-param">owner: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.TaskQueue.mark_running" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark the operation with the _ROWID_ <cite>oid</cite> as “running” (1). The “owner” Id is to ensure no two processes
+are trying to execute the same operation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>oid</strong> (<em>int</em>) – ID of the task to mark</p></li>
+<li><p><strong>owner</strong> (<em>int</em>) – Id of the process that is handling the operation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.n_done">
+<em class="property">property </em><code class="sig-name descname">n_done</code><a class="headerlink" href="#qcp.tasks.TaskQueue.n_done" title="Permalink to this definition">¶</a></dt>
+<dd><p>count of completed tasks</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.n_failed">
+<em class="property">property </em><code class="sig-name descname">n_failed</code><a class="headerlink" href="#qcp.tasks.TaskQueue.n_failed" title="Permalink to this definition">¶</a></dt>
+<dd><p>count of completed tasks</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.n_pending">
+<em class="property">property </em><code class="sig-name descname">n_pending</code><a class="headerlink" href="#qcp.tasks.TaskQueue.n_pending" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of pending tasks</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.n_running">
+<em class="property">property </em><code class="sig-name descname">n_running</code><a class="headerlink" href="#qcp.tasks.TaskQueue.n_running" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count of currently running tasks</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.n_total">
+<em class="property">property </em><code class="sig-name descname">n_total</code><a class="headerlink" href="#qcp.tasks.TaskQueue.n_total" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count of all tasks in queue (including failed and completed)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.peek">
+<code class="sig-name descname">peek</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; qcp.tasks.Task<a class="headerlink" href="#qcp.tasks.TaskQueue.peek" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves Task object without changing its status in the queue</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.pop">
+<code class="sig-name descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; qcp.tasks.Task<a class="headerlink" href="#qcp.tasks.TaskQueue.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves Task object and sets status of Task in database to “in progress” (1)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#qcp.tasks.AlreadyUnderEvaluationError" title="qcp.tasks.AlreadyUnderEvaluationError"><strong>AlreadyUnderEvaluationError</strong></a> – If trying to pop a tasks that is already being processed  (i.e. if a race</p>
+</dd>
+</dl>
+<p>condition occurs if the queue is processed in parallel)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.print">
+<code class="sig-name descname">print</code><span class="sig-paren">(</span><em class="sig-param">status: Optional[int] = None</em>, <em class="sig-param">n: Optional[int] = None</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.TaskQueue.print" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print an overview of the queue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n</strong> (<em>int</em>) – number of tasks to preview</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.put">
+<code class="sig-name descname">put</code><span class="sig-paren">(</span><em class="sig-param">task: qcp.tasks.Task</em>, <em class="sig-param">priority: Optional[int] = None</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.TaskQueue.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enqueue a task</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>task</strong> (<a class="reference internal" href="#qcp.tasks.Task" title="qcp.tasks.Task"><em>Task</em></a>) – Task to be added to the queue</p></li>
+<li><p><strong>priority</strong> (<em>int</em>) – (optional) priority for executing <cite>task</cite> (tasks with lower priority will be executed earlier)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="qcp.tasks.TaskQueue.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qcp.tasks.TaskQueue.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute all pending tasks</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="qcp.tasks.TaskQueueElement">
+<em class="property">class </em><code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">TaskQueueElement</code><span class="sig-paren">(</span><em class="sig-param">task: qcp.tasks.Task</em>, <em class="sig-param">priority: 1</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.tasks.TaskQueueElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An enqueued Task</p>
+<dl class="attribute">
+<dt id="qcp.tasks.TaskQueueElement.priority">
+<code class="sig-name descname">priority</code><em class="property"> = None</em><a class="headerlink" href="#qcp.tasks.TaskQueueElement.priority" title="Permalink to this definition">¶</a></dt>
+<dd><p>Priority of the queued Task</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qcp.tasks.TaskQueueElement.status">
+<code class="sig-name descname">status</code><em class="property"> = None</em><a class="headerlink" href="#qcp.tasks.TaskQueueElement.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Status of the queued Task</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="qcp.tasks.TaskQueueElement.task">
+<code class="sig-name descname">task</code><em class="property"> = None</em><a class="headerlink" href="#qcp.tasks.TaskQueueElement.task" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="qcp.tasks.fmt_in">
+<code class="sig-prename descclassname">qcp.tasks.</code><code class="sig-name descname">fmt_in</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#qcp.tasks.fmt_in" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-qcp.utils">
+<span id="qcp-utils-module"></span><h2>qcp.utils module<a class="headerlink" href="#module-qcp.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="qcp.utils.get_project_root">
+<code class="sig-prename descclassname">qcp.utils.</code><code class="sig-name descname">get_project_root</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span> &#x2192; pathlib.Path<a class="headerlink" href="#qcp.utils.get_project_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns project root folder.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-qcp">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qcp" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">qcp package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qcp.Scanner">qcp.Scanner module</a></li>
+<li><a class="reference internal" href="#module-qcp.clean">qcp.clean module</a></li>
+<li><a class="reference internal" href="#module-qcp.client">qcp.client module</a></li>
+<li><a class="reference internal" href="#module-qcp.converters">qcp.converters module</a></li>
+<li><a class="reference internal" href="#qcp-daemon-module">qcp.daemon module</a></li>
+<li><a class="reference internal" href="#module-qcp.tasks">qcp.tasks module</a></li>
+<li><a class="reference internal" href="#module-qcp.utils">qcp.utils module</a></li>
+<li><a class="reference internal" href="#module-qcp">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/qcp.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">qcp 0.0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Stefan Fleck.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

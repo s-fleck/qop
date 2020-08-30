@@ -11,12 +11,12 @@ PREHEADER_LEN: int = 2
 
 
 class QcpDaemon:
-    port = 54993
+    port = 9393
     stats = None  # container that implements transfer statistics
     queue = None
     __is_listening = False
 
-    def __init__(self, port: int = 54993, queue_path=tempfile.mkstemp(".sqlite3")):
+    def __init__(self, port: int = 9393, queue_path=tempfile.mkstemp(".sqlite3")):
         self.port = port
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -48,12 +48,16 @@ class QcpDaemon:
             rsp = self.handle_request(req)
 
             if rsp.body["type"] == -1:
-                lg.info(f"Kill Task received; shutting down server: {rsp.encode()}")
+                lg.info(f"received kill task; shutting down server: {rsp.encode()}")
                 client.close()
                 self.close()
                 break
+            elif rsp.body["type"] > 0:
+                lg.info(f"received task: {rsp.encode()}")
+                self.queue.put(tasks.Task.from_dict(rsp.body))
+            else:
+                lg.debug(f"received unknown message: {rsp.encode()}")
 
-            lg.debug(f"message received: {rsp.encode()}")
             client.sendall(rsp.encode())
 
     @property
@@ -73,6 +77,8 @@ class QcpDaemon:
 
     @staticmethod
     def handle_request(req):
+        t = RawMessage(req).decode()
+
         return RawMessage(req).decode()
 
     def serve_queue(self, n=100):
@@ -88,6 +94,10 @@ class QcpDaemon:
 class Message:
     """Container for requests sent to the qcp daemon"""
     def __init__(self, body: Union[Dict, tasks.Task]) -> None:
+        """
+
+        :rtype: object
+        """
         if isinstance(body, tasks.Task):
             body = body.__dict__
         else:
@@ -104,7 +114,7 @@ class Message:
             }
             header: bytes = bytes(json.dumps(header), "utf-8")
             header_len: bytes = struct.pack("!H", len(header))  # network-endianess, unsigned long integer (4 bytes)
-
+            logging.getLogger("qcp.daemon").debug(f'encoding message with header_length={int(struct.unpack("!H", header_len)[0])} and content_length={len(body)}')
             return header_len + header + body
 
     def __repr__(self) -> str:
@@ -122,6 +132,7 @@ class RawMessage:
         return self.raw
 
     def decode(self) -> Message:
+        logging.getLogger("qcp.daemon").debug(f'decoding message with header_length={self.header_len}')
         return Message(self.body)
 
     @property

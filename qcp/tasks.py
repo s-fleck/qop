@@ -237,10 +237,12 @@ class TaskQueue:
         """
 
         cur = self.con.cursor()
+        print(task)
         cur.execute(
             "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, json.dumps(task.__dict__), 0)
         )
         self.con.commit()
+        logging.getLogger("qcp.tasks").info("inserted task")
 
     def pop(self) -> "Task":
         """
