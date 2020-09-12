@@ -24,6 +24,7 @@ class Task:
     @staticmethod
     def from_dict(x: Dict, validate: Optional[bool] = None) -> "Task":
         """Create a Task of the appropriate subclass from a python dict"""
+        logging.getLogger("qcp.tasks").debug(f"parsing task {x}")
         task_type = x["type"]
 
         if validate is None and "validate" in x.keys():
@@ -58,7 +59,7 @@ class Task:
         return self.__dict__ != other.__dict__
 
     def to_dict(self) -> Dict:
-        self.__dict__
+        return self.__dict__
 
 
 class KillTask(Task):
@@ -199,7 +200,7 @@ class TaskQueueElement:
 
 class TaskQueue:
     """A prioritzed queue for tasks"""
-    def __init__(self, path: Pathish = 'qcp.db') -> None:
+    def __init__(self, path: Pathish) -> None:
         """
         Instantiate a TaskQueue
 
@@ -210,6 +211,7 @@ class TaskQueue:
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
         self.path = Path(path)
 
+        logging.getLogger("qcp.tasks").info(f"initializing queue {path}")
         cur = self.con.cursor()
         cur.execute("""
            CREATE TABLE IF NOT EXISTS tasks (
@@ -260,14 +262,14 @@ class TaskQueue:
         :param priority: (optional) priority for executing `task` (tasks with lower priority will be executed earlier)
         :type priority: int
         """
+        assert task is not None
 
         cur = self.con.cursor()
-        print(task)
         cur.execute(
             "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, json.dumps(task.to_dict()), 0)
         )
         self.con.commit()
-        logging.getLogger("qcp.tasks").info("inserted task")
+        logging.getLogger("qcp.tasks").info(f"inserted task {task.to_dict()}")
 
     def pop(self) -> "Task":
         """
@@ -287,6 +289,7 @@ class TaskQueue:
             raise AlreadyUnderEvaluationError
 
         task = Task.from_dict(json.loads(record[1]))
+        logging.getLogger("qcp.tasks").info(f"popped task {task}")
         task.oid = oid
         return task
 
@@ -377,6 +380,7 @@ class TaskQueue:
         """
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 1, owner = ? where _ROWID_ = ?", (owner, oid))
+        logging.getLogger("qcp/tasks").error(f"task {oid} started")
         self.con.commit()
 
     def mark_done(self, oid: int) -> None:
@@ -387,6 +391,7 @@ class TaskQueue:
         """
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 2, owner = NULL where _ROWID_ = ?", (oid, ))
+        logging.getLogger("qcp/tasks").info(f"task {oid} completed")
         self.con.commit()
 
     def mark_failed(self, oid: int) -> None:
@@ -398,12 +403,13 @@ class TaskQueue:
         """
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = -1, owner = NULL where _ROWID_ = ?", (oid, ))
+        logging.getLogger("qcp/tasks").error(f"task {oid} failed")
         self.con.commit()
 
     def run(self) -> None:
         """Execute all pending tasks"""
         if self.n_pending < 1:
-            logging.getLogger().warn("Queue is empty")
+            logging.getLogger().warning("queue is empty")
 
         while self.n_pending > 0:
             op = self.pop()

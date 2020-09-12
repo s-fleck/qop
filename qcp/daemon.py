@@ -16,12 +16,11 @@ class QcpDaemon:
     queue = None
     __is_listening = False
 
-    def __init__(self, port: int = 9393, queue_path=tempfile.mkstemp(".sqlite3")):
+    def __init__(self, port: int, queue_path):
         self.port = port
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.queue_path = queue_path
-        self.new_queue()
+        self.new_queue(path=queue_path)
 
     def __enter__(self):
         self._socket.bind(("127.0.0.1", self.port))
@@ -45,21 +44,27 @@ class QcpDaemon:
             client, address = self._socket.accept()
             lg.info(f'client connected: {address}')
             req = client.recv(1024)
-            rsp = self.handle_request(req)
 
-            if rsp.body["type"] == -1:
-                lg.info(f"received kill task; shutting down server: {rsp.encode()}")
-                client.close()
-                self.close()
-                break
-            elif rsp.body["type"] > 0:
-                lg.info(f"received task: {rsp.encode()}")
-                self.queue.put(tasks.Task.from_dict(rsp.body))
-                self.queue.run()
-            else:
-                lg.debug(f"received unknown message: {rsp.encode()}")
+            try:
+                rsp = self.handle_request(req)
 
-            client.sendall(rsp.encode())
+                if rsp.body["type"] == -1:
+                    lg.info(f"received kill task; shutting down server: {rsp.encode()}")
+                    client.close()
+                    self.close()
+                    break
+                elif rsp.body["type"] > 0:
+                    lg.info(f"received task: {rsp.encode()}")
+                    self.queue.put(tasks.Task.from_dict(rsp.body))
+                    self.queue.run()
+                else:
+                    lg.debug(f"received unknown message: {rsp.encode()}")
+
+                client.sendall(rsp.encode())
+
+            except:
+                lg.error(f"cannot parse message: {req}")
+                client.sendall(Message(tasks.EchoTask("insert failed")).encode())
 
     @property
     def is_listening(self) -> bool:
@@ -88,8 +93,8 @@ class QcpDaemon:
     def stop(self):
         pass
 
-    def new_queue(self, queue_path: Path = tempfile.mkstemp(".sqlite3")[1]):
-        self.queue = tasks.TaskQueue(path=queue_path)
+    def new_queue(self, path: Path):
+        self.queue = tasks.TaskQueue(path=path)
 
 
 class Message:
