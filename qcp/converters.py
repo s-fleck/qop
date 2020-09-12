@@ -9,6 +9,25 @@ class Converter:
     def to_dict(self) -> Dict:
         return {}
 
+    @staticmethod
+    def from_dict(x: Dict) -> "Converter":
+        if x['type'] == 1:
+            return OggConverter(bitrate=x['bitrate'])
+        else:
+            raise ImportError("Unknown 'type': {}")
+
+    @staticmethod
+    def from_json(s: str) -> "Converter":
+        """
+
+        :rtype: object
+        """
+        dd = json.loads(s=s)
+        return Converter.from_dict(dd)
+
+    def run(self, src: Union[Path, str], dst: Union[Path, str]):
+        raise NotImplementedError()
+
     def __eq__(self, other) -> bool:
         return self.__dict__ == other.__dict__
 
@@ -47,21 +66,6 @@ class OggConverter(Converter):
 
 
 Converter_ = Union[Converter, OggConverter]
-
-
-def from_json(s: str) -> Converter_:
-    """
-
-    :rtype: object
-    """
-    dd = json.loads(s=s)
-
-    if dd["type"] == 0:
-        return CopyConverter()
-    elif dd["type"] == 1:
-        return OggConverter(bitrate=dd["bitrate"])
-    else:
-        raise ImportError("Unknown 'type': {}")
 
 
 

@@ -55,6 +55,7 @@ class QcpDaemon:
             elif rsp.body["type"] > 0:
                 lg.info(f"received task: {rsp.encode()}")
                 self.queue.put(tasks.Task.from_dict(rsp.body))
+                self.queue.run()
             else:
                 lg.debug(f"received unknown message: {rsp.encode()}")
 

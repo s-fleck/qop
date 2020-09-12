@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Union, Optional, Dict, Tuple, List
+from qcp import converters
 import shutil
 import os
 import json
@@ -43,7 +44,7 @@ class Task:
         elif task_type == 5:
             return MoveTask(x["src"], x["dst"], validate=validate)
         elif task_type == 6:
-            raise NotImplementedError
+            return ConvertTask(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
         else:
             raise ValueError
 
@@ -55,6 +56,9 @@ class Task:
 
     def __ne__(self, other) -> bool:
         return self.__dict__ != other.__dict__
+
+    def to_dict(self) -> Dict:
+        self.__dict__
 
 
 class KillTask(Task):
@@ -148,6 +152,27 @@ class MoveTask(CopyTask):
         return f'MOVE {self.src} -> {self.dst}'
 
 
+class ConvertTask(CopyTask):
+    """convert an audio file"""
+    def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter, validate: bool = True) -> None:
+        super().__init__(src=src, dst=dst, validate=validate)
+        self.type = 6
+        self.converter = converter
+        self.src = src
+        self.dst = dst
+
+    def run(self) -> None:
+        super().__validate__()
+        self.converter.run(self.src, self.dst)
+
+    def __repr__(self) -> str:
+        return f'CONVERT {self.src} -> {self.dst}'
+
+    def to_dict(self) -> Dict:
+        r = self.__dict__.copy()
+        r["converter"] = self.converter.to_dict()
+        return r
+
 class TaskQueueElement:
     """An enqueued Task"""
 
@@ -239,7 +264,7 @@ class TaskQueue:
         cur = self.con.cursor()
         print(task)
         cur.execute(
-            "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, json.dumps(task.__dict__), 0)
+            "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, json.dumps(task.to_dict()), 0)
         )
         self.con.commit()
         logging.getLogger("qcp.tasks").info("inserted task")
