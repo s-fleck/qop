@@ -5,6 +5,7 @@ import shutil
 import os
 import json
 import sqlite3
+import sys
 
 import logging
 
@@ -174,6 +175,7 @@ class ConvertTask(CopyTask):
         r["converter"] = self.converter.to_dict()
         return r
 
+
 class TaskQueueElement:
     """An enqueued Task"""
 
@@ -208,10 +210,9 @@ class TaskQueue:
         :type path: Path or str
         """
 
+        logging.getLogger("qcp.tasks").info(f"initializing queue {path}")
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
         self.path = Path(path)
-
-        logging.getLogger("qcp.tasks").info(f"initializing queue {path}")
         cur = self.con.cursor()
         cur.execute("""
            CREATE TABLE IF NOT EXISTS tasks (
@@ -262,7 +263,6 @@ class TaskQueue:
         :param priority: (optional) priority for executing `task` (tasks with lower priority will be executed earlier)
         :type priority: int
         """
-        assert task is not None
 
         cur = self.con.cursor()
         cur.execute(
@@ -287,7 +287,7 @@ class TaskQueue:
         record = cur.fetchall()[0]
         if record[0] != id(self):
             raise AlreadyUnderEvaluationError
-
+        
         task = Task.from_dict(json.loads(record[1]))
         logging.getLogger("qcp.tasks").info(f"popped task {task}")
         task.oid = oid
@@ -380,7 +380,7 @@ class TaskQueue:
         """
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 1, owner = ? where _ROWID_ = ?", (owner, oid))
-        logging.getLogger("qcp/tasks").error(f"task {oid} started")
+        logging.getLogger("qcp/tasks").info(f"task {oid} started")
         self.con.commit()
 
     def mark_done(self, oid: int) -> None:
@@ -413,8 +413,12 @@ class TaskQueue:
 
         while self.n_pending > 0:
             op = self.pop()
-            op.run()
-            self.mark_done(op.oid)
+            try:
+                op.run()
+                self.mark_done(op.oid)
+            except:
+                self.mark_failed(op.oid)
+                logging.getLogger("qcp.tasks").error(sys.exc_info()[0])
 
 
 class AlreadyUnderEvaluationError(Exception):
