@@ -1,22 +1,24 @@
-from qcp import converters, utils
-from pathlib import Path
 import pytest
-import json
 import subprocess
 
-def test_simple_copy_operation(tmp_path, src):
+
+@pytest.fixture(scope="session", autouse=True)
+def start_qcp_daemon(request):
+    proc = subprocess.Popen(["nohup", "python3", "../qcpd.py"])
+    request.addfinalizer(proc.kill)
+
+
+def test_simple_copy_operation(tmp_path):
     """qcp can copy a file"""
 
-    daemon = subprocess.Popen(["python3", "../qcpd.py"])
     tf = tmp_path.joinpath("test.txt")
-    cf = tmp_path.joinpath("copy.txt")
-
+    td = tmp_path.joinpath("copy")
+    td.mkdir()
     f = open(tf, "w+")
     f.write("foobar")
+    subprocess.run(["python3", "../qcp.py", "copy", tf, td])
 
-    subprocess.Popen(["python3", "../qcp.py", "copy", tf, cf])
+    assert tf.exists()
+    assert td.joinpath("test.txt").exists()
 
-    assert cf.exists()
-    daemon.kill()
-
-
+    subprocess.run(["python3", "../qcp.py", "kill"])
