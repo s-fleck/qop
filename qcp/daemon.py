@@ -6,9 +6,10 @@ from qcp import tasks
 from pathlib import Path
 import logging
 import socket
+import sys
 
 PREHEADER_LEN: int = 2
-
+Pathish = Union[Path, str]
 
 class QcpDaemon:
     port = 9393
@@ -16,11 +17,12 @@ class QcpDaemon:
     queue = None
     __is_listening = False
 
-    def __init__(self, port: int, queue_path):
+    def __init__(self, port: int, queue_path: Pathish, persist_queue: bool = True):
         self.port = port
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.new_queue(path=queue_path)
+        self.new_queue(path=Path(queue_path))
+        self.persist_queue = persist_queue
 
     def __enter__(self):
         self._socket.bind(("127.0.0.1", self.port))
@@ -29,6 +31,9 @@ class QcpDaemon:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.is_listening:
             self.close()
+
+        if self.persist_queue:
+            self.queue.path.unlink()
 
     def close(self):
         self._socket.shutdown(socket.SHUT_RDWR)
@@ -63,7 +68,7 @@ class QcpDaemon:
                 client.sendall(rsp.encode())
 
             except:
-                lg.error(f"cannot parse message: {req}")
+                lg.error(f"cannot parse message: {sys.exc_info()[0]}")
                 client.sendall(Message(tasks.EchoTask("insert failed")).encode())
 
     @property
@@ -83,8 +88,7 @@ class QcpDaemon:
 
     @staticmethod
     def handle_request(req):
-        t = RawMessage(req).decode()
-
+        logging.getLogger("qcp.daemon").info(RawMessage(req).decode())
         return RawMessage(req).decode()
 
     def serve_queue(self, n=100):
