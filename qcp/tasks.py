@@ -11,6 +11,8 @@ import logging
 
 Pathish = Union[Path, str]
 
+lg = logging.getLogger("qcp/tasks")
+
 
 class Task:
     """Abstract class for qcp Tasks. Should not be instantiated directly."""
@@ -80,6 +82,26 @@ class KillTask(Task):
 
     def __repr__(self) -> str:
         return 'KILL'
+
+
+class InfoTask(Task):
+    """Log a message"""
+    def __init__(self) -> None:
+        super().__init__()
+        self.type = -2
+
+    def __repr__(self) -> str:
+        return f'Info"'
+
+
+class StartTask(Task):
+    """Log a message"""
+    def __init__(self) -> None:
+        super().__init__()
+        self.type = -3
+
+    def __repr__(self) -> str:
+        return f'Start"'
 
 
 class EchoTask(Task):
@@ -263,6 +285,16 @@ class TaskQueue:
         cur = self.con.cursor()
         return cur.execute("SELECT COUNT(1) from tasks WHERE status = -1").fetchall()[0][0]
 
+    @property
+    def summary(self) -> Dict:
+        return {
+            "total": self.n_total,
+            "pending": self.n_pending,
+            "done": self.n_done,
+            "running": self.n_running,
+            "failed": self.n_failed
+        }
+
     def put(self, task: "Task", priority: Optional[int] = None) -> None:
         """
         Enqueue a task
@@ -273,6 +305,7 @@ class TaskQueue:
         :type priority: int
         """
 
+        lg.debug(f"trying to inserted task {task.to_dict()}")
         cur = self.con.cursor()
         cur.execute(
             "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, json.dumps(task.to_dict()), 0)
@@ -292,7 +325,7 @@ class TaskQueue:
         oid = cur.fetchall()[0][0].__str__()
         self.mark_running(oid, id(self))
 
-        cur.execute("SELECT owner, task FROM tasks WHERE _ROWID_ = ?", oid)
+        cur.execute("SELECT owner, task FROM tasks WHERE _ROWID_ = ?", (oid, ))
         record = cur.fetchall()[0]
         if record[0] != id(self):
             raise AlreadyUnderEvaluationError
@@ -328,7 +361,7 @@ class TaskQueue:
         for record in records:
             print(f"[{record[0]}] {Task.from_dict(json.loads(record[1]))}")
 
-    def fetch(self, status: Union[Tuple, int, None], n: Optional[int] = None) -> List:
+    def fetch(self, status: Union[Tuple, int, None] = None, n: Optional[int] = None) -> List:
         """
         Print an overview of the queue
 
@@ -374,6 +407,7 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
+        logging.getLogger("qcp/tasks").info(f"task {oid} pending")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 0, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
@@ -387,9 +421,9 @@ class TaskQueue:
         :param owner: Id of the process that is handling the operation
         :type owner: int
         """
+        lg.debug(f"task {oid} started")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 1, owner = ? where _ROWID_ = ?", (owner, oid))
-        logging.getLogger("qcp/tasks").info(f"task {oid} started")
         self.con.commit()
 
     def mark_done(self, oid: int) -> None:
@@ -398,9 +432,9 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
+        lg.info(f"task {oid} completed")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 2, owner = NULL where _ROWID_ = ?", (oid, ))
-        logging.getLogger("qcp/tasks").info(f"task {oid} completed")
         self.con.commit()
 
     def mark_failed(self, oid: int) -> None:
@@ -410,9 +444,9 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
+        logging.getLogger("qcp/tasks").error(f"task {oid} failed")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = -1, owner = NULL where _ROWID_ = ?", (oid, ))
-        logging.getLogger("qcp/tasks").error(f"task {oid} failed")
         self.con.commit()
 
     def run(self) -> None:
@@ -421,8 +455,10 @@ class TaskQueue:
             logging.getLogger().warning("queue is empty")
 
         while self.n_pending > 0:
+            print(self.n_pending)
             op = self.pop()
             try:
+                logging.getLogger("qcp.tasks").debug(f"inserting {op.oid}")
                 op.run()
                 self.mark_done(op.oid)
             except:
