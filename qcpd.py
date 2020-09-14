@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import logging
 from pathlib import Path
 from qcp import daemon
@@ -15,7 +17,7 @@ args = parser.parse_args()
 
 
 # init logging
-lg = logging.getLogger("qcp.cli-daemon")
+lg = logging.getLogger("qcp.cli-qdaemon")
 
 if args.log_file is not None:
     logging.basicConfig(level=args.log_level, filename=args.log_file)
@@ -24,14 +26,11 @@ else:
 
 
 # find path for tasks queue
-if args.qeueu_path is not None:
+if args.queue_path is not None:
     if args.qeueu is not None:
         raise ValueError("cannot specify --queue and --queue-path at the same time")
 
     queue_path = Path(args.qeueu_path)
-    if not queue_path.parent.exists():
-        queue_path.parent.mkdir(parents=True)
-        lg.info(f"created directory '{queue_path.parent}'")
 
 elif args.queue == "<temp>":
     queue_path = Path(tempfile.gettempdir()).joinpath("qcp-temp.sqlite3")
@@ -41,6 +40,10 @@ elif args.queue is not None:
 
 else:
     queue_path = Path(appdirs.user_cache_dir("qcp")).joinpath("default.sqlite3")
+
+if not queue_path.parent.exists():
+    queue_path.parent.mkdir(parents=True)
+    lg.info(f"created directory '{queue_path.parent}'")
 
 lg.info(f"using queue {queue_path}")
 
