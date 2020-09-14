@@ -109,7 +109,10 @@ class Message:
         :rtype: object
         """
         if isinstance(body, tasks.Task):
-            body = body.__dict__
+            body = body.to_dict()
+            for el in ("src", "dst"):
+                if el in body.keys():
+                    body[el] = str(body[el])
         else:
             assert isinstance(body, dict)
 

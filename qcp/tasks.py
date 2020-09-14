@@ -60,7 +60,16 @@ class Task:
         return self.__dict__ != other.__dict__
 
     def to_dict(self) -> Dict:
-        return self.__dict__
+        return self.__dict__.copy()
+
+    def to_json(self):
+        r = self.to_dict()
+
+        for el in ("src", "dst"):
+            if el in r.keys():
+                r[el] = str(r[el])
+
+        return r
 
 
 class KillTask(Task):
