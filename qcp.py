@@ -21,7 +21,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         req = daemon.Message(tasks.KillTask())
         client.sendall(req.encode())
         res = client.recv(1024)
-        logging.getLogger("qcp.daemon").info(res)
+        logging.getLogger("qcp.cli-client").info(res)
 
     elif args.source:
         dst_dir = args.source[-1]
