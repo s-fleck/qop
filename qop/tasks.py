@@ -173,6 +173,8 @@ class CopyTask(FileTask):
 
     def run(self) -> None:
         self.__validate__()
+        if not self.dst.parent.exists():
+            self.dst.parent.mkdir(parents=True)
         shutil.copy(self.src, self.dst)
 
 
@@ -262,7 +264,7 @@ class TaskQueue:
         cur.execute("""
            CREATE TABLE IF NOT EXISTS tasks (
               priority INTEGER,
-              task TEXT,
+              task TEXT UNIQUE,
               status INTEGER,
               owner INTEGER              
             )              
@@ -322,7 +324,7 @@ class TaskQueue:
         lg.debug(f"trying to inserted task {task.to_dict()}")
         cur = self.con.cursor()
         cur.execute(
-            "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, task.to_json(), 0)
+            "INSERT OR REPLACE INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, task.to_json(), 0)
         )
         self.con.commit()
         lg.debug(f"inserted task {task.to_dict()}")
@@ -477,6 +479,12 @@ class TaskQueue:
             except:
                 self.mark_failed(op.oid)
                 lg.error(f"executing task failed: {sys.exc_info()}")
+
+    def flush(self) -> None:
+        """empty the queue"""
+        cur = self.con.cursor()
+        cur.execute("DELETE FROM tasks")
+        self.con.commit()
 
     def pause(self) -> None:
         raise NotImplementedError

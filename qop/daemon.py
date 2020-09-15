@@ -1,13 +1,13 @@
 import struct
 import json
-from typing import Dict, Union, Optional
-import tempfile
-from qop import tasks
-from pathlib import Path
 import logging
 import socket
 import sys
-from qop.globals import TaskType, Status, Command, PREHEADER_LEN
+
+from typing import Dict, Union, Optional
+from pathlib import Path
+from qop import tasks
+from qop.globals import TaskType, Status, Command, PREHEADER_LEN, is_enum_member
 from qop.exceptions import FileExistsAndIsIdenticalError
 
 Pathish = Union[Path, str]
@@ -60,7 +60,7 @@ class QopDaemon:
                 lg.debug(f"processing request {req}")
 
                 # commands are not added to the queue, but executed as they are received
-                if rsp.body["type"] == tasks.TaskType.COMMAND:
+                if rsp.body["type"] == TaskType.COMMAND:
                     lg.info(f"received command: {rsp.encode()}")
 
                     if rsp.body["command"] == Command.KILL:
@@ -80,29 +80,33 @@ class QopDaemon:
                         self.queue.pause()
                         client.sendall(StatusMessage(Status.OK, "pause processing queue").encode())
 
+                    if rsp.body["command"] == Command.FLUSH:
+                        self.queue.flush()
+                        client.sendall(StatusMessage(Status.OK, "flushed queue").encode())
+
                     else:
                         msg = f"unknown command {rsp.body['command']}"
                         lg.error(msg)
                         client.sendall(StatusMessage(Status.FAIL, msg).encode())
 
                 # tasks are added to the queue
-                elif rsp.body["type"] > 0:
+                elif is_enum_member(rsp.body["type"], TaskType):
                     tsk = tasks.Task.from_dict(rsp.body)
                     try:
                         tsk.__validate__()
                         self.queue.put(tsk)
-                        lg.info(msg)
+                        lg.debug(f"enqueued task {tsk}")
                         client.sendall(StatusMessage(Status.OK, task=tsk).encode())
                     except FileExistsAndIsIdenticalError:
                         msg = f"destination exists"
-                        lg.info(msg)
+                        lg.debug(msg)
                         client.sendall(StatusMessage(Status.SKIP, msg=msg, task=tsk).encode())
                     except FileExistsError:
                         msg = f"destination exists and differs from source"
                         lg.error(msg)
                         client.sendall(StatusMessage(Status.FAIL, msg=msg, task=tsk).encode())
                     except:
-                        msg = f"{sys.exc_info()}"
+                        msg = str(sys.exc_info())
                         lg.error(msg)
                         client.sendall(StatusMessage(Status.FAIL, msg=msg, task=tsk).encode())
                 else:

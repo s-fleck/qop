@@ -31,3 +31,11 @@ class Status(IntEnum):
 
 class FileExistsAndIsIdenticalError(Exception):
     pass
+
+
+def is_enum_member(x: int, enum):
+    try:
+        enum(x)
+        return True
+    except ValueError:
+        return False

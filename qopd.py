@@ -9,10 +9,11 @@ import appdirs
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--log-level", type=str, help="python-logging log level: DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50)", default="WARNING")
+parser.add_argument("--log-level", type=str, help="python-logging log level: DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50)", default="INFO")
 parser.add_argument("--log-file", type=str, help="optional path to redirect logging to")
 parser.add_argument("--queue", type=str, help="name of the queue (cannot be specified at the same time as queue-path)")
 parser.add_argument("--queue-path", type=str, help="path to the queue (cannot be specified at the same time as queue)")
+
 args = parser.parse_args()
 
 

@@ -7,7 +7,6 @@ from qop import daemon, tasks, converters, scanners
 from qop.globals import *
 from pathlib import Path
 from colorama import init, Fore
-import filecmp
 
 init()
 
@@ -19,6 +18,8 @@ parser.add_argument("source", type=str, help="path", nargs="*")
 parser.add_argument("--log-level", type=str, help="python-logging log level: DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50)", default="WARNING")
 parser.add_argument("--log-file", type=str, help="optional path to redirect logging to")
 parser.add_argument("-r", "--recursive", action="store_true")
+parser.add_argument("-e", "--queue-only", action="store_true", help="Enqueue only without starting the queue. Note that this does not stop the queue if it is already running.")
+
 args = parser.parse_args()
 
 
@@ -44,7 +45,7 @@ def color_status(x: int):
     if x == Status.OK:
         return f"{Fore.GREEN}{x.name.rjust(pad, ' ')}{Fore.RESET}"
     elif x == Status.SKIP:
-        return f"{Fore.YELLOW}{x.name.rjust(pad, ' ')}{Fore.RESET}"
+        return f"{Fore.BLUE}{x.name.rjust(pad, ' ')}{Fore.RESET}"
     else:
         return f"{Fore.RED}{x.name.rjust(pad, ' ')}{Fore.RESET}"
 
@@ -86,6 +87,9 @@ elif args.operation == "pause":
 elif args.operation == "info":
     send_command(Command.INFO)
 
+elif args.operation == "flush":
+    send_command(Command.FLUSH)
+
 elif args.source:
     dst_dir = args.source[-1]
     sources = args.source[:-1]
@@ -122,3 +126,6 @@ elif args.source:
                     raise ValueError("operation not supported")
 
                 enqueue_task(tsk)
+
+    if not args.queue_only:
+        send_command(Command.START)
