@@ -1,4 +1,4 @@
-from qcp import utils, tasks, converters
+from qop import utils, tasks, converters
 from pathlib import Path
 import pytest
 
@@ -147,7 +147,7 @@ def test_MoveTask_can_be_serialized(tmp_path):
 #     op1 = tasks.ConvertTask(f1, 'od', validate=False, converter=converters.CopyConverter())
 #     op2 = tasks.ConvertTask(f1, 'td', validate=False, converter=converters.OggConverter())
 #
-#     oq = tasks.TaskQueue(path=tmp_path.joinpath("qcp.db"))
+#     oq = tasks.TaskQueue(path=tmp_path.joinpath("qop.db"))
 #     oq.put(op2)
 #     oq.put(op1)
 #
@@ -189,7 +189,7 @@ def test_TaskQueue(tmp_path):
     src = tmp_path.joinpath("foo")
     src.touch()
 
-    q = tasks.TaskQueue(tmp_path.joinpath("qcp.db"))
+    q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
     q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
     q.run()
     assert tmp_path.joinpath("copied_file").is_file()
@@ -209,7 +209,7 @@ def test_TaskQueue_sorts_by_priority(tmp_path):
     op2 = tasks.EchoTask('two')
     op3 = tasks.EchoTask('three')
 
-    oq = tasks.TaskQueue(path=tmp_path.joinpath("qcp.db"))
+    oq = tasks.TaskQueue(path=tmp_path.joinpath("qop.db"))
     oq.put(op2, 2)
     oq.put(op1, 1)
     oq.put(op3, 3)
@@ -249,7 +249,7 @@ def test_TaskQueue_peek_does_not_modify_queue(tmp_path):
     op2 = tasks.EchoTask('two')
     op3 = tasks.EchoTask('three')
 
-    oq = tasks.TaskQueue(path=tmp_path.joinpath("qcp.db"))
+    oq = tasks.TaskQueue(path=tmp_path.joinpath("qop.db"))
     oq.put(op2, 1)
     oq.put(op1, 1)
     oq.put(op3, 3)
@@ -267,7 +267,7 @@ def test_TaskQueue_fetch(tmp_path):
     src = tmp_path.joinpath("foo")
     src.touch()
 
-    q = tasks.TaskQueue(tmp_path.joinpath("qcp.db"))
+    q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
     q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
     q.put(tasks.DeleteTask(tmp_path.joinpath("copied_file"), validate=False))
     q.put(tasks.DeleteTask(tmp_path.joinpath("foo")))

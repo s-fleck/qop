@@ -1,21 +1,22 @@
 from pathlib import Path
 from typing import Union, Optional, Dict, Tuple, List
-from qcp import converters
+from qop import converters
 import shutil
 import os
 import json
 import sqlite3
 import sys
-
 import logging
+from qop.globals import TaskType, Status, Command
+
 
 Pathish = Union[Path, str]
 
-lg = logging.getLogger("qcp/tasks")
+lg = logging.getLogger("qop.tasks")
 
 
 class Task:
-    """Abstract class for qcp Tasks. Should not be instantiated directly."""
+    """Abstract class for qop Tasks. Should not be instantiated directly."""
 
     def __init__(self) -> None:
         self.type = 0
@@ -27,13 +28,13 @@ class Task:
     @staticmethod
     def from_dict(x: Dict, validate: Optional[bool] = None) -> "Task":
         """Create a Task of the appropriate subclass from a python dict"""
-        logging.getLogger("qcp.tasks").debug(f"parsing task {x}")
+        logging.getLogger("qop.tasks").debug(f"parsing task {x}")
         task_type = x["type"]
 
         if validate is None and "validate" in x.keys():
             validate = x["validate"]
 
-        if task_type == -1:
+        if task_type == TaskType.KILL:
             return KillTask()
         elif task_type == 0:
             return Task()
@@ -74,34 +75,23 @@ class Task:
         return r
 
 
+class CommandTask(Task):
+    def __init__(self, command) -> None:
+        super().__init__()
+        self.type = 0
+        self.command = command
+
+    def __repr__(self) -> str:
+        return f'COMMAND: command'
+
+
 class KillTask(Task):
-    """Kill the qcp server"""
     def __init__(self) -> None:
         super().__init__()
-        self.type = -1
+        self.type = TaskType.KILL
 
     def __repr__(self) -> str:
-        return 'KILL'
-
-
-class InfoTask(Task):
-    """Log a message"""
-    def __init__(self) -> None:
-        super().__init__()
-        self.type = -2
-
-    def __repr__(self) -> str:
-        return f'Info"'
-
-
-class StartTask(Task):
-    """Log a message"""
-    def __init__(self) -> None:
-        super().__init__()
-        self.type = -3
-
-    def __repr__(self) -> str:
-        return f'Start"'
+        return f'KILL'
 
 
 class EchoTask(Task):
@@ -109,7 +99,7 @@ class EchoTask(Task):
     def __init__(self,  msg: str) -> None:
         super().__init__()
         self.msg = msg
-        self.type = 1
+        self.type = TaskType.ECHO
 
     def run(self) -> None:
         print(self.msg)
@@ -124,7 +114,7 @@ class FileTask(Task):
         super().__init__()
         self.validate = validate
         self.src = Path(src).as_posix()
-        self.type = 2
+        self.type = None
         if validate:
             self.__validate__()
 
@@ -139,7 +129,7 @@ class DeleteTask(FileTask):
     """Delete a file"""
     def __init__(self, src: Pathish, validate: bool = True) -> None:
         super().__init__(src=src, validate=validate)
-        self.type = 3
+        self.type = TaskType.DELETE
 
     def run(self) -> None:
         os.unlink(self.src)
@@ -153,7 +143,7 @@ class CopyTask(FileTask):
     def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
         super().__init__(src=src, validate=False)
         self.dst = Path(dst).as_posix()
-        self.type = 4
+        self.type = TaskType.COPY
         self.validate = validate
         if validate:
             self.__validate__()
@@ -175,7 +165,7 @@ class MoveTask(CopyTask):
     """Move a file"""
     def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
         super().__init__(src=src, dst=dst, validate=validate)
-        self.type = 5
+        self.type = TaskType.MOVE
 
     def run(self) -> None:
         super().__validate__()
@@ -189,7 +179,7 @@ class ConvertTask(CopyTask):
     """convert an audio file"""
     def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter, validate: bool = True) -> None:
         super().__init__(src=src, dst=dst, validate=validate)
-        self.type = 6
+        self.type = TaskType.CONVERT
         self.converter = converter
         self.src = src
         self.dst = dst
@@ -241,7 +231,11 @@ class TaskQueue:
         :type path: Path or str
         """
 
-        logging.getLogger("qcp.tasks").info(f"initializing queue {path}")
+        if path.exists():
+            lg.info(f"initializing new queue {path}")
+        else:
+            lg.info(f"using existing queue {path}")
+
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
         self.path = Path(path)
         cur = self.con.cursor()
@@ -311,7 +305,7 @@ class TaskQueue:
             "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, json.dumps(task.to_dict()), 0)
         )
         self.con.commit()
-        logging.getLogger("qcp.tasks").info(f"inserted task {task.to_dict()}")
+        lg.debug(f"inserted task {task.to_dict()}")
 
     def pop(self) -> "Task":
         """
@@ -331,7 +325,7 @@ class TaskQueue:
             raise AlreadyUnderEvaluationError
         
         task = Task.from_dict(json.loads(record[1]))
-        logging.getLogger("qcp.tasks").info(f"popped task {task}")
+        lg.debug(f"popped task {task}")
         task.oid = oid
         return task
 
@@ -407,7 +401,7 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
-        logging.getLogger("qcp/tasks").info(f"task {oid} pending")
+        logging.getLogger("qop/tasks").info(f"task {oid} pending")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 0, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
@@ -444,7 +438,7 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
-        logging.getLogger("qcp/tasks").error(f"task {oid} failed")
+        logging.getLogger("qop/tasks").error(f"task {oid} failed")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = -1, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
@@ -458,12 +452,15 @@ class TaskQueue:
             print(self.n_pending)
             op = self.pop()
             try:
-                logging.getLogger("qcp.tasks").debug(f"inserting {op.oid}")
+                logging.getLogger("qop.tasks").debug(f"inserting {op.oid}")
                 op.run()
                 self.mark_done(op.oid)
             except:
                 self.mark_failed(op.oid)
-                logging.getLogger("qcp.tasks").error(sys.exc_info()[0])
+                logging.getLogger("qop.tasks").error(sys.exc_info()[0])
+
+    def pause(self) -> None:
+        raise NotImplementedError
 
 
 class AlreadyUnderEvaluationError(Exception):

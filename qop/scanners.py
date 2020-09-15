@@ -16,7 +16,7 @@ class Scanner:
 
         res = []
 
-        logging.getLogger("qcp.scanners").debug(f"collecting files with extensions {','.join(self.whitelist)}")
+        logging.getLogger("qop.scanners").debug(f"collecting files with extensions {','.join(self.whitelist)}")
         wl = ["." + e for e in self.whitelist]
 
         for path in paths:

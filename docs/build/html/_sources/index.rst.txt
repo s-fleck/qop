@@ -1,9 +1,9 @@
-.. qcp documentation master file, created by
+.. qop documentation master file, created by
    sphinx-quickstart on Sun Aug 18 08:26:33 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to qcp's documentation!
+Welcome to qop's documentation!
 ===============================
 
 .. toctree::

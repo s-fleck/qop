@@ -1,4 +1,4 @@
-from qcp import converters, utils
+from qop import converters, utils
 from pathlib import Path
 import pytest
 import json

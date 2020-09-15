@@ -1,7 +1,7 @@
-qcp
+qop
 ===
 
 .. toctree::
    :maxdepth: 4
 
-   qcp
+   qop

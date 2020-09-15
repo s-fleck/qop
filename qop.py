@@ -1,54 +1,68 @@
 #! /usr/bin/env python3
 
 import argparse
-from qcp import daemon
-from qcp import tasks, converters, scanners
-
 import socket
-
-from pathlib import Path
 import logging
+from qop import daemon, tasks, converters, scanners
+from qop.globals import *
+from pathlib import Path
 
-logging.basicConfig(level="DEBUG")
 
+# args
 parser = argparse.ArgumentParser()
 parser.add_argument("operation", type=str, help="operation to execute")
 parser.add_argument("source", type=str, help="path", nargs="*")
-parser.add_argument("--log-level", type=str, help="python-logging log level: DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50)", default="INFO")
+parser.add_argument("--log-level", type=str, help="python-logging log level: DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50)", default="WARNING")
 parser.add_argument("--log-file", type=str, help="optional path to redirect logging to")
 parser.add_argument("-r", "--recursive", action="store_true")
 args = parser.parse_args()
 
-lg = logging.getLogger("qcp.cli-client")
+
+# init logging
+lg = logging.getLogger("qop.cli-daemon")
+
+if args.log_level.isdigit():
+    log_level = int(args.log_level)
+else:
+    log_level = args.log_level.upper()
 
 if args.log_file is not None:
-    logging.basicConfig(level=args.log_level, filename=args.log_file)
+    logging.basicConfig(level=log_level, filename=args.log_file)
 else:
-    logging.basicConfig(level=args.log_level)
+    logging.basicConfig(level=log_level)
 
+logging.getLogger("qop").setLevel("INFO")
+
+def send_command(command):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.connect(("127.0.0.1", 9393))
+        req = daemon.Message(tasks.CommandTask(command))
+        client.sendall(req.encode())
+        res = client.recv(1024)
+        lg.info(res)
+
+
+def enqueue_task(task):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.connect(("127.0.0.1", 9393))
+        req = daemon.Message(tasks.CommandTask(command))
+        client.sendall(req.encode())
+        res = client.recv(1024)
+        lg.info(res)
+
+
+# commands
 if args.operation == "kill":
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-        client.connect(("127.0.0.1", 9393))
-        req = daemon.Message(tasks.KillTask())
-        client.sendall(req.encode())
-        res = client.recv(1024)
-        lg.info(res)
-
-elif args.operation == "info":
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-        client.connect(("127.0.0.1", 9393))
-        req = daemon.Message(tasks.InfoTask())
-        client.sendall(req.encode())
-        res = client.recv(1024)
-        lg.info(res)
+    send_command(Command.KILL)
 
 elif args.operation == "start":
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-        client.connect(("127.0.0.1", 9393))
-        req = daemon.Message(tasks.StartTask())
-        client.sendall(req.encode())
-        res = client.recv(1024)
-        lg.info(res)
+    send_command(Command.START)
+
+elif args.operation == "pause":
+    send_command(Command.PAUSE)
+
+elif args.operation == "info":
+    send_command(Command.INFO)
 
 elif args.source:
     dst_dir = args.source[-1]
@@ -83,10 +97,11 @@ elif args.source:
                         else:
                             tsk = tasks.CopyTask(src=src, dst=dst)
                     else:
-                        logging.getLogger("qcp/cli").fatal(f'"{args.operation}" is not a supported operation')
+                        lg.fatal(f'"{args.operation}" is not a supported operation')
                         raise ValueError("operation not supported")
 
                 client.sendall(daemon.Message(tsk).encode())
-                res = client.recv(1024)
-                lg.info(res)
+                res = daemon.RawMessage(client.recv(1024)).decode()
+
+                print(f"{Status(res.body['status']).name} {res.body['msg']} {tasks.Task.from_dict(res.body['task']).__repr__()}")
                 client.close()

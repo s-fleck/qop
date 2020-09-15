@@ -1,4 +1,4 @@
-from qcp import Scanner, converters, utils
+from qop import Scanner, converters, utils
 import pytest
 
 

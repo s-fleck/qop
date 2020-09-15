@@ -1,61 +1,61 @@
-qcp package
+qop package
 ===========
 
 Submodules
 ----------
 
-qcp.Scanner module
+qop.Scanner module
 ------------------
 
-.. automodule:: qcp.Scanner
+.. automodule:: qop.Scanner
    :members:
    :undoc-members:
    :show-inheritance:
 
-qcp.clean module
+qop.clean module
 ----------------
 
-.. automodule:: qcp.clean
+.. automodule:: qop.clean
    :members:
    :undoc-members:
    :show-inheritance:
 
-qcp.client module
+qop.client module
 -----------------
 
-.. automodule:: qcp.client
+.. automodule:: qop.client
    :members:
    :undoc-members:
    :show-inheritance:
 
-qcp.converters module
+qop.converters module
 ---------------------
 
-.. automodule:: qcp.converters
+.. automodule:: qop.converters
    :members:
    :undoc-members:
    :show-inheritance:
 
-qcp.daemon module
+qop.daemon module
 -----------------
 
-.. automodule:: qcp.daemon
+.. automodule:: qop.daemon
    :members:
    :undoc-members:
    :show-inheritance:
 
-qcp.tasks module
+qop.tasks module
 ----------------
 
-.. automodule:: qcp.tasks
+.. automodule:: qop.tasks
    :members:
    :undoc-members:
    :show-inheritance:
 
-qcp.utils module
+qop.utils module
 ----------------
 
-.. automodule:: qcp.utils
+.. automodule:: qop.utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -64,7 +64,7 @@ qcp.utils module
 Module contents
 ---------------
 
-.. automodule:: qcp
+.. automodule:: qop
    :members:
    :undoc-members:
    :show-inheritance:

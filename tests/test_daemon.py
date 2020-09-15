@@ -1,7 +1,7 @@
 import pytest
 import threading
 import socket
-from qcp import tasks, daemon
+from qop import tasks, daemon
 from pathlib import Path
 
 tmp_path = Path("/tmp")
@@ -9,7 +9,7 @@ tmp_path = Path("/tmp")
 
 @pytest.fixture()
 def dummy_daemon():
-    dummy = daemon.QcpDaemon(queue_path=tmp_path.joinpath("qcp.db"))
+    dummy = daemon.QopDaemon(queue_path=tmp_path.joinpath("qop.db"))
     with dummy as dummy_daemon:
         thread = threading.Thread(target=dummy_daemon.listen)
         thread.daemon = True
