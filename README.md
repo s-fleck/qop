@@ -8,7 +8,8 @@ leaving lossy formats untouched.
 
 ## Features:
 
-* Automatic file conversion
+* Conditional audio transcoding (e.g. transcode only lossless files) 
+* Tag cleanup (e.g. remove album covers) [planned]
 * Multicore support [wip]
 * Persistent job-queues to resume aborted transfers 
 * Clean and simple CLI
