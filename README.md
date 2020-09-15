@@ -6,7 +6,7 @@ unreliable connections (e.g. some mobile phones or old mp3 players). qop also su
 transcoding which makes it possibly to transcode lossless formats (such as FLAC) to mp3 or ogg, while 
 leaving lossy formats untouched.
 
-Features:
+## Features:
 
 * Automatic file conversion
 * Multicore support [wip]
@@ -14,7 +14,7 @@ Features:
 * Clean and simple CLI
 
 
-Development status:
+## Development status:
 
 qop is in an alpha stage and not fit for general use.
 
