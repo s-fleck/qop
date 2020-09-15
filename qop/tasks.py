@@ -8,7 +8,11 @@ import sqlite3
 import sys
 import logging
 from qop.globals import TaskType, Status, Command
+from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError
+from colorama import init, Fore
+import filecmp
 
+init()
 
 Pathish = Union[Path, str]
 
@@ -26,13 +30,10 @@ class Task:
         raise NotImplementedError
 
     @staticmethod
-    def from_dict(x: Dict, validate: Optional[bool] = None) -> "Task":
+    def from_dict(x: Dict) -> "Task":
         """Create a Task of the appropriate subclass from a python dict"""
-        logging.getLogger("qop.tasks").debug(f"parsing task {x}")
+        lg.debug(f"parsing task {x}")
         task_type = x["type"]
-
-        if validate is None and "validate" in x.keys():
-            validate = x["validate"]
 
         if task_type == TaskType.KILL:
             return KillTask()
@@ -41,13 +42,13 @@ class Task:
         elif task_type == 1:
             return EchoTask(x["msg"])
         elif task_type == 2:
-            return FileTask(x["src"], validate=validate)
+            return FileTask(x["src"])
         elif task_type == 3:
-            return DeleteTask(x["src"], validate=validate)
+            return DeleteTask(x["src"])
         elif task_type == 4:
-            return CopyTask(x["src"], x["dst"], validate=validate)
+            return CopyTask(x["src"], x["dst"])
         elif task_type == 5:
-            return MoveTask(x["src"], x["dst"], validate=validate)
+            return MoveTask(x["src"], x["dst"])
         elif task_type == 6:
             return ConvertTask(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
         else:
@@ -63,16 +64,21 @@ class Task:
         return self.__dict__ != other.__dict__
 
     def to_dict(self) -> Dict:
-        return self.__dict__.copy()
-
-    def to_json(self):
-        r = self.to_dict()
+        r = self.__dict__.copy()
 
         for el in ("src", "dst"):
             if el in r.keys():
                 r[el] = str(r[el])
-
         return r
+
+    def color_repr(self, color=True):
+        self.__repr__()
+
+    def __validate__(self) -> None:
+        pass
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
 
 
 class CommandTask(Task):
@@ -101,8 +107,9 @@ class EchoTask(Task):
         self.msg = msg
         self.type = TaskType.ECHO
 
-    def run(self) -> None:
+    def run(self) -> Status:
         print(self.msg)
+        return Status.OK
 
     def __repr__(self) -> str:
         return f'Echo: "{self.msg}"'
@@ -110,29 +117,27 @@ class EchoTask(Task):
 
 class FileTask(Task):
     """Abstract class for all file-based tasks"""
-    def __init__(self, src: Pathish, validate: bool = True) -> None:
+    def __init__(self, src: Pathish) -> None:
         super().__init__()
-        self.validate = validate
-        self.src = Path(src).as_posix()
+        self.src = Path(src).absolute()
         self.type = None
-        if validate:
-            self.__validate__()
 
     def __validate__(self) -> None:
-        if not Path(self.src).exists():
+        if not self.src.exists():
             raise FileNotFoundError(f'{self.src} does not exist')
-        elif not (Path(self.src).is_dir() or Path(self.src).is_file()):
+        elif not (self.src.is_dir() or self.src.is_file()):
             raise TypeError(f'{self.src} is neither a file nor directory')
 
 
 class DeleteTask(FileTask):
     """Delete a file"""
     def __init__(self, src: Pathish, validate: bool = True) -> None:
-        super().__init__(src=src, validate=validate)
+        super().__init__(src=src)
         self.type = TaskType.DELETE
 
-    def run(self) -> None:
+    def run(self) -> Status:
         os.unlink(self.src)
+        return Status.OK
 
     def __repr__(self) -> str:
         return f'DEL {self.src}'
@@ -140,21 +145,31 @@ class DeleteTask(FileTask):
 
 class CopyTask(FileTask):
     """Copy a file"""
-    def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
-        super().__init__(src=src, validate=False)
-        self.dst = Path(dst).as_posix()
+    def __init__(self, src: Pathish, dst: Pathish) -> None:
+        super().__init__(src=src)
+        self.dst = Path(dst).absolute()
         self.type = TaskType.COPY
-        self.validate = validate
-        if validate:
-            self.__validate__()
+
+    def color_repr(self, color=True) -> str:
+        if color:
+            op = Fore.YELLOW + "COPY" + Fore.RESET
+            arrow = Fore.YELLOW + "->" + Fore.RESET
+            src = self.src
+            dst = self.dst
+            return f'{op} {src} {arrow} {dst}'
+        else:
+            return self.__repr__()
 
     def __repr__(self) -> str:
         return f'COPY {self.src} -> {self.dst}'
 
     def __validate__(self) -> None:
         super().__validate__()
-        if Path(self.dst).exists():
-            raise FileExistsError
+        if self.dst.exists():
+            if filecmp.cmp(self.dst, self.src):
+                raise FileExistsAndIsIdenticalError
+            else:
+                raise FileExistsError
 
     def run(self) -> None:
         self.__validate__()
@@ -163,13 +178,17 @@ class CopyTask(FileTask):
 
 class MoveTask(CopyTask):
     """Move a file"""
-    def __init__(self, src: Pathish, dst: Pathish, validate: bool = True) -> None:
-        super().__init__(src=src, dst=dst, validate=validate)
+    def __init__(self, src: Pathish, dst: Pathish) -> None:
+        super().__init__(src=src, dst=dst)
         self.type = TaskType.MOVE
 
-    def run(self) -> None:
+    def run(self) -> Status:
         super().__validate__()
-        shutil.move(self.src, self.dst)
+        if self.dst.exists() & filecmp.cmp(self.dst, self.src):
+            return Status.SKIP
+        else:
+            shutil.move(self.src, self.dst)
+            return Status.OK
 
     def __repr__(self) -> str:
         return f'MOVE {self.src} -> {self.dst}'
@@ -177,16 +196,17 @@ class MoveTask(CopyTask):
 
 class ConvertTask(CopyTask):
     """convert an audio file"""
-    def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter, validate: bool = True) -> None:
-        super().__init__(src=src, dst=dst, validate=validate)
+    def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter) -> None:
+        super().__init__(src=src, dst=dst)
         self.type = TaskType.CONVERT
         self.converter = converter
         self.src = src
         self.dst = dst
 
-    def run(self) -> None:
+    def run(self) -> Status:
         super().__validate__()
         self.converter.run(self.src, self.dst)
+        return Status.OK
 
     def __repr__(self) -> str:
         return f'CONVERT {self.src} -> {self.dst}'
@@ -302,7 +322,7 @@ class TaskQueue:
         lg.debug(f"trying to inserted task {task.to_dict()}")
         cur = self.con.cursor()
         cur.execute(
-            "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, json.dumps(task.to_dict()), 0)
+            "INSERT INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, task.to_json(), 0)
         )
         self.con.commit()
         lg.debug(f"inserted task {task.to_dict()}")
@@ -337,7 +357,7 @@ class TaskQueue:
         cur.execute("SELECT * from tasks ORDER BY priority LIMIT 1")
         record = cur.fetchall()[0]
         oid = record[0].__str__()
-        task = Task.from_dict(json.loads(record[1]), validate=False)
+        task = Task.from_dict(json.loads(record[1]))
         task.oid = oid
         return task
 
@@ -401,7 +421,7 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
-        logging.getLogger("qop/tasks").info(f"task {oid} pending")
+        lg.info(f"task {oid} pending")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = 0, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
@@ -438,7 +458,7 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
-        logging.getLogger("qop/tasks").error(f"task {oid} failed")
+        lg.error(f"task {oid} failed")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = -1, owner = NULL where _ROWID_ = ?", (oid, ))
         self.con.commit()
@@ -446,23 +466,17 @@ class TaskQueue:
     def run(self) -> None:
         """Execute all pending tasks"""
         if self.n_pending < 1:
-            logging.getLogger().warning("queue is empty")
+            lg.warning("queue is empty")
 
         while self.n_pending > 0:
-            print(self.n_pending)
             op = self.pop()
             try:
-                logging.getLogger("qop.tasks").debug(f"inserting {op.oid}")
+                lg.debug(f"inserting {op.oid}")
                 op.run()
                 self.mark_done(op.oid)
             except:
                 self.mark_failed(op.oid)
-                logging.getLogger("qop.tasks").error(sys.exc_info()[0])
+                lg.error(f"executing task failed: {sys.exc_info()}")
 
     def pause(self) -> None:
         raise NotImplementedError
-
-
-class AlreadyUnderEvaluationError(Exception):
-    """This Task is already being processed by a different worker"""
-    pass

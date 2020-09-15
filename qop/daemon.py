@@ -1,16 +1,15 @@
 import struct
 import json
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 import tempfile
 from qop import tasks
 from pathlib import Path
 import logging
 import socket
 import sys
-from qop.globals import TaskType, Status, Command
+from qop.globals import TaskType, Status, Command, PREHEADER_LEN
+from qop.exceptions import FileExistsAndIsIdenticalError
 
-
-PREHEADER_LEN: int = 2
 Pathish = Union[Path, str]
 
 
@@ -88,16 +87,24 @@ class QopDaemon:
 
                 # tasks are added to the queue
                 elif rsp.body["type"] > 0:
+                    tsk = tasks.Task.from_dict(rsp.body)
                     try:
-                        tsk = tasks.Task.from_dict(rsp.body)
+                        tsk.__validate__()
                         self.queue.put(tsk)
-                        msg = f"enqueued task: {rsp}"
                         lg.info(msg)
-                        client.sendall(StatusMessage(Status.OK, msg="enqueued task", task=tsk).encode())
-                    except:
-                        msg = f"cannot enqueue task: {rsp.encode()}: {sys.exc_info()}"
+                        client.sendall(StatusMessage(Status.OK, task=tsk).encode())
+                    except FileExistsAndIsIdenticalError:
+                        msg = f"destination exists"
+                        lg.info(msg)
+                        client.sendall(StatusMessage(Status.SKIP, msg=msg, task=tsk).encode())
+                    except FileExistsError:
+                        msg = f"destination exists and differs from source"
                         lg.error(msg)
-                        client.sendall(StatusMessage(Status.FAIL, msg=msg).encode())
+                        client.sendall(StatusMessage(Status.FAIL, msg=msg, task=tsk).encode())
+                    except:
+                        msg = f"{sys.exc_info()}"
+                        lg.error(msg)
+                        client.sendall(StatusMessage(Status.FAIL, msg=msg, task=tsk).encode())
                 else:
                     msg = f"unknown task {rsp.body['type']}"
                     lg.error(msg)
@@ -209,7 +216,7 @@ class RawMessage:
 class StatusMessage(Message):
     """Messages sent from the daemon to the client to inform it on the status of an operation"""
 
-    def __init__(self, status: int, msg: str, task=None) -> None:
+    def __init__(self, status: int, msg: Optional[str] = None, task=None) -> None:
         """
 
         :rtype: object

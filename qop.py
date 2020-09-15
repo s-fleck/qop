@@ -6,6 +6,10 @@ import logging
 from qop import daemon, tasks, converters, scanners
 from qop.globals import *
 from pathlib import Path
+from colorama import init, Fore
+import filecmp
+
+init()
 
 
 # args
@@ -33,6 +37,25 @@ else:
 
 logging.getLogger("qop").setLevel("INFO")
 
+
+def color_status(x: int):
+    x = Status(x)
+    pad = 4
+    if x == Status.OK:
+        return f"{Fore.GREEN}{x.name.rjust(pad, ' ')}{Fore.RESET}"
+    elif x == Status.SKIP:
+        return f"{Fore.YELLOW}{x.name.rjust(pad, ' ')}{Fore.RESET}"
+    else:
+        return f"{Fore.RED}{x.name.rjust(pad, ' ')}{Fore.RESET}"
+
+
+def format_response(rsp) -> str:
+    res = f"{color_status(rsp.body['status'])} {tasks.Task.from_dict(rsp.body['task']).color_repr()}"
+    if rsp.body['msg'] is not None:
+        res = res + f" {Fore.YELLOW}[{rsp.body['msg']}]{Fore.RESET}"
+    return res
+
+
 def send_command(command):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect(("127.0.0.1", 9393))
@@ -45,10 +68,9 @@ def send_command(command):
 def enqueue_task(task):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect(("127.0.0.1", 9393))
-        req = daemon.Message(tasks.CommandTask(command))
-        client.sendall(req.encode())
-        res = client.recv(1024)
-        lg.info(res)
+        client.sendall(daemon.Message(task).encode())
+        res = daemon.RawMessage(client.recv(1024)).decode()
+        print(format_response(res))
 
 
 # commands
@@ -76,32 +98,27 @@ elif args.source:
 
     for source in sources:
         for src in source['paths']:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-                client.connect(("127.0.0.1", 9393))
-                lg.debug(f"inserting {src}")
+            lg.debug(f"inserting {src}")
 
-                if args.operation == "echo":
-                    tsk = tasks.EchoTask(msg=" ".join(args.source))
-                else:
-                    src = Path(src).resolve()
-                    dst = Path(dst_dir).resolve().joinpath(src.relative_to(source['root']))
+            if args.operation == "echo":
+                tsk = tasks.EchoTask(msg=" ".join(args.source))
+            else:
+                src = Path(src).resolve()
+                dst = Path(dst_dir).resolve().joinpath(src.relative_to(source['root']))
 
-                    if args.operation == "copy":
-                        tsk = tasks.CopyTask(src=src, dst=dst)
-                    elif args.operation == "convert":
-                        tsk = tasks.ConvertTask(src=src, dst=dst, converter=converters.OggConverter())
-                    elif args.operation == "sc":
-                        to_convert = (".flac", ".wav", ".ape")
-                        if src.suffix in to_convert:
-                            tsk = tasks.ConvertTask(src=src, dst=dst.with_suffix(".ogg"), converter=converters.OggConverter(bitrate="256k"))
-                        else:
-                            tsk = tasks.CopyTask(src=src, dst=dst)
+                if args.operation == "copy":
+                    tsk = tasks.CopyTask(src=src, dst=dst)
+                elif args.operation == "convert":
+                    tsk = tasks.ConvertTask(src=src, dst=dst, converter=converters.OggConverter())
+                elif args.operation == "sc":
+                    to_convert = (".flac", ".wav", ".ape")
+                    if src.suffix in to_convert:
+                        dst = dst.with_suffix(".ogg")
+                        tsk = tasks.ConvertTask(src=src, dst=dst, converter=converters.OggConverter(bitrate="256k"))
                     else:
-                        lg.fatal(f'"{args.operation}" is not a supported operation')
-                        raise ValueError("operation not supported")
+                        tsk = tasks.CopyTask(src=src, dst=dst)
+                else:
+                    lg.fatal(f'"{args.operation}" is not a supported operation')
+                    raise ValueError("operation not supported")
 
-                client.sendall(daemon.Message(tsk).encode())
-                res = daemon.RawMessage(client.recv(1024)).decode()
-
-                print(f"{Status(res.body['status']).name} {res.body['msg']} {tasks.Task.from_dict(res.body['task']).__repr__()}")
-                client.close()
+                enqueue_task(tsk)

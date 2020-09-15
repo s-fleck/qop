@@ -1,5 +1,7 @@
 from enum import IntEnum
 
+PREHEADER_LEN: int = 2
+
 
 class Command(IntEnum):
     START = 1
@@ -22,5 +24,10 @@ class TaskType(IntEnum):
 
 
 class Status(IntEnum):
+    SKIP = 2
     OK = 1
     FAIL = 0
+
+
+class FileExistsAndIsIdenticalError(Exception):
+    pass
