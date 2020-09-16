@@ -61,7 +61,7 @@ class QopDaemon:
 
                 # commands are not added to the queue, but executed as they are received
                 if rsp.body["type"] == TaskType.COMMAND:
-                    lg.info(f"received command: {rsp.encode()}")
+                    lg.info(f"received command: {Command(rsp.body['command']).name}")
 
                     if rsp.body["command"] == Command.KILL:
                         client.sendall(StatusMessage(Status.OK, "shutting down server").encode())
@@ -69,18 +69,18 @@ class QopDaemon:
                         self.close()
                         break
 
-                    if rsp.body["command"] == Command.INFO:
+                    elif rsp.body["command"] == Command.INFO:
                         client.sendall(Message(self.queue.summary).encode())
 
-                    if rsp.body["command"] == Command.START:
+                    elif rsp.body["command"] == Command.START:
                         self.queue.run()
                         client.sendall(StatusMessage(Status.OK, "start processing queue").encode())
 
-                    if rsp.body["command"] == Command.PAUSE:
+                    elif rsp.body["command"] == Command.PAUSE:
                         self.queue.pause()
                         client.sendall(StatusMessage(Status.OK, "pause processing queue").encode())
 
-                    if rsp.body["command"] == Command.FLUSH:
+                    elif rsp.body["command"] == Command.FLUSH:
                         self.queue.flush()
                         client.sendall(StatusMessage(Status.OK, "flushed queue").encode())
 

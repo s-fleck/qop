@@ -254,19 +254,21 @@ class TaskQueue:
         """
 
         if path.exists():
-            lg.info(f"initializing new queue {path}")
-        else:
             lg.info(f"using existing queue {path}")
+        else:
+            lg.info(f"initializing new queue {path}")
 
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
         self.path = Path(path)
         cur = self.con.cursor()
         cur.execute("""
            CREATE TABLE IF NOT EXISTS tasks (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
               priority INTEGER,
-              task TEXT UNIQUE,
+              task TEXT,
               status INTEGER,
-              owner INTEGER              
+              owner INTEGER,
+              UNIQUE(task, status)              
             )              
         """)
         self.con.commit()
