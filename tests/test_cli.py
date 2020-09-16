@@ -1,47 +1,62 @@
 import pytest
 import subprocess
+from pathlib import Path
+import shutil
+from time import sleep
+
+
+QOP = Path("../qop.py").absolute()
+QOPD = Path("../qopd.py").absolute()
 
 
 @pytest.fixture(scope="session", autouse=True)
 def start_qop_daemon(request):
-    proc = subprocess.Popen(["nohup", "python3", "../qopd.py"])
+    proc = subprocess.Popen(["python3", QOPD, "--queue", '<temp>', "--log-file", "/dev/null"])
+    sleep(1)
     request.addfinalizer(proc.kill)
 
 
-def test_simple_copy_operation(tmp_path):
+
+@pytest.fixture()
+def testfile_tree(tmp_path):
+    root = tmp_path.joinpath("copy")
+    root.mkdir()
+
+    src = Path(root).joinpath("src")
+    src.mkdir()
+    dst = Path(root).joinpath("dst")
+    dst.mkdir()
+
+    def make_dummy_file(path):
+        if not path.parent.exists():
+            path.parent.mkdir(parents=True)
+        f = open(path, "w+")
+        f.write("foobar")
+
+    make_dummy_file(src.joinpath("foo/bar.txt"))
+    make_dummy_file(src.joinpath("foo/bar.flac"))
+    make_dummy_file(src.joinpath("baz.txt"))
+    make_dummy_file(src.joinpath("baz.flac"))
+
+    yield root, src, dst
+
+
+def test_copy_a_file(testfile_tree):
     """qop can copy a file"""
+    root, src, dst = testfile_tree
 
-    tf = tmp_path.joinpath("test.txt")
-    td = tmp_path.joinpath("copy")
-    td.mkdir()
-    f = open(tf, "w+")
-    f.write("foobar")
-    subprocess.run(["python3", "../qop.py", "copy", tf, td])
-
-    assert tf.exists()
-    assert td.joinpath("test.txt").exists()
-
-    subprocess.run(["python3", "../qop.py", "kill"])
+    subprocess.run(["python3", QOP, "--log-level", "FATAL", "copy", src.joinpath("baz.txt"), dst], cwd=root)
+    sleep(1)
+    assert src.joinpath("baz.txt").exists()
+    assert dst.joinpath("baz.txt").exists()
 
 
-def test_simple_copy_operation(tmp_path):
+def test_copy_a_directory(testfile_tree):
     """qop can copy a file"""
+    root, src, dst = testfile_tree
 
-    td = tmp_path.joinpath("copy")
-    td.mkdir()
-
-    root_path = "tests/test_Scanner"
-
-    subprocess.run(["python3", "../qop.py", "copy", "test_Scanner", td], cwd=root_path)
-    subprocess.run(["python3", "../qop.py", "copy", "test_Scanner/*.flac", td], cwd=root_path)
-    subprocess.run(["python3", "../qop.py", "copy", "*", td], cwd=root_path)
-    subprocess.run(["python3", "../qop.py", "copy", ".", td], cwd=root_path)
-    subprocess.run(["python3", "../qop.py", "-r", "copy", "test_Scanner", td], cwd=root_path)
-    subprocess.run(["python3", "../qop.py", "-r", "copy", "test_Scanner/*.flac", td], cwd=root_path)
-    subprocess.run(["python3", "../qop.py", "-r", "copy", "*", td], cwd=root_path)
-    subprocess.run(["python3", "../qop.py", "-r", "copy", ".", td], cwd=root_path)
-
-    assert tf.exists()
-    assert td.joinpath("test.txt").exists()
-
-    subprocess.run(["python3", "../qop.py", "kill"])
+    subprocess.run(["python3", QOP, "-v", "--log-level", "FATAL", "copy", src, dst], cwd=root)
+    sleep(1)
+    assert src.joinpath("baz.txt").exists()
+    assert dst.joinpath("src/baz.txt").exists()
+    assert dst.joinpath("src/foo/bar.txt").exists()
