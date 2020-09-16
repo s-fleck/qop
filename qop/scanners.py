@@ -12,7 +12,7 @@ class Scanner:
         self.blacklist = ()
 
     def run(self, paths):
-        paths = [Path(el).resolve() for el in paths]
+        paths = [Path(el).absolute() for el in paths]
 
         res = []
 
@@ -20,14 +20,14 @@ class Scanner:
         wl = ["." + e for e in self.whitelist]
 
         for path in paths:
-            r = {"root": path.resolve().parent, "paths": set()}
+            r = {"root": path.absolute().parent, "paths": set()}
             if not path.is_dir():
                 if path.suffix in wl:
                     r['paths'].add(path)
             else:
                 for p in path.rglob("*"):
                     if p.suffix in wl:
-                        r['paths'].add(p.resolve())
+                        r['paths'].add(p.absolute())
 
             res.append(r)
 
