@@ -65,6 +65,7 @@ class QopDaemon:
 
                     if rsp.body["command"] == Command.KILL:
                         client.sendall(StatusMessage(Status.OK, "shutting down server").encode())
+                        self.queue.stop()
                         client.close()
                         self.close()
                         break
