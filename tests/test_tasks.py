@@ -1,6 +1,9 @@
-from qop import utils, tasks, converters
+from qop import tasks
+from qop.exceptions import FileExistsAndIsIdenticalError
+from qop.globals import Status
 from pathlib import Path
 import pytest
+from time import sleep
 
 
 def test_Tasks_can_be_checked_for_equality():
@@ -19,7 +22,7 @@ def test_FileTask_fails_on_missing_src(tmp_path):
     # WHEN instantiating Task
     # THEN raise FileNotFoundError
     with pytest.raises(FileNotFoundError):
-        tasks.FileTask(src)
+        tasks.FileTask(src).__validate__()
 
     # GIVEN src exists
     # WHEN instantiating Task
@@ -81,11 +84,11 @@ def test_CopyTask_fails_on_existing_dst(tmp_path):
 
     op = tasks.CopyTask(src, dst)
     op.run()
-    with pytest.raises(FileExistsError):
+    with pytest.raises(FileExistsAndIsIdenticalError):
         op.run()
 
-    with pytest.raises(FileExistsError):
-        tasks.CopyTask(src, dst)
+    with pytest.raises(FileExistsAndIsIdenticalError):
+        tasks.CopyTask(src, dst).__validate__()
 
 
 def test_MoveTask(tmp_path):
@@ -112,63 +115,7 @@ def test_MoveTask_can_be_serialized(tmp_path):
     tsk = tasks.MoveTask(src, dst)
 
     # validate field gets overwritten by from_dict
-    assert tsk == tasks.Task.from_dict(tsk.__dict__, validate=True)
-
-#
-# def test_ConvertTask(tmp_path):
-#     """Dummy CopyConverter just copies a file"""
-#     src = tmp_path.joinpath("foo")
-#     dst = tmp_path.joinpath("bar")
-#     src.touch()
-#
-#     op = tasks.ConvertTask(src, dst, converters.CopyConverter())
-#
-#     assert op.src.exists()
-#     assert not op.dst.exists()
-#     op.run()
-#     assert op.src.exists()
-#     assert op.dst.exists()
-#
-#
-# def test_ConvertTask_can_be_serialized(tmp_path):
-#     """TaskCopy copies a file"""
-#     src = tmp_path.joinpath("foo")
-#     dst = tmp_path.joinpath("bar")
-#     src.touch()
-#
-#     tsk = tasks.ConvertTask(src, dst, converters.CopyConverter())
-#     assert tsk == tasks.from_dict(tsk.__dict__)
-#
-#
-# def test_ConvertTask_can_be_serialized(tmp_path):
-#     """ConvertTasks can be inserted into the TasksQueue"""
-#     f1 = utils.get_project_root("tests", "test_Converter", "16b.flac")
-#
-#     op1 = tasks.ConvertTask(f1, 'od', validate=False, converter=converters.CopyConverter())
-#     op2 = tasks.ConvertTask(f1, 'td', validate=False, converter=converters.OggConverter())
-#
-#     oq = tasks.TaskQueue(path=tmp_path.joinpath("qop.db"))
-#     oq.put(op2)
-#     oq.put(op1)
-#
-#     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
-#     assert all([el[0] == 0 for el in res])
-#
-#     or1 = oq.pop()
-#     or2 = oq.pop()
-#     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
-#     assert all([el[0] == 1 for el in res])
-#     assert or1.to_dict() == op1.to_dict()
-#     assert or2.converter.to_dict() == op2.converter.to_dict()
-#     assert or2.converter.to_dict() == op2.converter.to_dict()
-#
-#     with pytest.raises(IndexError):
-#         oq.pop()
-#
-#     oq.mark_done(or1.oid)
-#     oq.mark_done(or2.oid)
-#     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
-#     assert all([el[0] == 2 for el in res])
+    assert tsk == tasks.Task.from_dict(tsk.__dict__)
 
 
 def test_TaskQueueElements_can_be_ordered_by_priority():
@@ -192,13 +139,16 @@ def test_TaskQueue(tmp_path):
     q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
     q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
     q.run()
+    sleep(0.5)
     assert tmp_path.joinpath("copied_file").is_file()
     q.put(tasks.MoveTask(tmp_path.joinpath("copied_file"), tmp_path.joinpath("moved_file")))
     q.run()
+    sleep(0.5)
     assert not tmp_path.joinpath("copied_file").is_file()
     assert tmp_path.joinpath("moved_file").is_file()
     q.put(tasks.DeleteTask(tmp_path.joinpath("moved_file")))
     q.run()
+    sleep(0.5)
     assert not tmp_path.joinpath("moved_file").is_file()
     assert src.is_file()
 
@@ -215,21 +165,22 @@ def test_TaskQueue_sorts_by_priority(tmp_path):
     oq.put(op3, 3)
 
     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
-    assert all([el[0] == 0 for el in res])
+
+    assert all([el[0] == Status.PENDING for el in res])
     assert oq.n_total == 3
 
     or1 = oq.pop()
     or2 = oq.pop()
     or3 = oq.pop()
     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
-    assert all([el[0] == 1 for el in res])
+    assert all([el[0] == Status.RUNNING for el in res])
 
     # marking an object as done changes is status
-    oq.mark_done(or1.oid)
-    oq.mark_done(or2.oid)
-    oq.mark_done(or3.oid)
+    oq.mark_ok(or1.oid)
+    oq.mark_ok(or2.oid)
+    oq.mark_ok(or3.oid)
     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
-    assert all([el[0] == 2 for el in res])
+    assert all([el[0] == Status.OK for el in res])
 
     # object has not changed by serialisation (except for oid attribute)
     or1.__delattr__("oid")
@@ -257,6 +208,8 @@ def test_TaskQueue_peek_does_not_modify_queue(tmp_path):
     o1 = oq.peek().__dict__
     o2 = oq.peek().__dict__
     o3 = oq.pop().__dict__
+    o3.__delitem__('oid')
+    o3['oid'] = None
 
     assert o1 == o2
     assert o1 == o3
@@ -272,12 +225,26 @@ def test_TaskQueue_fetch(tmp_path):
     q.put(tasks.DeleteTask(tmp_path.joinpath("copied_file"), validate=False))
     q.put(tasks.DeleteTask(tmp_path.joinpath("foo")))
 
+    # all three are pending
     assert len(q.fetch(status=None, n=5)) == 3
-    assert len(q.fetch(status=(0, 1), n=3)) == 3
+    assert len(q.fetch(status=(Status.PENDING, Status.OK), n=3)) == 3
     assert len(q.fetch(status=None, n=None)) == 3
-    assert len(q.fetch(status=(0,), n=None)) == 3
+    assert len(q.fetch(status=(Status.PENDING,), n=None)) == 3
 
     q.run()
+    sleep(0.5)
     assert len(q.fetch(status=None, n=5)) == 3
-    assert len(q.fetch(status=0, n=5)) == 0
-    assert len(q.fetch(status=2, n=5)) == 3
+    assert len(q.fetch(status=Status.FAIL, n=5)) == 0
+    assert len(q.fetch(status=Status.OK, n=5)) == 3
+
+
+def test_TaskQueue_runs_nonblocking(tmp_path):
+    src = tmp_path.joinpath("foo")
+    src.touch()
+
+    q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
+    q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
+    q.put(tasks.DeleteTask(tmp_path.joinpath("copied_file"), validate=False))
+    q.put(tasks.DeleteTask(tmp_path.joinpath("foo")))
+
+    q.run()

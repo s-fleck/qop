@@ -191,11 +191,13 @@ class MoveTask(CopyTask):
 
     def run(self) -> Status:
         super().__validate__()
-        if self.dst.exists() & filecmp.cmp(self.dst, self.src):
-            return Status.SKIP
+        if not self.dst.parent.exists():
+            self.dst.parent.mkdir(parents=True)
+
+        if self.src.is_dir():
+            shutil.move(self.src, self.dst)
         else:
             shutil.move(self.src, self.dst)
-            return Status.OK
 
     def __repr__(self) -> str:
         return f'MOVE {self.src} -> {self.dst}'
@@ -366,9 +368,13 @@ class TaskQueue:
         Retrieves Task object without changing its status in the queue
         """
         cur = self.con.cursor()
-        cur.execute("SELECT * from tasks ORDER BY priority LIMIT 1")
+        cur.execute("SELECT owner, task from tasks ORDER BY priority LIMIT 1")
         record = cur.fetchall()[0]
-        oid = record[0].__str__()
+        oid = record[0]
+
+        if oid is not None:
+            oid = str(oid)
+
         task = Task.from_dict(json.loads(record[1]))
         task.oid = oid
         return task
@@ -387,7 +393,7 @@ class TaskQueue:
         for record in records:
             print(f"[{record[0]}] {Task.from_dict(json.loads(record[1]))}")
 
-    def fetch(self, status: Union[Tuple, int, None] = None, n: Optional[int] = None) -> List:
+    def fetch(self, status: Union[Tuple, int, Status, None] = None, n: Optional[int] = None) -> List:
         """
         Print an overview of the queue
 
@@ -400,16 +406,22 @@ class TaskQueue:
         """
         cur = self.con.cursor()
 
-        if isinstance(status, int):
-            status = (status, )
+        if status is not None:
+            if isinstance(status, int):
+                status = (status, )
+            elif isinstance(status, Status):
+                status = (int(status), )
+            if len(status) > 0:
+                status = tuple(int(s) for s in status)
+            else:
+                raise ValueError("illegal status")
 
-        if status:
             if n:
                 cur.execute(
                     f"SELECT status, task FROM tasks "
                     f"WHERE status IN ({','.join(['?' for x in status])}) "
                     f"ORDER BY priority LIMIT ?",
-                    status + (n,)
+                    status + (n, )
                 )
             else:
                 cur.execute(
