@@ -24,9 +24,11 @@ class TaskType(IntEnum):
 
 
 class Status(IntEnum):
-    SKIP = 2
-    OK = 1
     FAIL = 0
+    OK = 1
+    SKIP = 2
+    RUNNING = 3
+    PENDING = 4
 
 
 class FileExistsAndIsIdenticalError(Exception):

@@ -11,6 +11,7 @@ from qop.globals import TaskType, Status, Command
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError
 from colorama import init, Fore
 import filecmp
+from multiprocessing import Process
 
 init()
 
@@ -175,7 +176,11 @@ class CopyTask(FileTask):
         self.__validate__()
         if not self.dst.parent.exists():
             self.dst.parent.mkdir(parents=True)
-        shutil.copy(self.src, self.dst)
+
+        if self.src.is_dir():
+            shutil.copytree(self.src, self.dst)
+        else:
+            shutil.copy(self.src, self.dst)
 
 
 class MoveTask(CopyTask):
@@ -245,6 +250,9 @@ class TaskQueueElement:
 
 class TaskQueue:
     """A prioritzed queue for tasks"""
+
+    processes = []
+
     def __init__(self, path: Pathish) -> None:
         """
         Instantiate a TaskQueue
@@ -283,34 +291,34 @@ class TaskQueue:
     def n_pending(self) -> int:
         """Number of pending tasks"""
         cur = self.con.cursor()
-        return cur.execute("SELECT COUNT(1) FROM tasks WHERE status = 0").fetchall()[0][0]
+        return cur.execute("SELECT COUNT(1) FROM tasks WHERE status = ?", (int(Status.PENDING), )).fetchall()[0][0]
 
     @property
     def n_running(self) -> int:
         """Count of currently running tasks"""
         cur = self.con.cursor()
-        return cur.execute("SELECT COUNT(1) FROM tasks WHERE status = 1").fetchall()[0][0]
+        return cur.execute("SELECT COUNT(1) FROM tasks WHERE status = ?", (int(Status.RUNNING), )).fetchall()[0][0]
 
     @property
-    def n_done(self) -> int:
+    def n_ok(self) -> int:
         """count of completed tasks"""
         cur = self.con.cursor()
-        return cur.execute("SELECT COUNT(1) from tasks WHERE status = 2").fetchall()[0][0]
+        return cur.execute("SELECT COUNT(1) from tasks WHERE status = ?", (int(Status.OK), )).fetchall()[0][0]
 
     @property
-    def n_failed(self) -> int:
+    def n_fail(self) -> int:
         """count of completed tasks"""
         cur = self.con.cursor()
-        return cur.execute("SELECT COUNT(1) from tasks WHERE status = -1").fetchall()[0][0]
+        return cur.execute("SELECT COUNT(1) from tasks WHERE status = ?", (int(Status.FAIL), )).fetchall()[0][0]
 
     @property
     def summary(self) -> Dict:
         return {
             "total": self.n_total,
             "pending": self.n_pending,
-            "done": self.n_done,
+            "done": self.n_ok,
             "running": self.n_running,
-            "failed": self.n_failed
+            "failed": self.n_fail
         }
 
     def put(self, task: "Task", priority: Optional[int] = None) -> None:
@@ -326,7 +334,7 @@ class TaskQueue:
         lg.debug(f"trying to inserted task {task.to_dict()}")
         cur = self.con.cursor()
         cur.execute(
-            "INSERT OR REPLACE INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, task.to_json(), 0)
+            "INSERT OR REPLACE INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, task.to_json(), Status.PENDING)
         )
         self.con.commit()
         lg.debug(f"inserted task {task.to_dict()}")
@@ -339,7 +347,7 @@ class TaskQueue:
         condition occurs if the queue is processed in parallel)
         """
         cur = self.con.cursor()
-        cur.execute("SELECT _ROWID_ from tasks WHERE status = 0 ORDER BY priority LIMIT 1")
+        cur.execute("SELECT _ROWID_ from tasks WHERE status = ? ORDER BY priority LIMIT 1", (Status.PENDING, ))
         oid = cur.fetchall()[0][0].__str__()
         self.mark_running(oid, id(self))
 
@@ -427,7 +435,7 @@ class TaskQueue:
         """
         lg.info(f"task {oid} pending")
         cur = self.con.cursor()
-        cur.execute("UPDATE tasks SET status = 0, owner = NULL where _ROWID_ = ?", (oid, ))
+        cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.PENDING), oid))
         self.con.commit()
 
     def mark_running(self, oid: int, owner: int) -> None:
@@ -441,10 +449,10 @@ class TaskQueue:
         """
         lg.debug(f"task {oid} started")
         cur = self.con.cursor()
-        cur.execute("UPDATE tasks SET status = 1, owner = ? where _ROWID_ = ?", (owner, oid))
+        cur.execute("UPDATE tasks SET status = ?, owner = ? where _ROWID_ = ?", (int(Status.RUNNING), owner, oid))
         self.con.commit()
 
-    def mark_done(self, oid: int) -> None:
+    def mark_ok(self, oid: int) -> None:
         """
         Mark the operation with the _ROWID_ `oid` as "done" (2)
         :param oid: ID of the task to mark
@@ -452,10 +460,10 @@ class TaskQueue:
         """
         lg.info(f"task {oid} completed")
         cur = self.con.cursor()
-        cur.execute("UPDATE tasks SET status = 2, owner = NULL where _ROWID_ = ?", (oid, ))
+        cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.OK), oid))
         self.con.commit()
 
-    def mark_failed(self, oid: int) -> None:
+    def mark_fail(self, oid: int) -> None:
         """
         Mark the operation with the _ROWID_ `oid` as "failed" (-1)
 
@@ -464,23 +472,29 @@ class TaskQueue:
         """
         lg.error(f"task {oid} failed")
         cur = self.con.cursor()
-        cur.execute("UPDATE tasks SET status = -1, owner = NULL where _ROWID_ = ?", (oid, ))
+        cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.FAIL), oid))
         self.con.commit()
 
-    def run(self) -> None:
+    def run(self, max_processes: int = 1) -> None:
         """Execute all pending tasks"""
+
+        # remove finished que runs
+        if len(self.processes):
+            self.processes = [p for p in self.processes if p.is_alive()]
+
         if self.n_pending < 1:
             lg.warning("queue is empty")
+        elif len(self.processes) < max_processes:
+            lg.info("starting new queue runner")
+            p = Process(target=run_queue, args=(self, ))
+            p.start()
+            self.processes.append(p)
+        else:
+            lg.debug(f"already running {max_processes} queues")
 
-        while self.n_pending > 0:
-            op = self.pop()
-            try:
-                lg.debug(f"inserting {op.oid}")
-                op.run()
-                self.mark_done(op.oid)
-            except:
-                self.mark_failed(op.oid)
-                lg.error(f"executing task failed: {sys.exc_info()}")
+    def stop(self) -> None:
+        for p in self.processes:
+            p.terminate()
 
     def flush(self) -> None:
         """empty the queue"""
@@ -490,3 +504,13 @@ class TaskQueue:
 
     def pause(self) -> None:
         raise NotImplementedError
+
+
+def run_queue(queue):
+    while queue.n_pending > 0:
+        op = queue.pop()
+        try:
+            op.run()
+            queue.mark_ok(op.oid)
+        except:
+            queue.mark_fail(op.oid)
