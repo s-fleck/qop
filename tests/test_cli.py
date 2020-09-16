@@ -12,7 +12,7 @@ QOPD = Path("../qopd.py").absolute()
 @pytest.fixture(scope="session", autouse=True)
 def start_qop_daemon(request):
     proc = subprocess.Popen(["python3", QOPD, "--queue", '<temp>', "--log-file", "/dev/null"])
-    sleep(1)
+    sleep(0.5)
     request.addfinalizer(proc.kill)
 
 

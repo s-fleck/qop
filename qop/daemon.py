@@ -9,17 +9,23 @@ from pathlib import Path
 from qop import tasks
 from qop.globals import TaskType, Status, Command, PREHEADER_LEN, is_enum_member
 from qop.exceptions import FileExistsAndIsIdenticalError
+import tempfile
 
 Pathish = Union[Path, str]
 
 
 class QopDaemon:
-    port = 9393
+    port = None
     stats = None  # container that implements transfer statistics
     queue = None
     __is_listening = False
 
-    def __init__(self, port: int, queue_path: Pathish, persist_queue: bool = True):
+    def __init__(
+        self,
+        port: int = 9393,
+        queue_path: Pathish = Path(tempfile.gettempdir()).joinpath("qop-temp.sqlite3"),
+        persist_queue: bool = False
+    ):
         self.port = port
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

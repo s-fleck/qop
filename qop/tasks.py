@@ -92,15 +92,6 @@ class CommandTask(Task):
         return f'COMMAND: command'
 
 
-class KillTask(Task):
-    def __init__(self) -> None:
-        super().__init__()
-        self.type = TaskType.KILL
-
-    def __repr__(self) -> str:
-        return f'KILL'
-
-
 class EchoTask(Task):
     """Log a message"""
     def __init__(self,  msg: str) -> None:
