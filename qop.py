@@ -7,6 +7,7 @@ from qop import daemon, tasks, converters, scanners
 from qop.globals import *
 from pathlib import Path
 from colorama import init, Fore
+from typing import Dict, Union, Optional
 
 init()
 
@@ -19,6 +20,7 @@ parser.add_argument("--log-level", type=str, help="python-logging log level: DEB
 parser.add_argument("--log-file", type=str, help="optional path to redirect logging to")
 parser.add_argument("-r", "--recursive", action="store_true")
 parser.add_argument("-e", "--queue-only", action="store_true", help="Enqueue only without starting the queue. Note that this does not stop the queue if it is already running.")
+parser.add_argument("-v", "--verbose", action="store_true", help="Enqueue only without starting the queue. Note that this does not stop the queue if it is already running.")
 
 args = parser.parse_args()
 
@@ -57,6 +59,15 @@ def format_response(rsp) -> str:
     return res
 
 
+def format_response_summary(x) -> str:
+    total = str(x['ok'] + x['skip'] + x['fail']).rjust(6, " ")
+    ok = Fore.GREEN + str(x['ok']).rjust(6, " ") + Fore.RESET
+    skip = Fore.BLUE + str(x['skip']).rjust(6, " ") + Fore.RESET
+    fail = Fore.RED + str(x['fail']).rjust(6, " ") + Fore.RESET
+
+    return f"  [enqueue: {total} | ok: {ok} | skip: {skip} | fail: {fail}]"
+
+
 def send_command(command):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect(("127.0.0.1", 9393))
@@ -66,12 +77,31 @@ def send_command(command):
         lg.info(res)
 
 
-def enqueue_task(task):
+def enqueue_task(task, summary: Dict, verbose: bool = args.verbose):
+    """
+    Instantiate a TaskQueue
+
+    :param task: the Task to send to the server to enqueue
+    :param summary: a Dict with the keys 'ok', 'skip' and 'fail' to store the status of the insert operation in
+    :param verbose: WIP
+    """
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect(("127.0.0.1", 9393))
         client.sendall(daemon.Message(task).encode())
         res = daemon.RawMessage(client.recv(1024)).decode()
-        print(format_response(res))
+
+        if res.body['status'] == Status.OK:
+            summary['ok'] = summary['ok'] + 1
+        if res.body['status'] == Status.SKIP:
+            summary['skip'] = summary['skip'] + 1
+        if res.body['status'] == Status.FAIL:
+            summary['fail'] = summary['fail'] + 1
+
+        if verbose:
+            print(format_response(res))
+
+        print(format_response_summary(summary), end='\r')
 
 
 # commands
@@ -93,6 +123,7 @@ elif args.operation == "flush":
 elif args.source:
     dst_dir = args.source[-1]
     sources = args.source[:-1]
+    summary = {"ok": 0, "skip": 0, "fail": 0}
 
     if args.recursive:
         scanner = scanners.Scanner()
@@ -125,7 +156,9 @@ elif args.source:
                     lg.fatal(f'"{args.operation}" is not a supported operation')
                     raise ValueError("operation not supported")
 
-                enqueue_task(tsk)
+                enqueue_task(tsk, summary)
+
+    print("\n")
 
     if not args.queue_only:
         send_command(Command.START)
