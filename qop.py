@@ -128,10 +128,14 @@ elif args.source:
     if args.recursive:
         scanner = scanners.Scanner()
         sources = scanner.run(sources)
-    else:
-        sources = [{"root": Path(".").resolve(), "paths": sources}]
 
     for source in sources:
+        if not isinstance(source, Dict):
+            source = {
+                "root": Path(source).absolute().parent,
+                "paths": [Path(source).absolute()]
+            }
+
         for src in source['paths']:
             lg.debug(f"inserting {src}")
 
