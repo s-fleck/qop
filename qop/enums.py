@@ -10,6 +10,8 @@ class Command(IntEnum):
     KILL = 4
     INFO = 5
     PROGRESS = 6
+    ALIVE = 7
+    ISACTIVE = 8
 
 
 class TaskType(IntEnum):
@@ -20,6 +22,7 @@ class TaskType(IntEnum):
     COPY = 4
     MOVE = 5
     CONVERT = 6
+    FAIL = 7
     KILL = 99
 
 

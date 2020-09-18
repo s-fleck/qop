@@ -1,44 +1,42 @@
 #! /usr/bin/env python3
 
 import argparse
-import socket
 import logging
-from qop import daemon, tasks, converters, scanners
-from qop.globals import *
 from pathlib import Path
 from colorama import init, Fore
 from typing import Dict, Union, Optional
+from time import sleep
+from tqdm import tqdm
+
+from qop import daemon, tasks, scanners
+from qop.enums import Status, Command
 
 init()
 
 
-# args
-parser = argparse.ArgumentParser()
-parser.add_argument("operation", type=str, help="operation to execute")
-parser.add_argument("source", type=str, help="path", nargs="*")
-parser.add_argument("--log-level", type=str, help="python-logging log level: DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50)", default="WARNING")
-parser.add_argument("--log-file", type=str, help="optional path to redirect logging to")
-parser.add_argument("-r", "--recursive", action="store_true")
-parser.add_argument("-e", "--queue-only", action="store_true", help="Enqueue only without starting the queue. Note that this does not stop the queue if it is already running.")
-parser.add_argument("-v", "--verbose", action="store_true", help="Enqueue only without starting the queue. Note that this does not stop the queue if it is already running.")
 
-args = parser.parse_args()
-
-
-# init logging
 lg = logging.getLogger("qop.cli-daemon")
 
-if args.log_level.isdigit():
-    log_level = int(args.log_level)
-else:
-    log_level = args.log_level.upper()
 
-if args.log_file is not None:
-    logging.basicConfig(level=log_level, filename=args.log_file)
-else:
-    logging.basicConfig(level=log_level)
+def format_response(rsp) -> str:
+    res = color_status(rsp['status']) + " "
 
-logging.getLogger("qop").setLevel("INFO")
+    if "task" in rsp.keys() and rsp['task'] is not None:
+        res =res + tasks.Task.from_dict(rsp['task']).color_repr()
+
+    if 'msg' in rsp.keys():
+        res = res + f"{Fore.YELLOW}[{rsp['msg']}]{Fore.RESET}"
+
+    return res
+
+
+def format_response_summary(x) -> str:
+    total = str(x['ok'] + x['skip'] + x['fail']).rjust(6, " ")
+    ok = Fore.GREEN + str(x['ok']).rjust(6, " ") + Fore.RESET
+    skip = Fore.BLUE + str(x['skip']).rjust(6, " ") + Fore.RESET
+    fail = Fore.RED + str(x['fail']).rjust(6, " ") + Fore.RESET
+
+    return f"  [enqueue: {total} | ok: {ok} | skip: {skip} | fail: {fail}]"
 
 
 def color_status(x: int):
@@ -52,78 +50,19 @@ def color_status(x: int):
         return f"{Fore.RED}{x.name.rjust(pad, ' ')}{Fore.RESET}"
 
 
-def format_response(rsp) -> str:
-    res = f"{color_status(rsp.body['status'])} {tasks.Task.from_dict(rsp.body['task']).color_repr()}"
-    if rsp.body['msg'] is not None:
-        res = res + f" {Fore.YELLOW}[{rsp.body['msg']}]{Fore.RESET}"
-    return res
+# subcommand handlers
+def handle_echo(args, client) -> Dict:
+    return client.send_task(tasks.EchoTask(msg=" ".join(args.msg)))
 
 
-def format_response_summary(x) -> str:
-    total = str(x['ok'] + x['skip'] + x['fail']).rjust(6, " ")
-    ok = Fore.GREEN + str(x['ok']).rjust(6, " ") + Fore.RESET
-    skip = Fore.BLUE + str(x['skip']).rjust(6, " ") + Fore.RESET
-    fail = Fore.RED + str(x['fail']).rjust(6, " ") + Fore.RESET
+def handle_copy(args, client) -> Dict:
+    sources = args.paths[:-1]
+    dst_dir = args.paths[-1]
+    is_queue_running = client.get_active_processes() > 0
 
-    return f"  [enqueue: {total} | ok: {ok} | skip: {skip} | fail: {fail}]"
-
-
-def send_command(command):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-        client.connect(("127.0.0.1", 9393))
-        req = daemon.Message(tasks.CommandTask(command))
-        client.sendall(req.encode())
-        res = client.recv(1024)
-        lg.info(res)
-
-
-def enqueue_task(task, summary: Dict, verbose: bool = args.verbose):
-    """
-    Instantiate a TaskQueue
-
-    :param task: the Task to send to the server to enqueue
-    :param summary: a Dict with the keys 'ok', 'skip' and 'fail' to store the status of the insert operation in
-    :param verbose: WIP
-    """
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-        client.connect(("127.0.0.1", 9393))
-        client.sendall(daemon.Message(task).encode())
-        res = daemon.RawMessage(client.recv(1024)).decode()
-
-        if res.body['status'] == Status.OK:
-            summary['ok'] = summary['ok'] + 1
-        if res.body['status'] == Status.SKIP:
-            summary['skip'] = summary['skip'] + 1
-        if res.body['status'] == Status.FAIL:
-            summary['fail'] = summary['fail'] + 1
-
-        if verbose:
-            print(format_response(res))
-
-        print(format_response_summary(summary), end='\r')
-
-
-# commands
-if args.operation == "kill":
-    send_command(Command.KILL)
-
-elif args.operation == "start":
-    send_command(Command.START)
-
-elif args.operation == "pause":
-    send_command(Command.PAUSE)
-
-elif args.operation == "info":
-    send_command(Command.INFO)
-
-elif args.operation == "flush":
-    send_command(Command.FLUSH)
-
-elif args.source:
-    dst_dir = args.source[-1]
-    sources = args.source[:-1]
-    summary = {"ok": 0, "skip": 0, "fail": 0}
+    assert isinstance(dst_dir, str)
+    assert len(sources) > 0
+    assert sources != dst_dir
 
     if args.recursive:
         scanner = scanners.Scanner()
@@ -138,31 +77,149 @@ elif args.source:
 
         for src in source['paths']:
             lg.debug(f"inserting {src}")
+            src = Path(src).resolve()
+            dst = Path(dst_dir).resolve().joinpath(src.relative_to(source['root']))
+            tsk = tasks.CopyTask(src=src, dst=dst)
+            res = client.send_task(tsk)
+            
+            if not args.enqueue_only and not is_queue_running:
+                client.send_command(Command.START)
+                sleep(0.1)
+                info = tasks.QueueProgress.from_dict(client.send_command(Command.INFO))
+                is_queue_running = True
 
-            if args.operation == "echo":
-                tsk = tasks.EchoTask(msg=" ".join(args.source))
-            else:
-                src = Path(src).resolve()
-                dst = Path(dst_dir).resolve().joinpath(src.relative_to(source['root']))
+            if args.verbose:
+                print(format_response(res))
 
-                if args.operation == "copy":
-                    tsk = tasks.CopyTask(src=src, dst=dst)
-                elif args.operation == "convert":
-                    tsk = tasks.ConvertTask(src=src, dst=dst, converter=converters.OggConverter())
-                elif args.operation == "sc":
-                    to_convert = (".flac", ".wav", ".ape")
-                    if src.suffix in to_convert:
-                        dst = dst.with_suffix(".ogg")
-                        tsk = tasks.ConvertTask(src=src, dst=dst, converter=converters.OggConverter(bitrate="256k"))
-                    else:
-                        tsk = tasks.CopyTask(src=src, dst=dst)
-                else:
-                    lg.fatal(f'"{args.operation}" is not a supported operation')
-                    raise ValueError("operation not supported")
+            print(format_response_summary(client.stats), end="\r")
 
-                enqueue_task(tsk, summary)
+    return {"status": Status.OK, "msg": "enqueue finished"}
 
-    print("\n")
 
-    if not args.queue_only:
-        send_command(Command.START)
+def daemon_stop(args, client):
+    return client.send_command(Command.KILL)
+
+def daemon_destroy(args, client):
+    client.send_command(Command.FLUSH)
+    return client.send_command(Command.KILL)
+
+
+def daemon_start(args, client):
+    raise NotImplementedError
+
+
+def daemon_is_alive(args, client):
+    return client.is_server_alive()
+
+
+def queue_start(args, client):
+    return client.send_command(Command.START)
+
+
+def queue_stop(args, client):
+    return client.send_command(Command.PAUSE)
+
+
+def queue_is_active(args, client):
+    return client.send_command(Command.ISACTIVE)
+
+
+def queue_info(args, client):
+    return client.send_command(Command.INFO)
+
+
+def queue_flush(args, client):
+    raise NotImplementedError
+
+
+def queue_flush_all(args, client):
+    return client.send_command(Command.FLUSH)
+
+
+def queue_progress(args, client):
+    info = client.get_queue_progress()
+
+    with tqdm(total=info.total, initial=info.total - info.pending) as pbar:
+        for i in range(info.total):
+            sleep(0.5)
+            info = client.get_queue_progress()
+            pbar.update(info.total - info.pending - pbar.n)
+
+            if not client.is_server_alive() or client.get_active_processes() < 1:
+                break
+
+    if info.total == info.ok + info.skip:
+        return {"status": Status.OK, "msg": "all files transferred successfully"}
+    else:
+        return {"status": Status.FAIL, "msg": "could not transfer all files"}
+
+
+
+# args
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers()
+
+# main operations
+parser_copy = subparsers.add_parser("copy", help="copy a file")
+parser_copy.set_defaults(fun=handle_copy)
+
+parser_convert = subparsers.add_parser("convert", help="convert an audio file")
+parser_sac = subparsers.add_parser("sac", help="smart-audio-convert")
+
+# shared arguments
+for p in [parser_copy, parser_convert, parser_sac]:
+    p.add_argument("paths", type=str, nargs="+", help="SOURCE...DIR. An abritrary number of paths to copy and a single destination directory")
+    p.add_argument("-r", "--recursive", action="store_true", help="recurse")
+    p.add_argument("-e", "--enqueue-only", action="store_true", help="enqueue only. do not start processing queue.")
+
+parser_echo = subparsers.add_parser("echo", help="echo text (for testing the server)")
+parser_echo.add_argument("msg", type=str, help="path", nargs="+", default="echo")
+parser_echo.set_defaults(fun=handle_echo)
+
+# queue management
+parser_queue = subparsers.add_parser("queue", help="manage the file processing queue (start, stop, ...)")
+parser_queue_sub = parser_queue.add_subparsers()
+parser_queue_sub.add_parser("start", help="start processing the queue").set_defaults(fun=queue_start)
+parser_queue_sub.add_parser("stop",  help="stop processing the queue").set_defaults(fun=queue_stop)
+parser_queue_sub.add_parser("flush", help="remove all pending tasks from the queue").set_defaults(fun=queue_flush)
+parser_queue_sub.add_parser("flush-all", help="completely reset the queue (including finished, failed and skipped tasks)").set_defaults(fun=queue_flush_all)
+parser_queue_sub.add_parser("progress", help="show interactive progress bar").set_defaults(fun=queue_progress)
+parser_queue_sub.add_parser("active", help="show number of active queues (usually just one)").set_defaults(fun=queue_is_active)
+
+# daemon management
+parser_daemon = subparsers.add_parser("daemon", help="manage the daemon process")
+parser_daemon_sub = parser_daemon.add_subparsers()
+parser_daemon_sub.add_parser("start", help="start the daemon").set_defaults(fun=daemon_start)
+parser_daemon_sub.add_parser("stop", help="stop the daemon").set_defaults(fun=daemon_stop)
+parser_daemon_sub.add_parser("alive", help="check if daemon is alive").set_defaults(fun=daemon_is_alive)
+parser_daemon_sub.add_parser("destroy", help="immediately terminate the daemon and empty the queue").set_defaults(fun=daemon_destroy)
+
+
+# global optional arguments
+parser.add_argument("--log-level", type=str, help="python-logging log level: DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50)", default="WARNING")
+parser.add_argument("--log-file", type=str, help="optional path to redirect logging to")
+parser.add_argument("-v", "--verbose", action="store_true", help="Enqueue only without starting the queue. Note that this does not stop the queue if it is already running.")
+
+args = parser.parse_args()
+
+
+# init logging
+if args.log_level.isdigit():
+    log_level = int(args.log_level)
+else:
+    log_level = args.log_level.upper()
+
+if args.log_file is not None:
+    logging.basicConfig(level=log_level, filename=args.log_file, force=True)
+else:
+    logging.basicConfig(level=log_level, force=True)
+
+
+# client
+client = daemon.QopClient(ip="127.0.0.1", port=9393)
+
+res = args.fun(args, client)
+print(format_response(res))
+
+if not args.enqueue_only:
+    client.send_command(Command.START)
