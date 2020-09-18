@@ -5,13 +5,14 @@ import shutil
 import os
 import json
 import sqlite3
-import sys
 import logging
-from qop.globals import TaskType, Status, Command
+from qop.enums import TaskType, Status, Command
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError
+from qop import utils
 from colorama import init, Fore
 import filecmp
 from multiprocessing import Process
+from time import sleep
 
 init()
 
@@ -36,22 +37,22 @@ class Task:
         lg.debug(f"parsing task {x}")
         task_type = x["type"]
 
-        if task_type == TaskType.KILL:
-            return KillTask()
-        elif task_type == 0:
+        if task_type == 0:
             return Task()
-        elif task_type == 1:
+        elif task_type == TaskType.ECHO:
             return EchoTask(x["msg"])
-        elif task_type == 2:
+        elif task_type == TaskType.FILE:
             return FileTask(x["src"])
-        elif task_type == 3:
+        elif task_type == TaskType.DELETE:
             return DeleteTask(x["src"])
-        elif task_type == 4:
+        elif task_type == TaskType.COPY:
             return CopyTask(x["src"], x["dst"])
-        elif task_type == 5:
+        elif task_type == TaskType.MOVE:
             return MoveTask(x["src"], x["dst"])
-        elif task_type == 6:
+        elif task_type == TaskType.COMMAND:
             return ConvertTask(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
+        elif task_type == TaskType.FAIL:
+            return FailTask()
         else:
             raise ValueError
 
@@ -105,6 +106,30 @@ class EchoTask(Task):
 
     def __repr__(self) -> str:
         return f'Echo: "{self.msg}"'
+
+    def color_repr(self, color=True):
+        if color:
+            op = Fore.YELLOW + "Echo" + Fore.RESET
+            msg = Fore.BLUE + self.msg + Fore.RESET
+            return f'{op} {msg}'
+        else:
+            return self.__repr__()
+
+
+
+class FailTask(Task):
+    """Log a message"""
+    def __init__(self) -> None:
+        super().__init__()
+        self.msg = "This task always fails"
+        self.type = TaskType.FAIL
+
+    def run(self) -> Status:
+        raise AssertionError
+        return Status.FAIL
+
+    def __repr__(self) -> str:
+        return f'Fail: Always raise an error"'
 
 
 class FileTask(Task):
@@ -259,7 +284,7 @@ class TaskQueue:
         else:
             lg.info(f"initializing new queue {path}")
 
-        self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE")
+        self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE", timeout=10)
         self.path = Path(path)
         cur = self.con.cursor()
         cur.execute("""
@@ -278,41 +303,75 @@ class TaskQueue:
     def n_total(self) -> int:
         """Count of all tasks in queue (including failed and completed)"""
         cur = self.con.cursor()
-        return cur.execute("SELECT COUNT(1) from tasks").fetchall()[0][0]
+        res = cur.execute("SELECT COUNT(1) from tasks").fetchall()[0][0]
+        cur.close()
+        return res
+
 
     @property
     def n_pending(self) -> int:
         """Number of pending tasks"""
         cur = self.con.cursor()
-        return cur.execute("SELECT COUNT(1) FROM tasks WHERE status = ?", (int(Status.PENDING), )).fetchall()[0][0]
+        res = cur.execute("SELECT COUNT(1) FROM tasks WHERE status = ?", (int(Status.PENDING), )).fetchall()[0][0]
+        cur.close()
+        return res
 
     @property
     def n_running(self) -> int:
         """Count of currently running tasks"""
         cur = self.con.cursor()
-        return cur.execute("SELECT COUNT(1) FROM tasks WHERE status = ?", (int(Status.RUNNING), )).fetchall()[0][0]
+        res = cur.execute("SELECT COUNT(1) FROM tasks WHERE status = ?", (int(Status.RUNNING),)).fetchall()[0][0]
+        cur.close()
+        return res
 
     @property
     def n_ok(self) -> int:
         """count of completed tasks"""
         cur = self.con.cursor()
-        return cur.execute("SELECT COUNT(1) from tasks WHERE status = ?", (int(Status.OK), )).fetchall()[0][0]
+        res = cur.execute("SELECT COUNT(1) from tasks WHERE status = ?", (int(Status.OK), )).fetchall()[0][0]
+        cur.close()
+        return res
 
     @property
     def n_fail(self) -> int:
         """count of completed tasks"""
         cur = self.con.cursor()
-        return cur.execute("SELECT COUNT(1) from tasks WHERE status = ?", (int(Status.FAIL), )).fetchall()[0][0]
+        res = cur.execute("SELECT COUNT(1) from tasks WHERE status = ?", (int(Status.FAIL), )).fetchall()[0][0]
+        cur.close()
+        return res
 
     @property
-    def summary(self) -> Dict:
-        return {
-            "total": self.n_total,
-            "pending": self.n_pending,
-            "done": self.n_ok,
-            "running": self.n_running,
-            "failed": self.n_fail
+    def n_skip(self) -> int:
+        """count of completed tasks"""
+        cur = self.con.cursor()
+        res = cur.execute("SELECT COUNT(1) from tasks WHERE status = ?", (int(Status.SKIP),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    def progress(self) -> "QueueProgress":
+        cur = self.con.cursor()
+        res = cur.execute("SELECT status, COUNT(1) from tasks GROUP BY status").fetchall()
+        cur.close()
+        x = {
+            "pending": 0,
+            "ok": 0,
+            "skip": 0,
+            "running": 0,
+            "fail": 0
         }
+        for el in res:
+            if el[0] == Status.PENDING:
+                x.update({"pending": el[1]})
+            elif el[0] == Status.OK:
+                x.update({"ok": el[1]})
+            elif el[0] == Status.SKIP:
+                x.update({"skip": el[1]})
+            elif el[0] == Status.RUNNING:
+                x.update({"running": el[1]})
+            elif el[0] == Status.FAIL:
+                x.update({"fail": el[1]})
+
+        return QueueProgress.from_dict(x)
 
     def put(self, task: "Task", priority: Optional[int] = None) -> None:
         """
@@ -329,7 +388,9 @@ class TaskQueue:
         cur.execute(
             "INSERT OR REPLACE INTO tasks (priority, task, status) VALUES (?, ?, ?)", (priority, task.to_json(), Status.PENDING)
         )
-        self.con.commit()
+
+        hammer_commit(self.con)
+
         lg.debug(f"inserted task {task.to_dict()}")
 
     def pop(self) -> "Task":
@@ -439,7 +500,7 @@ class TaskQueue:
         lg.info(f"task {oid} pending")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.PENDING), oid))
-        self.con.commit()
+        hammer_commit(self.con)
 
     def mark_running(self, oid: int, owner: int) -> None:
         """Mark the operation with the _ROWID_ `oid` as "running" (1). The "owner" Id is to ensure no two processes
@@ -453,7 +514,7 @@ class TaskQueue:
         lg.debug(f"task {oid} started")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = ?, owner = ? where _ROWID_ = ?", (int(Status.RUNNING), owner, oid))
-        self.con.commit()
+        hammer_commit(self.con)
 
     def mark_ok(self, oid: int) -> None:
         """
@@ -461,10 +522,10 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
-        lg.info(f"task {oid} completed")
+        lg.debug(f"task {oid} completed")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.OK), oid))
-        self.con.commit()
+        hammer_commit(self.con)
 
     def mark_fail(self, oid: int) -> None:
         """
@@ -476,9 +537,9 @@ class TaskQueue:
         lg.error(f"task {oid} failed")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.FAIL), oid))
-        self.con.commit()
+        hammer_commit(self.con)
 
-    def run(self, max_processes: int = 1) -> None:
+    def run(self, max_processes: int = 1, ip=None, port=None) -> None:
         """Execute all pending tasks"""
 
         # remove finished que runs
@@ -489,7 +550,7 @@ class TaskQueue:
             lg.warning("queue is empty")
         elif len(self.processes) < max_processes:
             lg.info("starting new queue runner")
-            p = Process(target=run_queue, args=(self, ))
+            p = Process(target=run_queue, args=(self, ip, port))
             p.start()
             self.processes.append(p)
         else:
@@ -499,21 +560,83 @@ class TaskQueue:
         for p in self.processes:
             p.terminate()
 
+    def active_processes(self):
+        res = 0
+        for p in self.processes:
+            if p.is_alive():
+                res += 1
+        return res
+
     def flush(self) -> None:
         """empty the queue"""
         cur = self.con.cursor()
         cur.execute("DELETE FROM tasks")
-        self.con.commit()
-
-    def pause(self) -> None:
-        raise NotImplementedError
+        hammer_commit(self.con)
 
 
-def run_queue(queue):
+def run_queue(queue, ip=None, port=None) -> None:
     while queue.n_pending > 0:
+
+        if ip is not None:
+            if utils.is_server_alive(ip=ip, port=port) is False:
+                lg.fatal("cannot find server thread. stopping queue.")
+                break
+
         op = queue.pop()
         try:
             op.run()
             queue.mark_ok(op.oid)
+            lg.info(f"task completed: {op}")
         except:
             queue.mark_fail(op.oid)
+
+        lg.info("queue is finished")
+
+
+class QueueProgress:
+    """Info on the current status of the Queue"""
+
+    def __init__(self,  pending: int, ok: int, skip: int, fail: int, running: int):
+        self.ok = ok
+        self.pending = pending
+        self.skip = skip
+        self.running = running
+        self.fail = fail
+
+    @property
+    def total(self):
+        return self.ok + self.pending + self.skip + self.running + self.fail
+
+    @staticmethod
+    def from_dict(x: Dict) -> "QueueProgress":
+        return QueueProgress(
+            pending=x['pending'],
+            ok=x['ok'],
+            skip=x['skip'],
+            fail=x['fail'],
+            running=x['running']
+        )
+
+    def to_dict(self) -> Dict:
+        return {
+            "total": self.total,
+            "pending":self.pending,
+            "ok": self.ok,
+            "fail": self.fail,
+            "skip": self.skip,
+            "running": self.running
+         }
+
+    def fmt_summary(self):
+        return f'  [progress] total {self.total} | pending:  {self.pending} | ok: {self.ok} | fail: {self.fail} | running: {self.running}]'
+
+
+def hammer_commit(con, max_tries=10):
+    if max_tries <= 1:
+        con.commit()
+    else:
+        try:
+            con.commit()
+        except:
+            sleep(0.1)
+            hammer_commit(con, max_tries=max_tries - 1)
