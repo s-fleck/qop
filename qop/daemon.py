@@ -1,17 +1,20 @@
+import tempfile
+import socket
+import logging
 import struct
 import json
-import logging
-import socket
 import sys
-
 from typing import Dict, Union, Optional
 from pathlib import Path
-from qop import tasks
-from qop.globals import TaskType, Status, Command, PREHEADER_LEN, is_enum_member
+from time import sleep
+
+from qop import tasks, utils
 from qop.exceptions import FileExistsAndIsIdenticalError
-import tempfile
+from qop.enums import TaskType, Status, Command, PREHEADER_LEN, is_enum_member
+
 
 Pathish = Union[Path, str]
+lg = logging.getLogger("qop.daemon")
 
 
 class QopDaemon:
@@ -67,7 +70,7 @@ class QopDaemon:
 
                 # commands are not added to the queue, but executed as they are received
                 if rsp.body["type"] == TaskType.COMMAND:
-                    lg.info(f"received command: {Command(rsp.body['command']).name}")
+                    lg.debug(f"received command: {Command(rsp.body['command']).name}")
 
                     if rsp.body["command"] == Command.KILL:
                         client.sendall(StatusMessage(Status.OK, "shutting down server").encode())
@@ -76,16 +79,28 @@ class QopDaemon:
                         self.close()
                         break
 
+                    elif rsp.body["command"] == Command.ALIVE:
+                        client.sendall(StatusMessage(Status.OK).encode())
+
                     elif rsp.body["command"] == Command.INFO:
-                        client.sendall(Message(self.queue.summary).encode())
+                        client.sendall(Message(self.queue.progress().to_dict(), extra_headers={"class": "QueueProgress"}).encode())
+
+                    elif rsp.body["command"] == Command.ISACTIVE:
+                        client.sendall(Message({"active_processes": self.queue.active_processes()}).encode())
 
                     elif rsp.body["command"] == Command.START:
-                        self.queue.run()
+                        self.queue.run(ip="127.0.0.1", port=self.port)
+                        lg.info("starting queue")
                         client.sendall(StatusMessage(Status.OK, "start processing queue").encode())
 
                     elif rsp.body["command"] == Command.PAUSE:
-                        self.queue.pause()
-                        client.sendall(StatusMessage(Status.OK, "pause processing queue").encode())
+                        if self.queue.active_processes() > 0:
+                            self.queue.stop()
+                            lg.info("stopped queue")
+                            client.sendall(StatusMessage(Status.OK, "pause processing queue").encode())
+                        else:
+                            lg.info("cannot stop queue: no queues are running")
+                            client.sendall(StatusMessage(Status.SKIP, "no running queues found").encode())
 
                     elif rsp.body["command"] == Command.FLUSH:
                         self.queue.flush()
@@ -122,7 +137,7 @@ class QopDaemon:
                     client.sendall(StatusMessage(Status.FAIL, msg=msg).encode())
 
             except:
-                lg.error(f"error processing request {req}: {sys.exc_info()}")
+                lg.error(f"unknown error processing request {req}: {sys.exc_info()}")
                 client.sendall(StatusMessage(Status.FAIL, msg=str(sys.exc_info()[0])).encode())
 
 
@@ -155,30 +170,96 @@ class QopDaemon:
         self.queue = tasks.TaskQueue(path=path)
 
 
+class QopClient:
+    def __init__(self, ip: str = "127.0.0.1", port: int = 9393):
+        self.ip = ip
+        self.port = port
+        self.stats = {"ok": 0, "fail": 0, "skip": 0}
+
+    def get_queue_progress(self, max_tries=10) -> tasks.QueueProgress:
+        if max_tries == 1:
+            res = self.send_command(Command.INFO)
+        else:
+            try:
+                res = self.send_command(Command.INFO)
+            except:
+                sleep(0.1)
+                return self.get_queue_progress(max_tries=max_tries - 1)
+
+        return tasks.QueueProgress.from_dict(res)
+
+    def is_server_alive(self) -> bool:
+        return utils.is_server_alive(self.ip, self.port)
+
+    def get_active_processes(self) -> int:
+        return self.send_command(Command.ISACTIVE)['active_processes']
+
+    def send_command(self, command: Command) -> Dict:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+            client.connect((self.ip, self.port))
+            req = Message(tasks.CommandTask(command))
+            client.sendall(req.encode())
+            res = RawMessage(client.recv(1024)).decode().body
+            lg.info(res)
+            return res
+
+    def send_task(self, task: tasks.Task) -> Dict:
+        """
+        Instantiate a TaskQueue
+
+        :param task: the Task to send to the server to enqueue
+        :param summary: a Dict with the keys 'ok', 'skip' and 'fail' to store the status of the insert operation in
+        :param verbose: WIP
+        """
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+            client.connect((self.ip, self.port))
+            client.sendall(Message(task).encode())
+            res = RawMessage(client.recv(1024)).decode().body
+
+            if res['status'] == Status.OK:
+                self.stats['ok'] = self.stats['ok'] + 1
+            if res['status'] == Status.SKIP:
+                self.stats['skip'] = self.stats['skip'] + 1
+            if res['status'] == Status.FAIL:
+                self.stats['fail'] = self.stats['fail'] + 1
+
+            return res
+
+
 class Message:
     """Container for requests sent to the qop daemon"""
-    def __init__(self, body: Union[Dict, tasks.Task, list]) -> None:
+    def __init__(
+            self,
+            body: Union[Dict, tasks.Task, list],
+            extra_headers: Optional[Dict] = None
+    ) -> None:
         """
 
         :rtype: object
         """
-        if isinstance(body, tasks.Task):
-            body = body.to_dict()
+        if extra_headers is None:
+            extra_headers = {}
+
+        self.body = body
+        self.extra_headers = extra_headers
+
+    def encode(self) -> bytes:
+        if isinstance(self.body, tasks.Task):
+            body = self.body.to_dict()
             for el in ("src", "dst"):
                 if el in body.keys():
                     body[el] = str(body[el])
+        else:
+            body = self.body
+        body = bytes(json.dumps(body), "utf-8")
 
-        self.body = body
-
-    def encode(self) -> bytes:
-        body: bytes = bytes(json.dumps(self.body), "utf-8")
-        header: Dict = {
-            "content-length": len(body),
-            "content-type": "text/json"
-        }
-        header: bytes = bytes(json.dumps(header), "utf-8")
+        header = {"content-length": len(body), "content-type": "text/json"}
+        header.update(self.extra_headers)
+        header = bytes(json.dumps(header), "utf-8")
         header_len: bytes = struct.pack("!H", len(header))  # network-endianess, unsigned long integer (4 bytes)
-        logging.getLogger("qop.daemon").debug(f'encoding message {body} with header_length={int(struct.unpack("!H", header_len)[0])} and content_length={len(body)}')
+
+        lg.debug(f'encoding message {body} with header_length={int(struct.unpack("!H", header_len)[0])} and content_length={len(body)}')
         return header_len + header + body
 
     def __repr__(self) -> str:
@@ -209,7 +290,9 @@ class RawMessage:
 
     @property
     def header(self) -> Dict:
-        return json.loads(self._header.decode("utf-8"))
+        header = json.loads(self._header.decode("utf-8"))
+        assert header is not None
+        return header
 
     @property
     def _body(self) -> bytes:
@@ -236,4 +319,7 @@ class StatusMessage(Message):
         if task is not None:
             task = task.to_dict()
 
-        self.body = {"status": int(status), "msg": msg, "task": task}
+        super().__init__(
+            body={"status": int(status), "msg": msg, "task": task},
+            extra_headers={"class": "StatusMessage"}
+        )
