@@ -60,3 +60,14 @@ def test_copy_a_directory(testfile_tree):
     assert src.joinpath("baz.txt").exists()
     assert dst.joinpath("src/baz.txt").exists()
     assert dst.joinpath("src/foo/bar.txt").exists()
+
+
+def test_daemon_sends_progress_updates(testfile_tree):
+    """qop can copy a file"""
+    root, src, dst = testfile_tree
+
+    subprocess.run(["python3", QOP, "-v", "--log-level", "FATAL", "copy", src, dst], cwd=root)
+    sleep(1)
+    assert src.joinpath("baz.txt").exists()
+    assert dst.joinpath("src/baz.txt").exists()
+    assert dst.joinpath("src/foo/bar.txt").exists()
