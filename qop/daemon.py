@@ -9,8 +9,8 @@ from pathlib import Path
 from time import sleep
 
 from qop import tasks, utils
-from qop.exceptions import FileExistsAndIsIdenticalError
-from qop.enums import TaskType, Status, Command, PREHEADER_LEN, is_enum_member
+from qop.exceptions import FileExistsAndShouldBeSkippedError
+from qop.enums import TaskType, Status, Command, PREHEADER_LEN, PayloadClass
 
 
 Pathish = Union[Path, str]
@@ -60,81 +60,85 @@ class QopDaemon:
             client, address = self._socket.accept()
             lg.debug(f'client connected: {address}')
             req = client.recv(1024)
+            lg.debug(f"processing request {req}")
 
             if not req:
                 continue
 
             try:
-                rsp = self.handle_request(req)
-                lg.debug(f"processing request {req}")
+                dd = self.handle_request(req)
+                command = dd.body['command']
 
-                # commands are not added to the queue, but executed as they are received
-                if rsp.body["type"] == TaskType.COMMAND:
-                    lg.debug(f"received command: {Command(rsp.body['command']).name}")
+                if command == Command.DAEMON_START:
+                    raise NotImplementedError
 
-                    if rsp.body["command"] == Command.KILL:
-                        client.sendall(StatusMessage(Status.OK, "shutting down server").encode())
+                elif command == Command.DAEMON_STOP:
+                    client.sendall(StatusMessage(Status.OK, "shutting down server").encode())
+                    self.queue.stop()
+                    client.close()
+                    self.close()
+
+                elif command == Command.DAEMON_IS_RUNNING:
+                    client.sendall(StatusMessage(Status.OK, payload={"value": True}, payload_class=PayloadClass.VALUE).encode())
+
+                elif command == Command.QUEUE_START:
+                    self.queue.run(ip="127.0.0.1", port=self.port)
+                    lg.info("starting queue")
+                    client.sendall(StatusMessage(Status.OK, "start processing queue").encode())
+
+                elif command == Command.QUEUE_STOP:
+                    if self.queue.active_processes > 0:
                         self.queue.stop()
-                        client.close()
-                        self.close()
-                        break
-
-                    elif rsp.body["command"] == Command.ALIVE:
-                        client.sendall(StatusMessage(Status.OK).encode())
-
-                    elif rsp.body["command"] == Command.INFO:
-                        client.sendall(Message(self.queue.progress().to_dict(), extra_headers={"class": "QueueProgress"}).encode())
-
-                    elif rsp.body["command"] == Command.ISACTIVE:
-                        client.sendall(Message({"active_processes": self.queue.active_processes()}).encode())
-
-                    elif rsp.body["command"] == Command.START:
-                        self.queue.run(ip="127.0.0.1", port=self.port)
-                        lg.info("starting queue")
-                        client.sendall(StatusMessage(Status.OK, "start processing queue").encode())
-
-                    elif rsp.body["command"] == Command.PAUSE:
-                        if self.queue.active_processes() > 0:
-                            self.queue.stop()
-                            lg.info("stopped queue")
-                            client.sendall(StatusMessage(Status.OK, "pause processing queue").encode())
-                        else:
-                            lg.info("cannot stop queue: no queues are running")
-                            client.sendall(StatusMessage(Status.SKIP, "no running queues found").encode())
-
-                    elif rsp.body["command"] == Command.FLUSH:
-                        self.queue.flush()
-                        client.sendall(StatusMessage(Status.OK, "flushed queue").encode())
-
+                        lg.info("stopped queue")
+                        client.sendall(StatusMessage(Status.OK, "pause processing queue").encode())
                     else:
-                        msg = f"unknown command {rsp.body['command']}"
-                        lg.error(msg)
-                        client.sendall(StatusMessage(Status.FAIL, msg).encode())
+                        lg.info("cannot stop queue: no queues are running")
+                        client.sendall(StatusMessage(Status.SKIP, "no running queues found").encode())
 
-                # tasks are added to the queue
-                elif is_enum_member(rsp.body["type"], TaskType):
-                    tsk = tasks.Task.from_dict(rsp.body)
+                elif command == Command.QUEUE_IS_ACTIVE:
+                    self.queue.flush(status=Status.PENDING)
+                    if self.queue.active_processes > 0:
+                        client.sendall(StatusMessage(Status.OK, "queue is running", payload={"value": True}, payload_class=PayloadClass.VALUE).encode())
+                    else:
+                        client.sendall(StatusMessage(Status.OK, "queue not running", payload={"value": False}, payload_class=PayloadClass.VALUE).encode())
+
+                elif command == Command.QUEUE_PROGRESS:
+                    client.sendall(StatusMessage(Status.OK, payload=self.queue.progress().to_dict(), payload_class=PayloadClass.QUEUE_PROGRESS).encode())
+
+                elif command == Command.QUEUE_ACTIVE_PROCESSES:
+                    client.sendall(StatusMessage(Status.OK, payload={"value": self.queue.active_processes}, payload_class=PayloadClass.VALUE).encode())
+
+                elif command == Command.QUEUE_FLUSH_ALL:
+                    self.queue.flush()
+                    client.sendall(StatusMessage(Status.OK, "flushed queue").encode())
+
+                elif command == Command.QUEUE_FLUSH_PENDING:
+                    self.queue.flush(status=Status.PENDING)
+                    client.sendall(StatusMessage(Status.OK, "flushed pending tasks from queue").encode())
+
+                elif dd.body['command'] == Command.QUEUE_PUT:
+                    tsk = tasks.Task.from_dict(dd.body['payload'])
                     try:
                         tsk.__validate__()
                         self.queue.put(tsk)
                         lg.debug(f"enqueued task {tsk}")
-                        client.sendall(StatusMessage(Status.OK, task=tsk).encode())
-                    except FileExistsAndIsIdenticalError:
+                        client.sendall(StatusMessage(Status.OK, payload=tsk, payload_class=PayloadClass.TASK).encode())
+                    except FileExistsAndShouldBeSkippedError:
                         msg = f"destination exists"
                         lg.debug(msg)
-                        client.sendall(StatusMessage(Status.SKIP, msg=msg, task=tsk).encode())
+                        client.sendall(StatusMessage(Status.SKIP, msg=msg, payload=tsk, payload_class=PayloadClass.TASK).encode())
                     except FileExistsError:
                         msg = f"destination exists and differs from source"
                         lg.error(msg)
-                        client.sendall(StatusMessage(Status.FAIL, msg=msg, task=tsk).encode())
+                        client.sendall(StatusMessage(Status.FAIL, msg=msg, payload=tsk, payload_class=PayloadClass.TASK).encode())
                     except:
                         msg = str(sys.exc_info())
                         lg.error(msg)
-                        client.sendall(StatusMessage(Status.FAIL, msg=msg, task=tsk).encode())
+                        client.sendall(StatusMessage(Status.FAIL, msg=msg, payload=tsk, payload_class=PayloadClass.TASK).encode())
                 else:
-                    msg = f"unknown task {rsp.body['type']}"
+                    msg = f"unknown command {dd.body['command']}"
                     lg.error(msg)
-                    client.sendall(StatusMessage(Status.FAIL, msg=msg).encode())
+                    client.sendall(StatusMessage(Status.FAIL, msg).encode())
 
             except:
                 lg.error(f"unknown error processing request {req}: {sys.exc_info()}")
@@ -178,51 +182,45 @@ class QopClient:
 
     def get_queue_progress(self, max_tries=10) -> tasks.QueueProgress:
         if max_tries == 1:
-            res = self.send_command(Command.INFO)
+            res = self.send_command(Command.QUEUE_PROGRESS)
         else:
             try:
-                res = self.send_command(Command.INFO)
+                res = self.send_command(Command.QUEUE_PROGRESS)
             except:
                 sleep(0.1)
                 return self.get_queue_progress(max_tries=max_tries - 1)
 
-        return tasks.QueueProgress.from_dict(res)
+        return tasks.QueueProgress.from_dict(res['payload'])
 
     def is_server_alive(self) -> bool:
         return utils.is_server_alive(self.ip, self.port)
 
     def get_active_processes(self) -> int:
-        return self.send_command(Command.ISACTIVE)['active_processes']
+        return self.send_command(Command.QUEUE_ACTIVE_PROCESSES)['payload']['value']
 
-    def send_command(self, command: Command) -> Dict:
+    """
+    Send a CommandMessage to the server
+
+    :param command: Command to send
+    :type Command
+    :param payload: Optional payload to send along with the command (usually a Task)
+    :type None, Dict, Task    
+    """
+    def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task] = None) -> Dict:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect((self.ip, self.port))
-            req = Message(tasks.CommandTask(command))
+            req = CommandMessage(command, payload=payload)
             client.sendall(req.encode())
             res = RawMessage(client.recv(1024)).decode().body
-            lg.info(res)
-            return res
 
-    def send_task(self, task: tasks.Task) -> Dict:
-        """
-        Instantiate a TaskQueue
-
-        :param task: the Task to send to the server to enqueue
-        :param summary: a Dict with the keys 'ok', 'skip' and 'fail' to store the status of the insert operation in
-        :param verbose: WIP
-        """
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-            client.connect((self.ip, self.port))
-            client.sendall(Message(task).encode())
-            res = RawMessage(client.recv(1024)).decode().body
-
-            if res['status'] == Status.OK:
-                self.stats['ok'] = self.stats['ok'] + 1
-            if res['status'] == Status.SKIP:
-                self.stats['skip'] = self.stats['skip'] + 1
-            if res['status'] == Status.FAIL:
-                self.stats['fail'] = self.stats['fail'] + 1
+            # track enqueued tasks of this client
+            if command == Command.QUEUE_PUT:
+                if res['status'] == Status.OK:
+                    self.stats['ok'] = self.stats['ok'] + 1
+                if res['status'] == Status.SKIP:
+                    self.stats['skip'] = self.stats['skip'] + 1
+                if res['status'] == Status.FAIL:
+                    self.stats['fail'] = self.stats['fail'] + 1
 
             return res
 
@@ -231,7 +229,7 @@ class Message:
     """Container for requests sent to the qop daemon"""
     def __init__(
             self,
-            body: Union[Dict, tasks.Task, list],
+            body: Dict,
             extra_headers: Optional[Dict] = None
     ) -> None:
         """
@@ -245,14 +243,7 @@ class Message:
         self.extra_headers = extra_headers
 
     def encode(self) -> bytes:
-        if isinstance(self.body, tasks.Task):
-            body = self.body.to_dict()
-            for el in ("src", "dst"):
-                if el in body.keys():
-                    body[el] = str(body[el])
-        else:
-            body = self.body
-        body = bytes(json.dumps(body), "utf-8")
+        body = bytes(json.dumps(self.body), "utf-8")
 
         header = {"content-length": len(body), "content-type": "text/json"}
         header.update(self.extra_headers)
@@ -310,16 +301,63 @@ class RawMessage:
 class StatusMessage(Message):
     """Messages sent from the daemon to the client to inform it on the status of an operation"""
 
-    def __init__(self, status: int, msg: Optional[str] = None, task=None) -> None:
+    def __init__(self, status: int, msg: Optional[str] = None, payload=None, payload_class=None) -> None:
         """
+        :param status: Status-code returned from the server (see enums.Status)
+        :type status: Status
+        :param payload: Optional payload returned by the server. Can be a Dict or an object with a to_dict Method
+          (usually a tasks.Task)
+        :type payload: Dict, tasks.Task
 
         :rtype: object
         """
 
-        if task is not None:
-            task = task.to_dict()
+        body = {"status": int(status)}
+
+        if msg is not None:
+            body.update({"msg": msg})
+
+        if payload is not None:
+            if not isinstance(payload, Dict):
+                payload = payload.to_dict()
+
+            body.update({"payload": payload})
+
+            if payload_class is not None:
+                body.update({"payload_class": payload_class})
 
         super().__init__(
-            body={"status": int(status), "msg": msg, "task": task},
-            extra_headers={"class": "StatusMessage"}
+            body=body,
+            extra_headers={"message-class": "StatusMessage"}
+        )
+        
+
+class CommandMessage(Message):
+    """Messages to send commands from the client to the server"""
+
+    def __init__(self, command: Command, payload=None, payload_class=None) -> None:
+        """
+        :param command: Command-code to send to the server (see enums.Command)
+        :type command: Command
+        :param payload: Optional payload of the command. This can be a Dict or any Object that has a to_dict() Method.
+          Currently the only practical payload is a Task.
+        :type payload: tasks.Task, None
+
+        :rtype: object
+        """
+
+        body = {"command": int(command)}
+
+        if payload is not None:
+            if not isinstance(payload, Dict):
+                payload = payload.to_dict()
+
+            body.update({"payload": payload})
+
+            if payload_class is not None:
+                body.update({"payload_class": payload_class})
+
+        super().__init__(
+            body=body,
+            extra_headers={"message-class": "CommandMessage"}
         )

@@ -4,18 +4,26 @@ PREHEADER_LEN: int = 2
 
 
 class Command(IntEnum):
-    START = 1
-    PAUSE = 2
-    FLUSH = 3
-    KILL = 4
-    INFO = 5
-    PROGRESS = 6
-    ALIVE = 7
-    ISACTIVE = 8
+    DAEMON_START = 101
+    DAEMON_STOP = 102
+    DAEMON_IS_RUNNING = 103
+    QUEUE_START = 201
+    QUEUE_STOP = 202
+    QUEUE_IS_ACTIVE = 203
+    QUEUE_PUT = 204
+    QUEUE_FLUSH_PENDING = 205
+    QUEUE_FLUSH_ALL = 206
+    QUEUE_PROGRESS = 207
+    QUEUE_ACTIVE_PROCESSES = 208
+
+
+class PayloadClass(IntEnum):
+    VALUE = 1  # a single value {"value": <value>}
+    TASK = 2
+    QUEUE_PROGRESS = 3
 
 
 class TaskType(IntEnum):
-    COMMAND = 0
     ECHO = 1
     FILE = 2
     DELETE = 3
@@ -23,7 +31,6 @@ class TaskType(IntEnum):
     MOVE = 5
     CONVERT = 6
     FAIL = 7
-    KILL = 99
 
 
 class Status(IntEnum):
