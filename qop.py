@@ -4,6 +4,7 @@ import argparse
 import logging
 import pickle
 import appdirs
+import subprocess
 
 from pathlib import Path
 from colorama import init, Fore
@@ -159,7 +160,7 @@ def handle_copy_convert_move(args, client) -> Dict:
                     tsk = tasks.CopyTask(src=src, dst=dst)
 
             rsp = client.send_command(Command.QUEUE_PUT, payload=tsk)
-            
+
             if not is_queue_running and not args.enqueue_only:
                 client.send_command(Command.QUEUE_START)
                 is_queue_running = True
@@ -174,22 +175,58 @@ def handle_copy_convert_move(args, client) -> Dict:
     return {"status": Status.OK, "msg": "enqueue finished"}
 
 
-def daemon_stop(args, client):
+def daemon_stop(args, client) -> Dict:
+    if not client.is_server_alive():
+        return {"status": Status.SKIP, "msg": "daemon is not running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
+
     return client.send_command(Command.DAEMON_STOP)
 
 
-def daemon_destroy(args, client):
+def daemon_destroy(args, client) -> Dict:
     client.send_command(Command.QUEUE_FLUSH_ALL)
     return client.send_command(Command.DAEMON_STOP)
 
 
-def daemon_start(args, client):
-    raise NotImplementedError
+def daemon_start(args, client) -> Dict:
+    # launch daemon
+    if client.is_server_alive():
+        return {"status": Status.SKIP, "msg": "daemon is already running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
+    else:
+        qop_dir = Path(__file__).resolve().parent
+        subprocess.Popen(["nohup", "python3", qop_dir.joinpath("qopd.py"), "--queue", '<temp>'], close_fds=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        sleep(0.1)
+        return daemon_is_active(args, client)
+
+
+def daemon_restart(args, client) -> Dict:
+    was_running = client.is_server_alive()
+    daemon_stop(args, client)
+    sleep(0.1)
+    was_stopped = not client.is_server_alive()
+    daemon_start(args, client)
+    sleep(0.1)
+    is_running = client.is_server_alive()
+
+    if is_running:
+        if not was_running:
+            return {"status": Status.OK, "msg": "daemon started", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
+        elif not was_stopped:
+            return {"status": Status.FAIL, "msg": "daemon is still running but was not restarted", "payload": {"value": True}, "payload_class":PayloadClass.VALUE}
+        else:
+            return {"status": Status.OK, "msg": "daemon restarted", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
+    else:
+        if was_running:
+            return {"status": Status.FAIL, "msg": "could not restart daemon (daemon is offline)", "payload": {"value": False}, "payload_class": PayloadClass.VALUE}
+        else:
+            return {"status": Status.FAIL, "msg": "could not start daemon (daemon is offline)", "payload": {"value": False}, "payload_class": PayloadClass.VALUE}
 
 
 def daemon_is_active(args, client):
     # mimic response object
-    return {"status": Status.OK, "payload": {"value": client.is_server_alive()}, "payload_class": PayloadClass.VALUE}
+    if client.is_server_alive():
+        return {"status": Status.OK, "msg": "daemon is running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
+    else:
+        return {"status": Status.OK, "msg": "no daemon found", "payload":  {"value": False}, "payload_class": PayloadClass.VALUE}
 
 
 def queue_start(args, client):
@@ -239,15 +276,15 @@ subparsers = parser.add_subparsers()
 
 # copy
 parser_copy = subparsers.add_parser("copy", help="copy a file")
-parser_copy.set_defaults(fun=handle_copy_convert_move, mode="copy")
+parser_copy.set_defaults(fun=handle_copy_convert_move, mode="copy", start_daemon=True)
 
 # move
 parser_move = subparsers.add_parser("move", help="move a file")
-parser_move.set_defaults(fun=handle_copy_convert_move, mode="move")
+parser_move.set_defaults(fun=handle_copy_convert_move, mode="move", start_daemon=True)
 
 # convert
 parser_convert = subparsers.add_parser("convert", help="convert an audio file")
-parser_convert.set_defaults(fun=handle_copy_convert_move, mode="convert")
+parser_convert.set_defaults(fun=handle_copy_convert_move, mode="convert", start_daemon=True)
 g = parser_convert.add_mutually_exclusive_group()
 g.add_argument("-c", "--convert-only", nargs="+", type=str, help="extensions of files to convert")
 g.add_argument("-C", "--convert-not", nargs="+", type=str, help="extensions of files not to convert")
@@ -263,21 +300,22 @@ for p in [parser_copy, parser_convert, parser_move]:
 
 # re
 parser_re = subparsers.add_parser("re", help="repeat the last copy/convert/move operation on different source paths")
-parser_re.set_defaults(fun=handle_re)
+parser_re.set_defaults(fun=handle_re, start_daemon=True)
 parser_re.add_argument("sources", type=str, nargs="+", help="source files to be copied/moved/converted")
 parser_re.add_argument("-d", "--destination", type=str, nargs=1, help="an optional destination (otherwise the last destination will be used)")
 
 # echo
 parser_echo = subparsers.add_parser("echo", help="echo text (for testing the server)")
 parser_echo.add_argument("msg", type=str, help="path", nargs="+", default="echo")
-parser_echo.set_defaults(fun=handle_echo)
+parser_echo.set_defaults(fun=handle_echo, start_daemon=True)
 
 parser_progress = subparsers.add_parser("progress", help="show progress bar")
-parser_progress.set_defaults(fun=queue_progress)
+parser_progress.set_defaults(fun=queue_progress, start_daemon=True)
 
 
 # queue management
 parser_queue = subparsers.add_parser("queue", help="manage the file processing queue (start, stop, ...)")
+parser_queue.set_defaults(start_daemon=True)
 parser_queue_sub = parser_queue.add_subparsers()
 parser_queue_sub.add_parser("start", help="start processing the queue").set_defaults(fun=queue_start)
 parser_queue_sub.add_parser("stop",  help="stop processing the queue").set_defaults(fun=queue_stop)
@@ -288,8 +326,9 @@ parser_queue_sub.add_parser("is-active", help="show number of active queues (usu
 
 # daemon management
 parser_daemon = subparsers.add_parser("daemon", help="manage the daemon process")
+parser_daemon.set_defaults(start_daemon=False)
 parser_daemon_sub = parser_daemon.add_subparsers()
-parser_daemon_sub.add_parser("start", help="start the daemon").set_defaults(fun=daemon_start)
+parser_daemon_sub.add_parser("restart", help="restart the daemon").set_defaults(fun=daemon_restart)
 parser_daemon_sub.add_parser("stop", help="stop the daemon").set_defaults(fun=daemon_stop)
 parser_daemon_sub.add_parser("is-active", help="check if daemon is alive").set_defaults(fun=daemon_is_active)
 parser_daemon_sub.add_parser("destroy", help="immediately terminate the daemon and empty the queue").set_defaults(fun=daemon_destroy)
@@ -317,6 +356,8 @@ else:
 
 # client
 client = daemon.QopClient(ip="127.0.0.1", port=9393)
+if args.start_daemon:
+    daemon_start(args, client)
 
 res = args.fun(args, client)
 print(format_response(res))
