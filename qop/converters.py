@@ -58,8 +58,12 @@ class OggConverter(Converter):
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         src = Path(src).resolve()
         dst = Path(dst).resolve()
+
+        if not dst.parent.exists():
+            dst.parent.mkdir(parents=True)
+
         x = pydub.AudioSegment.from_file(src)
-        x.export(dst, format="ogg", bitrate=self.bitrate)
+        x.export(dst, format="ogg")
 
     def to_dict(self) -> Dict:
         return {"type": 1, "bitrate": self.bitrate}
