@@ -2,27 +2,41 @@
 
 import argparse
 import logging
+import pickle
+import appdirs
+
 from pathlib import Path
 from colorama import init, Fore
 from typing import Dict, Union, Optional
 from time import sleep
 from tqdm import tqdm
 
-from qop import daemon, tasks, scanners
-from qop.enums import Status, Command
+from qop import daemon, tasks, scanners, converters
+from qop.enums import Status, Command, PayloadClass
 
 init()
-
-
-
 lg = logging.getLogger("qop.cli-daemon")
+
+
+# globals
+LOSSY_AUDIO = ("mp3", "ogg")
+LOSSLESS_AUDIO = ("flac", "wav", "ape", "wv")
+AUDIO_FILES = (LOSSY_AUDIO, LOSSLESS_AUDIO)
 
 
 def format_response(rsp) -> str:
     res = color_status(rsp['status']) + " "
 
-    if "task" in rsp.keys() and rsp['task'] is not None:
-        res =res + tasks.Task.from_dict(rsp['task']).color_repr()
+    try:
+        plc = PayloadClass(rsp['payload_class'])
+    except:
+        plc = None
+
+    if "payload" in rsp.keys() and rsp['payload'] is not None:
+        if plc == PayloadClass.VALUE:
+            res = res + str(rsp['payload']['value']) + " "
+        elif plc == PayloadClass.TASK:
+            res = res + tasks.Task.from_dict(rsp['payload']).color_repr() + " "
 
     if 'msg' in rsp.keys():
         res = res + f"{Fore.YELLOW}[{rsp['msg']}]{Fore.RESET}"
@@ -52,10 +66,36 @@ def color_status(x: int):
 
 # subcommand handlers
 def handle_echo(args, client) -> Dict:
-    return client.send_task(tasks.EchoTask(msg=" ".join(args.msg)))
+    return client.send_command(Command.QUEUE_PUT, payload=tasks.EchoTask(msg=" ".join(args.msg)))
 
 
 def handle_copy(args, client) -> Dict:
+    handle_copy_convert_move(args, client, "copy")
+
+
+def handle_move(args, client) -> Dict:
+    handle_copy_convert_move(args, client, "move")
+
+
+def handle_re(args, client) -> Dict:
+
+    with open(Path(appdirs.user_cache_dir('qop')).joinpath('last_args.pickle'), 'rb') as f:
+        last_args = pickle.load(f)
+
+    if args.destination is not None:
+        last_args.paths = args.paths + args.destination
+    else:
+        last_args.paths = args.paths + [last_args.paths[-1]]
+
+    # global args that should not be overriden
+    last_args.verbose = args.verbose
+    last_args.log_file = args.log_file
+    last_args.log_level = args.log_level
+
+    return handle_copy_convert_move(last_args, client)
+
+
+def handle_copy_convert_move(args, client) -> Dict:
     sources = args.paths[:-1]
     dst_dir = args.paths[-1]
     is_queue_running = client.get_active_processes() > 0
@@ -64,32 +104,68 @@ def handle_copy(args, client) -> Dict:
     assert len(sources) > 0
     assert sources != dst_dir
 
-    if args.recursive:
-        scanner = scanners.Scanner()
+    # for use by `qop re`
+    args_cache = Path(appdirs.user_cache_dir('qop')).joinpath('last_args.pickle')
+    if args_cache.exists():
+        args_cache.unlink()
+    with open(args_cache, 'wb') as f:
+        pickle.dump(args, f, pickle.HIGHEST_PROTOCOL)
+
+    if args.include is not None or args.exclude is not None or args.mode == "convert":
+        if args.include is not None:
+            scanner = scanners.ScannerWhitelist(args.include)
+        elif args.exclude is not None:
+            scanner = scanners.ScannerBlacklist(args.exclude)
+        else:
+            scanner = scanners.Scanner()
         sources = scanner.run(sources)
+
+    if args.mode == "convert":
+        conv = converters.OggConverter("256k")
+        conv_mode = "all"
+        if args.convert_only is not None:
+            conv_include = ["." + e for e in args.convert_only]
+            conv_mode = "include"
+        elif args.convert_not is not None:
+            conv_exclude = ["." + e for e in args.convert_not]
+            conv_mode = "exclude"
 
     for source in sources:
         if not isinstance(source, Dict):
             source = {
-                "root": Path(source).absolute().parent,
-                "paths": [Path(source).absolute()]
+                "root": Path(source).resolve().parent,
+                "paths": [Path(source).resolve()]
             }
 
         for src in source['paths']:
             lg.debug(f"inserting {src}")
             src = Path(src).resolve()
             dst = Path(dst_dir).resolve().joinpath(src.relative_to(source['root']))
-            tsk = tasks.CopyTask(src=src, dst=dst)
-            res = client.send_task(tsk)
+            if args.mode == "move":
+                tsk = tasks.MoveTask(src=src, dst=dst)
+            elif args.mode == "copy":
+                tsk = tasks.CopyTask(src=src, dst=dst)
+            elif args.mode == "convert":
+                if conv_mode == "all":
+                    dst = Path(dst).resolve().with_suffix(".ogg")
+                    tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
+                elif conv_mode == "include" and src.suffix in conv_include:
+                    dst = Path(dst).resolve().with_suffix(".ogg")
+                    tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
+                elif conv_mode == "exclude" and src.suffix not in conv_exclude:
+                    dst = Path(dst).resolve().with_suffix(".ogg")
+                    tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
+                else:
+                    tsk = tasks.CopyTask(src=src, dst=dst)
+
+            rsp = client.send_command(Command.QUEUE_PUT, payload=tsk)
             
-            if not args.enqueue_only and not is_queue_running:
-                client.send_command(Command.START)
-                sleep(0.1)
-                info = tasks.QueueProgress.from_dict(client.send_command(Command.INFO))
+            if not is_queue_running and not args.enqueue_only:
+                client.send_command(Command.QUEUE_START)
                 is_queue_running = True
 
             if args.verbose:
-                print(format_response(res))
+                print(format_response(rsp))
 
             print(format_response_summary(client.stats), end="\r")
 
@@ -97,47 +173,48 @@ def handle_copy(args, client) -> Dict:
 
 
 def daemon_stop(args, client):
-    return client.send_command(Command.KILL)
+    return client.send_command(Command.DAEMON_STOP)
+
 
 def daemon_destroy(args, client):
-    client.send_command(Command.FLUSH)
-    return client.send_command(Command.KILL)
+    client.send_command(Command.QUEUE_FLUSH_ALL)
+    return client.send_command(Command.DAEMON_STOP)
 
 
 def daemon_start(args, client):
     raise NotImplementedError
 
 
-def daemon_is_alive(args, client):
-    return client.is_server_alive()
+def daemon_is_active(args, client):
+    # mimic response object
+    return {"status": Status.OK, "payload": {"value": client.is_server_alive()}, "payload_class": PayloadClass.VALUE}
 
 
 def queue_start(args, client):
-    return client.send_command(Command.START)
+    return client.send_command(Command.QUEUE_START)
 
 
 def queue_stop(args, client):
-    return client.send_command(Command.PAUSE)
+    return client.send_command(Command.QUEUE_STOP)
 
 
 def queue_is_active(args, client):
-    return client.send_command(Command.ISACTIVE)
-
-
-def queue_info(args, client):
-    return client.send_command(Command.INFO)
+    return client.send_command(Command.QUEUE_IS_ACTIVE)
 
 
 def queue_flush(args, client):
-    raise NotImplementedError
+    return client.send_command(Command.QUEUE_FLUSH_PENDING)
 
 
 def queue_flush_all(args, client):
-    return client.send_command(Command.FLUSH)
+    return client.send_command(Command.QUEUE_FLUSH_ALL)
 
 
 def queue_progress(args, client):
     info = client.get_queue_progress()
+
+    if info.total == 0:
+        return {"status": Status.OK, "msg": "queue is empty"}
 
     with tqdm(total=info.total, initial=info.total - info.pending) as pbar:
         for i in range(info.total):
@@ -154,27 +231,46 @@ def queue_progress(args, client):
         return {"status": Status.FAIL, "msg": "could not transfer all files"}
 
 
-
 # args
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
 
 # main operations
 parser_copy = subparsers.add_parser("copy", help="copy a file")
-parser_copy.set_defaults(fun=handle_copy)
+parser_copy.set_defaults(fun=handle_copy_convert_move, mode="copy")
+
+parser_move = subparsers.add_parser("move", help="move a file")
+parser_move.set_defaults(fun=handle_copy_convert_move, mode="move")
 
 parser_convert = subparsers.add_parser("convert", help="convert an audio file")
-parser_sac = subparsers.add_parser("sac", help="smart-audio-convert")
+parser_convert.set_defaults(fun=handle_copy_convert_move, mode="convert")
+g = parser_convert.add_mutually_exclusive_group()
+g.add_argument("-c", "--convert-only", nargs="+", type=str, help="extensions of files to convert")
+g.add_argument("-C", "--convert-not", nargs="+", type=str, help="extensions of files not to convert")
+
+parser_progress = subparsers.add_parser("progress", help="show progress bar")
+parser_progress.set_defaults(fun=queue_progress)
+
 
 # shared arguments
-for p in [parser_copy, parser_convert, parser_sac]:
+for p in [parser_copy, parser_convert, parser_move]:
     p.add_argument("paths", type=str, nargs="+", help="SOURCE...DIR. An abritrary number of paths to copy and a single destination directory")
     p.add_argument("-r", "--recursive", action="store_true", help="recurse")
     p.add_argument("-e", "--enqueue-only", action="store_true", help="enqueue only. do not start processing queue.")
+    g = p.add_mutually_exclusive_group()
+    g.add_argument("-f", "--exclude", nargs="+", type=str, help="keep only files that do not have these extensions")
+    g.add_argument("-F", "--include", nargs="+", type=str, help="keep only files with these extensions")
 
 parser_echo = subparsers.add_parser("echo", help="echo text (for testing the server)")
 parser_echo.add_argument("msg", type=str, help="path", nargs="+", default="echo")
 parser_echo.set_defaults(fun=handle_echo)
+
+
+# re
+parser_re = subparsers.add_parser("re", help="repeat the last copy/conver/move operation on different source paths")
+parser_re.set_defaults(fun=handle_re)
+parser_re.add_argument("paths", type=str, nargs="+", help="SOURCE An abritrary number of paths to source files")
+parser_re.add_argument("-d", "--destination", type=str, nargs=1, help="SOURCE An abritrary number of paths to source files")
 
 # queue management
 parser_queue = subparsers.add_parser("queue", help="manage the file processing queue (start, stop, ...)")
@@ -184,14 +280,14 @@ parser_queue_sub.add_parser("stop",  help="stop processing the queue").set_defau
 parser_queue_sub.add_parser("flush", help="remove all pending tasks from the queue").set_defaults(fun=queue_flush)
 parser_queue_sub.add_parser("flush-all", help="completely reset the queue (including finished, failed and skipped tasks)").set_defaults(fun=queue_flush_all)
 parser_queue_sub.add_parser("progress", help="show interactive progress bar").set_defaults(fun=queue_progress)
-parser_queue_sub.add_parser("active", help="show number of active queues (usually just one)").set_defaults(fun=queue_is_active)
+parser_queue_sub.add_parser("is-active", help="show number of active queues (usually just one)").set_defaults(fun=queue_is_active)
 
 # daemon management
 parser_daemon = subparsers.add_parser("daemon", help="manage the daemon process")
 parser_daemon_sub = parser_daemon.add_subparsers()
 parser_daemon_sub.add_parser("start", help="start the daemon").set_defaults(fun=daemon_start)
 parser_daemon_sub.add_parser("stop", help="stop the daemon").set_defaults(fun=daemon_stop)
-parser_daemon_sub.add_parser("alive", help="check if daemon is alive").set_defaults(fun=daemon_is_alive)
+parser_daemon_sub.add_parser("is-active", help="check if daemon is alive").set_defaults(fun=daemon_is_active)
 parser_daemon_sub.add_parser("destroy", help="immediately terminate the daemon and empty the queue").set_defaults(fun=daemon_destroy)
 
 
@@ -220,6 +316,3 @@ client = daemon.QopClient(ip="127.0.0.1", port=9393)
 
 res = args.fun(args, client)
 print(format_response(res))
-
-if not args.enqueue_only:
-    client.send_command(Command.START)
