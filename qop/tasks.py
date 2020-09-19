@@ -7,7 +7,7 @@ import json
 import sqlite3
 import logging
 from qop.enums import TaskType, Status, Command
-from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError
+from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
 from qop import utils
 from colorama import init, Fore
 import filecmp
@@ -49,12 +49,12 @@ class Task:
             return CopyTask(x["src"], x["dst"])
         elif task_type == TaskType.MOVE:
             return MoveTask(x["src"], x["dst"])
-        elif task_type == TaskType.COMMAND:
+        elif task_type == TaskType.CONVERT:
             return ConvertTask(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
         elif task_type == TaskType.FAIL:
             return FailTask()
         else:
-            raise ValueError
+            raise UnknownTaskTypeError
 
     def __repr__(self) -> str:
         return 'NULL'
@@ -83,16 +83,6 @@ class Task:
         return json.dumps(self.to_dict())
 
 
-class CommandTask(Task):
-    def __init__(self, command) -> None:
-        super().__init__()
-        self.type = 0
-        self.command = command
-
-    def __repr__(self) -> str:
-        return f'COMMAND: command'
-
-
 class EchoTask(Task):
     """Log a message"""
     def __init__(self,  msg: str) -> None:
@@ -100,9 +90,8 @@ class EchoTask(Task):
         self.msg = msg
         self.type = TaskType.ECHO
 
-    def run(self) -> Status:
+    def run(self) -> None:
         print(self.msg)
-        return Status.OK
 
     def __repr__(self) -> str:
         return f'Echo: "{self.msg}"'
@@ -116,7 +105,6 @@ class EchoTask(Task):
             return self.__repr__()
 
 
-
 class FailTask(Task):
     """Log a message"""
     def __init__(self) -> None:
@@ -124,9 +112,8 @@ class FailTask(Task):
         self.msg = "This task always fails"
         self.type = TaskType.FAIL
 
-    def run(self) -> Status:
+    def run(self) -> None:
         raise AssertionError
-        return Status.FAIL
 
     def __repr__(self) -> str:
         return f'Fail: Always raise an error"'
@@ -136,8 +123,11 @@ class FileTask(Task):
     """Abstract class for all file-based tasks"""
     def __init__(self, src: Pathish) -> None:
         super().__init__()
-        self.src = Path(src).absolute()
+        self.src = Path(src).resolve()
         self.type = None
+
+    def run(self) -> None:
+        pass
 
     def __validate__(self) -> None:
         if not self.src.exists():
@@ -152,9 +142,8 @@ class DeleteTask(FileTask):
         super().__init__(src=src)
         self.type = TaskType.DELETE
 
-    def run(self) -> Status:
+    def run(self) -> None:
         os.unlink(self.src)
-        return Status.OK
 
     def __repr__(self) -> str:
         return f'DEL {self.src}'
@@ -164,7 +153,7 @@ class CopyTask(FileTask):
     """Copy a file"""
     def __init__(self, src: Pathish, dst: Pathish) -> None:
         super().__init__(src=src)
-        self.dst = Path(dst).absolute()
+        self.dst = Path(dst).resolve()
         self.type = TaskType.COPY
 
     def color_repr(self, color=True) -> str:
@@ -205,7 +194,7 @@ class MoveTask(CopyTask):
         super().__init__(src=src, dst=dst)
         self.type = TaskType.MOVE
 
-    def run(self) -> Status:
+    def run(self) -> None:
         super().__validate__()
         if not self.dst.parent.exists():
             self.dst.parent.mkdir(parents=True)
@@ -225,19 +214,37 @@ class ConvertTask(CopyTask):
         super().__init__(src=src, dst=dst)
         self.type = TaskType.CONVERT
         self.converter = converter
-        self.src = src
-        self.dst = dst
+        self.src = Path(src).resolve()
+        self.dst = Path(dst).resolve()
 
-    def run(self) -> Status:
+    def run(self) -> None:
         super().__validate__()
         self.converter.run(self.src, self.dst)
-        return Status.OK
+
+    def color_repr(self, color=True) -> str:
+        if color:
+            op = Fore.YELLOW + "CONV" + Fore.RESET
+            arrow = Fore.YELLOW + "->" + Fore.RESET
+            src = self.src
+            dst = self.dst
+            return f'{op} {src} {arrow} {dst}'
+        else:
+            return self.__repr__()
 
     def __repr__(self) -> str:
         return f'CONVERT {self.src} -> {self.dst}'
 
+    def __validate__(self) -> None:
+        if not self.src.exists():
+            raise FileNotFoundError
+        if self.dst.exists():
+            raise FileExistsAndCannotBeComparedError
+
     def to_dict(self) -> Dict:
         r = self.__dict__.copy()
+        for el in ("src", "dst"):
+            if el in r.keys():
+                r[el] = str(r[el])
         r["converter"] = self.converter.to_dict()
         return r
 
@@ -497,7 +504,7 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
-        lg.info(f"task {oid} pending")
+        lg.info(f"mark {oid} pending")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.PENDING), oid))
         hammer_commit(self.con)
@@ -511,7 +518,7 @@ class TaskQueue:
         :param owner: Id of the process that is handling the operation
         :type owner: int
         """
-        lg.debug(f"task {oid} started")
+        lg.debug(f"mark {oid} running")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = ?, owner = ? where _ROWID_ = ?", (int(Status.RUNNING), owner, oid))
         hammer_commit(self.con)
@@ -522,7 +529,7 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
-        lg.debug(f"task {oid} completed")
+        lg.debug(f"mark {oid} completed")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.OK), oid))
         hammer_commit(self.con)
@@ -534,7 +541,7 @@ class TaskQueue:
         :param oid: ID of the task to mark
         :type oid: int
         """
-        lg.error(f"task {oid} failed")
+        lg.debug(f"mark {oid} failed")
         cur = self.con.cursor()
         cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.FAIL), oid))
         hammer_commit(self.con)
@@ -560,6 +567,7 @@ class TaskQueue:
         for p in self.processes:
             p.terminate()
 
+    @property
     def active_processes(self):
         res = 0
         for p in self.processes:
@@ -567,10 +575,13 @@ class TaskQueue:
                 res += 1
         return res
 
-    def flush(self) -> None:
+    def flush(self, status: Union[Status, int, None] = None) -> None:
         """empty the queue"""
         cur = self.con.cursor()
-        cur.execute("DELETE FROM tasks")
+        if status is None:
+            cur.execute("DELETE FROM tasks")
+        else:
+            cur.execute("DELETE FROM tasks where status == ?", (int(status), ))
         hammer_commit(self.con)
 
 
@@ -588,9 +599,10 @@ def run_queue(queue, ip=None, port=None) -> None:
             queue.mark_ok(op.oid)
             lg.info(f"task completed: {op}")
         except:
+            lg.error(f"task failed: {op}")
             queue.mark_fail(op.oid)
 
-        lg.info("queue is finished")
+    lg.info("queue is finished")
 
 
 class QueueProgress:
@@ -640,3 +652,7 @@ def hammer_commit(con, max_tries=10):
         except:
             sleep(0.1)
             hammer_commit(con, max_tries=max_tries - 1)
+
+
+class UnknownTaskTypeError(ValueError):
+    pass
