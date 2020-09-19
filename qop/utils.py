@@ -3,7 +3,7 @@ import socket
 
 def get_project_root(*args) -> Path:
     """Returns project root folder."""
-    return Path(__file__).parent.parent.joinpath(*args)
+    return Path(__file__).parent.parent.joinpath(*args).resolve()
 
 
 def is_server_alive(ip: str, port: int):

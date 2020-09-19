@@ -1,12 +1,11 @@
 import pytest
 import subprocess
 from pathlib import Path
-import shutil
 from time import sleep
+from qop import utils
 
-
-QOP = Path("../qop.py").absolute()
-QOPD = Path("../qopd.py").absolute()
+QOP = utils.get_project_root("qop.py")
+QOPD = utils.get_project_root("qopd.py")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -62,12 +61,10 @@ def test_copy_a_directory(testfile_tree):
     assert dst.joinpath("src/foo/bar.txt").exists()
 
 
-def test_daemon_sends_progress_updates(testfile_tree):
-    """qop can copy a file"""
-    root, src, dst = testfile_tree
+# def test_killing_the_daemon(testfile_tree):
+#     """qop can copy a file"""
+#     subprocess.run(["python3", QOP, "daemon", "is-active"])
+#     subprocess.run(["python3", QOP, "daemon", "stop"])
+#     subprocess.run(["python3", QOP, "daemon", "is-active"])
 
-    subprocess.run(["python3", QOP, "-v", "--log-level", "FATAL", "copy", src, dst], cwd=root)
-    sleep(1)
-    assert src.joinpath("baz.txt").exists()
-    assert dst.joinpath("src/baz.txt").exists()
-    assert dst.joinpath("src/foo/bar.txt").exists()
+
