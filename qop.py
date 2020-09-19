@@ -85,7 +85,7 @@ def handle_re(args, client) -> Dict:
     if args.destination is not None:
         last_args.paths = args.paths + args.destination
     else:
-        last_args.paths = args.paths + [last_args.paths[-1]]
+        last_args.paths = args.sources + [last_args.paths[-1]]
 
     # global args that should not be overriden
     last_args.verbose = args.verbose
@@ -169,6 +169,8 @@ def handle_copy_convert_move(args, client) -> Dict:
 
             print(format_response_summary(client.stats), end="\r")
 
+    if not args.enqueue_only:
+        client.send_command(Command.QUEUE_START)
     return {"status": Status.OK, "msg": "enqueue finished"}
 
 
@@ -235,22 +237,20 @@ def queue_progress(args, client):
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
 
-# main operations
+# copy
 parser_copy = subparsers.add_parser("copy", help="copy a file")
 parser_copy.set_defaults(fun=handle_copy_convert_move, mode="copy")
 
+# move
 parser_move = subparsers.add_parser("move", help="move a file")
 parser_move.set_defaults(fun=handle_copy_convert_move, mode="move")
 
+# convert
 parser_convert = subparsers.add_parser("convert", help="convert an audio file")
 parser_convert.set_defaults(fun=handle_copy_convert_move, mode="convert")
 g = parser_convert.add_mutually_exclusive_group()
 g.add_argument("-c", "--convert-only", nargs="+", type=str, help="extensions of files to convert")
 g.add_argument("-C", "--convert-not", nargs="+", type=str, help="extensions of files not to convert")
-
-parser_progress = subparsers.add_parser("progress", help="show progress bar")
-parser_progress.set_defaults(fun=queue_progress)
-
 
 # shared arguments
 for p in [parser_copy, parser_convert, parser_move]:
@@ -261,16 +261,20 @@ for p in [parser_copy, parser_convert, parser_move]:
     g.add_argument("-f", "--exclude", nargs="+", type=str, help="keep only files that do not have these extensions")
     g.add_argument("-F", "--include", nargs="+", type=str, help="keep only files with these extensions")
 
+# re
+parser_re = subparsers.add_parser("re", help="repeat the last copy/convert/move operation on different source paths")
+parser_re.set_defaults(fun=handle_re)
+parser_re.add_argument("sources", type=str, nargs="+", help="source files to be copied/moved/converted")
+parser_re.add_argument("-d", "--destination", type=str, nargs=1, help="an optional destination (otherwise the last destination will be used)")
+
+# echo
 parser_echo = subparsers.add_parser("echo", help="echo text (for testing the server)")
 parser_echo.add_argument("msg", type=str, help="path", nargs="+", default="echo")
 parser_echo.set_defaults(fun=handle_echo)
 
+parser_progress = subparsers.add_parser("progress", help="show progress bar")
+parser_progress.set_defaults(fun=queue_progress)
 
-# re
-parser_re = subparsers.add_parser("re", help="repeat the last copy/conver/move operation on different source paths")
-parser_re.set_defaults(fun=handle_re)
-parser_re.add_argument("paths", type=str, nargs="+", help="SOURCE An abritrary number of paths to source files")
-parser_re.add_argument("-d", "--destination", type=str, nargs=1, help="SOURCE An abritrary number of paths to source files")
 
 # queue management
 parser_queue = subparsers.add_parser("queue", help="manage the file processing queue (start, stop, ...)")
