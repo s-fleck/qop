@@ -31,6 +31,7 @@ class TaskType(IntEnum):
     MOVE = 5
     CONVERT = 6
     FAIL = 7
+    SLEEP = 8
 
 
 class Status(IntEnum):

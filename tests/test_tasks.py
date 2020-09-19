@@ -4,6 +4,7 @@ from qop.enums import Status
 from pathlib import Path
 import pytest
 from time import sleep
+import datetime
 
 
 def test_Tasks_can_be_checked_for_equality():
@@ -243,8 +244,14 @@ def test_TaskQueue_runs_nonblocking(tmp_path):
     src.touch()
 
     q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
-    q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
-    q.put(tasks.DeleteTask(tmp_path.joinpath("copied_file"), validate=False))
-    q.put(tasks.DeleteTask(tmp_path.joinpath("foo")))
 
+    tick = datetime.datetime.now().timestamp()
+    q.put(tasks.SleepTask(2))
     q.run()
+    tock = datetime.datetime.now().timestamp()
+    sleep(1)
+
+    assert tick - tock < 1
+    assert q.n_running == 1
+    sleep(2)
+    assert q.n_running == 0

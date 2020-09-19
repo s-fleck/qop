@@ -53,6 +53,8 @@ class Task:
             return ConvertTask(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
         elif task_type == TaskType.FAIL:
             return FailTask()
+        elif task_type == TaskType.SLEEP:
+            return SleepTask(x['seconds'])
         else:
             raise UnknownTaskTypeError
 
@@ -100,6 +102,28 @@ class EchoTask(Task):
         if color:
             op = Fore.YELLOW + "Echo" + Fore.RESET
             msg = Fore.BLUE + self.msg + Fore.RESET
+            return f'{op} {msg}'
+        else:
+            return self.__repr__()
+
+
+class SleepTask(Task):
+    """Log a message"""
+    def __init__(self,  seconds: float) -> None:
+        super().__init__()
+        self.seconds = seconds
+        self.type = TaskType.SLEEP
+
+    def run(self) -> None:
+        sleep(self.seconds)
+
+    def __repr__(self) -> str:
+        return f'Sleep: "{self.seconds}"'
+
+    def color_repr(self, color=True):
+        if color:
+            op = Fore.YELLOW + "Sleep" + Fore.RESET
+            msg = Fore.BLUE + self.seconds + Fore.RESET
             return f'{op} {msg}'
         else:
             return self.__repr__()
