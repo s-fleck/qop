@@ -5,6 +5,9 @@ import shutil
 import os
 import json
 import sqlite3
+import appdirs
+import uuid
+
 import logging
 from qop.enums import TaskType, Status, Command
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
@@ -20,9 +23,16 @@ Pathish = Union[Path, str]
 
 lg = logging.getLogger("qop.tasks")
 
+CONVERT_CACHE_DIR = Path(appdirs.user_cache_dir("qop")).joinpath("convert_temp")
+
 
 class Task:
     """Abstract class for qop Tasks. Should not be instantiated directly."""
+
+
+    """optional rowid of the task in the queue. only for tasks that were retrieved from the queue."""
+    oid = None
+    parent_oid = None
 
     def __init__(self) -> None:
         self.type = 0
@@ -48,9 +58,11 @@ class Task:
         elif task_type == TaskType.COPY:
             return CopyTask(x["src"], x["dst"])
         elif task_type == TaskType.MOVE:
-            return MoveTask(x["src"], x["dst"])
+            return MoveTask(x["src"], x["dst"], x['parent_oid'])
         elif task_type == TaskType.CONVERT:
             return ConvertTask(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
+        elif task_type == TaskType.CONVERT2:
+            return ConvertTask2(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
         elif task_type == TaskType.FAIL:
             return FailTask()
         elif task_type == TaskType.SLEEP:
@@ -214,9 +226,10 @@ class CopyTask(FileTask):
 
 class MoveTask(CopyTask):
     """Move a file"""
-    def __init__(self, src: Pathish, dst: Pathish) -> None:
+    def __init__(self, src: Pathish, dst: Pathish, parent_oid=None) -> None:
         super().__init__(src=src, dst=dst)
         self.type = TaskType.MOVE
+        self.parent_oid = parent_oid
 
     def run(self) -> None:
         super().__validate__()
@@ -247,7 +260,7 @@ class ConvertTask(CopyTask):
 
     def color_repr(self, color=True) -> str:
         if color:
-            op = Fore.YELLOW + "CONV" + Fore.RESET
+            op = Fore.YELLOW + "CON1" + Fore.RESET
             arrow = Fore.YELLOW + "->" + Fore.RESET
             src = self.src
             dst = self.dst
@@ -267,6 +280,49 @@ class ConvertTask(CopyTask):
     def to_dict(self) -> Dict:
         r = self.__dict__.copy()
         for el in ("src", "dst"):
+            if el in r.keys():
+                r[el] = str(r[el])
+        r["converter"] = self.converter.to_dict()
+        return r
+
+
+class ConvertTask2(ConvertTask):
+    """
+        ConvertTask2 transcodes an audio file to a temporary directory and then adds a move task to the queue.
+        This makes it possible to cleanly separate transcode and transfer processes.
+    """
+    def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter) -> None:
+        super().__init__(src=src, dst=dst, converter=converter)
+        self.type = TaskType.CONVERT2
+        self.tmpdst = CONVERT_CACHE_DIR.joinpath(uuid.uuid4().hex)
+
+    def run(self) -> None:
+        super().__validate__()
+        lg.debug(f"converting file to temporary destination: {self.tmpdst}")
+        self.converter.run(self.src, self.tmpdst)
+
+    def follow_up_task(self) -> MoveTask:
+        # follow_up_task requires that the task was retrieved from the queue and therefore already as an oid that
+        # links it to a row in the queue
+        assert self.oid is not None
+        return MoveTask(self.tmpdst, self.dst, parent_oid=self.oid)
+
+    def color_repr(self, color=True) -> str:
+        if color:
+            op = Fore.YELLOW + "CON2" + Fore.RESET
+            arrow = Fore.YELLOW + "->" + Fore.RESET
+            src = self.src
+            dst = self.dst
+            return f'{op} {src} {arrow} {dst}'
+        else:
+            return self.__repr__()
+
+    def __repr__(self) -> str:
+        return f'CONVERT2 {self.src} -> {self.dst}'
+
+    def to_dict(self) -> Dict:
+        r = self.__dict__.copy()
+        for el in ("src", "dst", "tmpdst"):
             if el in r.keys():
                 r[el] = str(r[el])
         r["converter"] = self.converter.to_dict()
@@ -301,10 +357,17 @@ class TaskQueue:
     """A prioritzed queue for tasks"""
 
     processes = []
+    convert_processes = []
 
     def __init__(self, path: Pathish) -> None:
         """
         Instantiate a TaskQueue
+
+        A TaskQueue is a sqlite3 database with the following columns
+        - priority: integer value, the lower the value the earlier the task will be processed
+        - task: json representation of the task to execute
+        - status: status of the task (ok, running, fail,... see enums.Status)
+        - owner: integer id of the python object executing the task. only for running tasks. (see `help(id)`)
 
         :param path: Path to store the persistent queue
         :type path: Path or str
@@ -320,7 +383,6 @@ class TaskQueue:
         cur = self.con.cursor()
         cur.execute("""
            CREATE TABLE IF NOT EXISTS tasks (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
               priority INTEGER,
               task TEXT,
               status INTEGER,
@@ -337,7 +399,6 @@ class TaskQueue:
         res = cur.execute("SELECT COUNT(1) from tasks").fetchall()[0][0]
         cur.close()
         return res
-
 
     @property
     def n_pending(self) -> int:
@@ -404,7 +465,7 @@ class TaskQueue:
 
         return QueueProgress.from_dict(x)
 
-    def put(self, task: "Task", priority: Optional[int] = None) -> None:
+    def put(self, task: "Task", priority: int = 10) -> None:
         """
         Enqueue a task
 
@@ -424,7 +485,7 @@ class TaskQueue:
 
         lg.debug(f"inserted task {task.to_dict()}")
 
-    def pop(self) -> "Task":
+    def pop(self, task_type_include: Optional[TaskType] = None, task_type_exclude: Optional[TaskType] = None) -> "Task":
         """
         Retrieves Task object and sets status of Task in database to "in progress" (1)
 
@@ -432,10 +493,20 @@ class TaskQueue:
         condition occurs if the queue is processed in parallel)
         """
         cur = self.con.cursor()
-        cur.execute("SELECT _ROWID_ from tasks WHERE status = ? ORDER BY priority LIMIT 1", (Status.PENDING, ))
+
+        assert task_type_include is None or task_type_exclude is None
+
+        if task_type_include is not None:
+            cur.execute(f"SELECT _ROWID_ FROM tasks WHERE status = ? AND task LIKE '__type___{int(task_type_include)}%' ORDER BY priority LIMIT 1", (Status.PENDING,))
+        elif task_type_exclude is not None:
+            cur.execute(f"SELECT _ROWID_ FROM tasks WHERE status = ? AND task NOT LIKE '__type___{int(task_type_exclude)}%' ORDER BY priority LIMIT 1", (Status.PENDING,))
+        else:
+            cur.execute("SELECT _ROWID_ FROM tasks WHERE status = ? ORDER BY priority LIMIT 1", (Status.PENDING, ))
+
         oid = cur.fetchall()[0][0].__str__()
         self.mark_running(oid, id(self))
 
+        # ensure that the task was not assigned to a second thread
         cur.execute("SELECT owner, task FROM tasks WHERE _ROWID_ = ?", (oid, ))
         record = cur.fetchall()[0]
         if record[0] != id(self):
@@ -478,7 +549,7 @@ class TaskQueue:
 
     def fetch(self, status: Union[Tuple, int, Status, None] = None, n: Optional[int] = None) -> List:
         """
-        Print an overview of the queue
+        Retrieve the queue
 
         :param n: number of tasks to fetch
         :type n: int
@@ -487,7 +558,6 @@ class TaskQueue:
 
         :return a dict containing n queued tasks
         """
-        cur = self.con.cursor()
 
         if status is not None:
             if isinstance(status, int):
@@ -499,6 +569,7 @@ class TaskQueue:
             else:
                 raise ValueError("illegal status")
 
+            cur = self.con.cursor()
             if n:
                 cur.execute(
                     f"SELECT status, task FROM tasks "
@@ -514,12 +585,29 @@ class TaskQueue:
                     status
                 )
         else:
+            cur = self.con.cursor()
             if n:
                 cur.execute("SELECT status, task from tasks ORDER BY priority LIMIT ?", (str(n), ))
             else:
                 cur.execute("SELECT status, task from tasks ORDER BY priority")
 
-        return cur.fetchall()
+        res = cur.fetchall()
+        cur.close()
+        res = [{"priority": x[0], "task": json.loads(x[1])} for x in res]
+
+        return res
+
+    def replace_status(self, status_from: Status, status_to: Status) -> None:
+        """
+        Mark the operation with one status as another status
+
+        :param oid: ID of the task to mark
+        :type oid: int
+        """
+        lg.info(f"mark all tasks with status {status_from.name} as {status_to.name}")
+        cur = self.con.cursor()
+        cur.execute("UPDATE tasks SET status = ? where status = ?", (int(status_to), int(status_from)))
+        hammer_commit(self.con)
 
     def mark_pending(self, oid: int) -> None:
         """
@@ -570,26 +658,38 @@ class TaskQueue:
         cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.FAIL), oid))
         hammer_commit(self.con)
 
-    def run(self, max_processes: int = 1, ip=None, port=None) -> None:
+    def run(self, max_processes: int = 1, max_convert_processes: int = 1, ip=None, port=None) -> None:
         """Execute all pending tasks"""
 
         # remove finished que runs
-        if len(self.processes):
-            self.processes = [p for p in self.processes if p.is_alive()]
+        self.processes = [p for p in self.processes if p.is_alive()]
+        self.convert_processes = [p for p in self.convert_processes if p.is_alive()]
 
         if self.n_pending < 1:
             lg.warning("queue is empty")
-        elif len(self.processes) < max_processes:
+            return None
+
+        if len(self.processes) < max_processes:
             lg.info("starting new queue runner")
-            p = Process(target=run_queue, args=(self, ip, port))
+            p = Process(target=run_queue, args=(self, ip, port, None, TaskType.CONVERT2))
             p.start()
             self.processes.append(p)
         else:
             lg.debug(f"already running {max_processes} queues")
 
+        if len(self.convert_processes) < max_convert_processes:
+            lg.info("starting new convert queue runner")
+            p = Process(target=run_queue, args=(self, ip, port, TaskType.CONVERT2, None))
+            p.start()
+            self.convert_processes.append(p)
+        else:
+            lg.debug(f"already running {max_convert_processes} convert queues")
+
     def stop(self) -> None:
         for p in self.processes:
             p.terminate()
+
+        self.replace_status(Status.RUNNING, Status.PENDING)
 
     @property
     def active_processes(self):
@@ -609,22 +709,51 @@ class TaskQueue:
         hammer_commit(self.con)
 
 
-def run_queue(queue, ip=None, port=None) -> None:
-    while queue.n_pending > 0:
+def run_queue(queue: TaskQueue, ip=None, port=None, task_type_include=None, task_type_exclude=None) -> None:
+
+    progress = queue.progress()
+
+    while progress.pending > 0 or progress.running > 0:
 
         if ip is not None:
             if utils.is_server_alive(ip=ip, port=port) is False:
                 lg.fatal("cannot find server thread. stopping queue.")
                 break
 
-        op = queue.pop()
+        try:
+            op = queue.pop(task_type_include=task_type_include, task_type_exclude=task_type_exclude)
+        except:
+            lg.debug("waiting for more tasks of correct status")
+            sleep(1)
+            continue
+
         try:
             op.run()
-            queue.mark_ok(op.oid)
-            lg.info(f"task completed: {op}")
+            if op.type == TaskType.CONVERT2:
+                follow_up = op.follow_up_task()
+                queue.put(follow_up, priority=-1)
+                lg.info(f"convert task completed, queuing move to final destination: {follow_up}")
+            else:
+                lg.info(f"task completed: {op}")
+                queue.mark_ok(op.oid)
+
+            if op.parent_oid is not None:
+                queue.mark_ok(op.parent_oid)
+                lg.info(f"parent task completed: {op.parent_oid}")
+
         except:
             lg.error(f"task failed: {op}")
             queue.mark_fail(op.oid)
+            if op.parent_oid is not None:
+                queue.mark_fail(op.parent_oid)
+                lg.info(f"parent task completed: {op.parent_oid}")
+
+        progress = queue.progress()
+
+    try:
+        shutil.rmtree(CONVERT_CACHE_DIR)
+    except:
+        pass
 
     lg.info("queue is finished")
 

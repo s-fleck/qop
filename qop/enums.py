@@ -15,13 +15,14 @@ class Command(IntEnum):
     QUEUE_FLUSH_ALL = 206
     QUEUE_PROGRESS = 207
     QUEUE_ACTIVE_PROCESSES = 208
+    QUEUE_SHOW = 209
 
 
 class PayloadClass(IntEnum):
     VALUE = 1  # a single value {"value": <value>}
     TASK = 2
     QUEUE_PROGRESS = 3
-
+    TASK_LIST = 4
 
 class TaskType(IntEnum):
     ECHO = 1
@@ -32,6 +33,7 @@ class TaskType(IntEnum):
     CONVERT = 6
     FAIL = 7
     SLEEP = 8
+    CONVERT2 = 9
 
 
 class Status(IntEnum):

@@ -33,6 +33,7 @@ class QopDaemon:
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.new_queue(path=Path(queue_path))
+        self.queue.replace_status(Status.RUNNING, Status.PENDING)
         self.persist_queue = persist_queue
 
     def __enter__(self):
@@ -115,6 +116,10 @@ class QopDaemon:
                 elif command == Command.QUEUE_FLUSH_PENDING:
                     self.queue.flush(status=Status.PENDING)
                     client.sendall(StatusMessage(Status.OK, "flushed pending tasks from queue").encode())
+
+                elif command == Command.QUEUE_SHOW:
+                    res = self.queue.fetch(status=Status.RUNNING)
+                    client.sendall(StatusMessage(Status.OK, "retrieved running tasks", payload=res, payload_class=PayloadClass.TASK_LIST).encode())
 
                 elif dd.body['command'] == Command.QUEUE_PUT:
                     tsk = tasks.Task.from_dict(dd.body['payload'])
@@ -211,7 +216,7 @@ class QopClient:
             client.connect((self.ip, self.port))
             req = CommandMessage(command, payload=payload)
             client.sendall(req.encode())
-            res = RawMessage(client.recv(1024)).decode().body
+            res = RawMessage(client.recv(2048)).decode().body
 
             # track enqueued tasks of this client
             if command == Command.QUEUE_PUT:
@@ -318,8 +323,10 @@ class StatusMessage(Message):
             body.update({"msg": msg})
 
         if payload is not None:
-            if not isinstance(payload, Dict):
+            try:
                 payload = payload.to_dict()
+            except:
+                pass
 
             body.update({"payload": payload})
 
@@ -349,8 +356,10 @@ class CommandMessage(Message):
         body = {"command": int(command)}
 
         if payload is not None:
-            if not isinstance(payload, Dict):
+            try:
                 payload = payload.to_dict()
+            except:
+                pass
 
             body.update({"payload": payload})
 
