@@ -185,7 +185,7 @@ def handle_convert(args, client) -> Dict:
 
     sources = scanner.run(sources)
 
-    conv = converters.OggConverter("256k")
+    conv = converters.Mp3Converter()  # todo
     conv_mode = "all"
     if args.convert_only is not None:
         conv_include = ["." + e for e in args.convert_only]
@@ -207,13 +207,13 @@ def handle_convert(args, client) -> Dict:
             dst = Path(dst_dir).resolve().joinpath(src.relative_to(source['root']))
 
             if conv_mode == "all":
-                dst = Path(dst).resolve().with_suffix(".ogg")
+                dst = Path(dst).resolve().with_suffix(".mp3")
                 tsk = tasks.ConvertTask2(src=src, dst=dst, converter=conv)
             elif conv_mode == "include" and src.suffix in conv_include:
-                dst = Path(dst).resolve().with_suffix(".ogg")
+                dst = Path(dst).resolve().with_suffix(".mp3")
                 tsk = tasks.ConvertTask2(src=src, dst=dst, converter=conv)
             elif conv_mode == "exclude" and src.suffix not in conv_exclude:
-                dst = Path(dst).resolve().with_suffix(".ogg")
+                dst = Path(dst).resolve().with_suffix(".mp3")
                 tsk = tasks.ConvertTask2(src=src, dst=dst, converter=conv)
             else:
                 tsk = tasks.CopyTask(src=src, dst=dst)

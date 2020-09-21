@@ -3,6 +3,7 @@ import pydub
 from pathlib import Path
 from typing import Union, Optional, Dict
 import json
+from qop.enums import ConverterType
 
 
 class Converter:
@@ -11,7 +12,10 @@ class Converter:
 
     @staticmethod
     def from_dict(x: Dict) -> "Converter":
-        if x['type'] == 1:
+        t = ConverterType(x['type'])
+        if t == 1:
+            return Mp3Converter()
+        elif t == 2:
             return OggConverter(bitrate=x['bitrate'])
         else:
             raise ImportError("Unknown 'type': {}")
@@ -66,7 +70,27 @@ class OggConverter(Converter):
         x.export(dst, format="ogg")
 
     def to_dict(self) -> Dict:
-        return {"type": 1, "bitrate": self.bitrate}
+        return {"type": ConverterType.OGG, "bitrate": self.bitrate}
 
 
-Converter_ = Union[Converter, OggConverter]
+class Mp3Converter(Converter):
+    """Convert audio files to ogg vorbis"""
+
+    def __init__(self) -> None:
+        pass
+
+    def run(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
+        src = Path(src).resolve()
+        dst = Path(dst).resolve()
+
+        if not dst.parent.exists():
+            dst.parent.mkdir(parents=True)
+
+        x = pydub.AudioSegment.from_file(src)
+        x.export(dst, format="mp3", parameters=["-q:a", "0"])
+
+    def to_dict(self) -> Dict:
+        return {"type": ConverterType.MP3}
+
+
+Converter_ = Union[Converter, OggConverter, Mp3Converter]
