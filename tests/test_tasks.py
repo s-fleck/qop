@@ -7,6 +7,17 @@ from time import sleep
 import datetime
 
 
+def wait_for_queue(queue: tasks.TaskQueue, timeout=30):
+    i = 0
+    while True:
+        sleep(0.1)
+        i = i + 1
+        if not queue.is_active():
+            break
+        elif i > timeout * 10:
+            raise TimeoutError
+
+
 def test_Tasks_can_be_checked_for_equality():
     """Tasks can be checked for equality"""
     op1 = tasks.EchoTask('one')
@@ -140,16 +151,16 @@ def test_TaskQueue(tmp_path):
     q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
     q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
     q.run()
-    sleep(0.5)
+    wait_for_queue(q)
     assert tmp_path.joinpath("copied_file").is_file()
     q.put(tasks.MoveTask(tmp_path.joinpath("copied_file"), tmp_path.joinpath("moved_file")))
     q.run()
-    sleep(0.5)
+    wait_for_queue(q)
     assert not tmp_path.joinpath("copied_file").is_file()
     assert tmp_path.joinpath("moved_file").is_file()
     q.put(tasks.DeleteTask(tmp_path.joinpath("moved_file")))
     q.run()
-    sleep(0.5)
+    wait_for_queue(q)
     assert not tmp_path.joinpath("moved_file").is_file()
     assert src.is_file()
 

@@ -6,7 +6,7 @@ def get_project_root(*args) -> Path:
     return Path(__file__).parent.parent.joinpath(*args).resolve()
 
 
-def is_server_alive(ip: str, port: int):
+def is_daemon_active(ip: str, port: int):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect((ip, port))

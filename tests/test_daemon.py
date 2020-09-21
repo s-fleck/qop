@@ -8,6 +8,18 @@ import subprocess
 QOPD = utils.get_project_root("qopd.py")
 
 
+def wait_for_queue(timeout=30):
+    i = 0
+    client = daemon.QopClient()
+    while True:
+        sleep(0.1)
+        i = i+1
+        if not client.is_queue_active():
+            break
+        elif i > timeout * 10:
+            raise TimeoutError
+
+
 @pytest.fixture(scope="session", autouse=True)
 def start_qop_daemon(request):
     proc = subprocess.Popen(["python3", QOPD, "--queue", '<temp>', "--log-file", "/dev/null"])
@@ -54,14 +66,14 @@ def test_daemon_sends_status_updates():
     assert p.pending == 3
 
     client.send_command(Command.QUEUE_START)
-    sleep(0.2)
+    wait_for_queue()
     p = client.get_queue_progress()
-    assert p.pending == 0
+    assert p.running == 0
     assert p.ok == 2
     assert p.fail == 1
     assert p.total == 3
-    client.send_command(Command.QUEUE_FLUSH_ALL)
 
+    client.send_command(Command.QUEUE_FLUSH_ALL)
     p = client.get_queue_progress()
     assert p.total == 0
 
@@ -69,7 +81,7 @@ def test_daemon_sends_status_updates():
 def test_daemon_can_be_killed():
     """verify daemon can be shut down"""
     client = daemon.QopClient()
-    assert client.is_server_alive() is True
+    assert client.is_daemon_active() is True
     client.send_command(Command.DAEMON_STOP)
     sleep(0.1)
-    assert client.is_server_alive() is False
+    assert client.is_daemon_active() is False

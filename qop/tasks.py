@@ -328,23 +328,20 @@ class TaskQueue:
         """Launch a single process that executes the tasks stored in the queue. This function is called internally
            by self.run() and should not be called directly
         """
-
         progress = self.progress()
-
         while progress.pending > 0 or progress.running > 0:
+            progress = self.progress()
 
             if ip is not None:
-                if utils.is_server_alive(ip=ip, port=port) is False:
+                if utils.is_daemon_active(ip=ip, port=port) is False:
                     lg.fatal("cannot find daemon thread. stopping queue.")
                     break
-
             try:
                 op = self.pop(task_type_include=task_type_include, task_type_exclude=task_type_exclude)
             except:
                 lg.debug("waiting for more tasks of correct status")
                 sleep(1)
                 continue
-
             try:
                 op.run()
                 lg.info(f"task finished: {op}")
@@ -367,8 +364,6 @@ class TaskQueue:
                     self.set_status(op.parent_oid, Status.FAIL)
                     lg.info(f"parent task completed: {op.parent_oid}")
 
-            progress = self.progress()
-
         try:
             shutil.rmtree(CONVERT_CACHE_DIR)
         except:
@@ -381,10 +376,21 @@ class TaskQueue:
             p.terminate()
         self.reset_running_tasks()
 
-    @property
-    def active_processes(self):
+    def is_active(self) -> bool:
+        return self.active_processes() > 0
+
+    def active_processes(self, type=None):
+        if type is None:
+            l = self.transfer_processes + self.convert_processes
+        elif type == "transfer":
+            l = self.transfer_processes
+        elif type == "convert":
+            l = self.convert_processes
+        else:
+            raise ValueError
+
         res = 0
-        for p in self.transfer_processes + self.convert_processes:
+        for p in l:
             if p.is_alive():
                 res += 1
         return res
@@ -502,7 +508,9 @@ class SleepTask(Task):
         self.type = TaskType.SLEEP
 
     def run(self) -> None:
+        lg.debug(f"sleeping for {self.seconds} seconds")
         sleep(self.seconds)
+        lg.debug("woke up")
 
     def __repr__(self) -> str:
         return f'Sleep: "{self.seconds}"'
@@ -673,7 +681,7 @@ class SimpleConvertTask(CopyTask):
 
 class ConvertTask(SimpleConvertTask):
     """
-        ConvertTask2 transcodes an audio file to a temporary directory and then adds a move task to the queue.
+        ConvertTask transcodes an audio file to a temporary directory and then adds a move task to the queue.
         This makes it possible to cleanly separate transcode and transfer processes.
     """
     def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter) -> None:

@@ -42,6 +42,8 @@ def format_response(rsp) -> str:
             res = res + tasks.Task.from_dict(payload).color_repr() + " "
         elif plc == PayloadClass.TASK_LIST:
             res = "\n".join([tasks.Task.from_dict(x['task']).color_repr() for x in payload]) + "\n\n" + res
+        else:
+            res = res + str(payload)
 
     if 'msg' in rsp.keys():
         res = res + f"{Fore.YELLOW}[{rsp['msg']}]{Fore.RESET}"
@@ -74,14 +76,6 @@ def handle_echo(args, client) -> Dict:
     return client.send_command(Command.QUEUE_PUT, payload=tasks.EchoTask(msg=" ".join(args.msg)))
 
 
-def handle_copy(args, client) -> Dict:
-    handle_copy_move(args, client, "copy")
-
-
-def handle_move(args, client) -> Dict:
-    handle_copy_move(args, client, "move")
-
-
 def handle_re(args, client) -> Dict:
 
     with open(Path(appdirs.user_cache_dir('qop')).joinpath('last_args.pickle'), 'rb') as f:
@@ -106,7 +100,7 @@ def handle_re(args, client) -> Dict:
 def handle_copy_move(args, client) -> Dict:
     sources = args.paths[:-1]
     dst_dir = args.paths[-1]
-    is_queue_running = client.get_active_processes() > 0
+    is_queue_running = client.is_queue_active()
 
     assert isinstance(dst_dir, str)
     assert len(sources) > 0
@@ -163,7 +157,7 @@ def handle_copy_move(args, client) -> Dict:
 def handle_convert(args, client) -> Dict:
     sources = args.paths[:-1]
     dst_dir = args.paths[-1]
-    is_queue_running = client.get_active_processes() > 0
+    is_queue_running = client.is_queue_active()
 
     assert isinstance(dst_dir, str)
     assert len(sources) > 0
@@ -208,13 +202,13 @@ def handle_convert(args, client) -> Dict:
 
             if conv_mode == "all":
                 dst = Path(dst).resolve().with_suffix(".mp3")
-                tsk = tasks.ConvertTask2(src=src, dst=dst, converter=conv)
+                tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
             elif conv_mode == "include" and src.suffix in conv_include:
                 dst = Path(dst).resolve().with_suffix(".mp3")
-                tsk = tasks.ConvertTask2(src=src, dst=dst, converter=conv)
+                tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
             elif conv_mode == "exclude" and src.suffix not in conv_exclude:
                 dst = Path(dst).resolve().with_suffix(".mp3")
-                tsk = tasks.ConvertTask2(src=src, dst=dst, converter=conv)
+                tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
             else:
                 tsk = tasks.CopyTask(src=src, dst=dst)
 
@@ -235,7 +229,7 @@ def handle_convert(args, client) -> Dict:
 
 
 def daemon_stop(args, client) -> Dict:
-    if not client.is_server_alive():
+    if not client.is_daemon_active():
         return {"status": Status.SKIP, "msg": "daemon is not running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
 
     return client.send_command(Command.DAEMON_STOP)
@@ -248,7 +242,7 @@ def daemon_destroy(args, client) -> Dict:
 
 def daemon_start(args, client) -> Dict:
     # launch daemon
-    if client.is_server_alive():
+    if client.is_daemon_active():
         return {"status": Status.SKIP, "msg": "daemon is already running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
     else:
         qop_dir = Path(__file__).resolve().parent
@@ -258,13 +252,13 @@ def daemon_start(args, client) -> Dict:
 
 
 def daemon_restart(args, client) -> Dict:
-    was_running = client.is_server_alive()
+    was_running = client.is_daemon_active()
     daemon_stop(args, client)
     sleep(0.1)
-    was_stopped = not client.is_server_alive()
+    was_stopped = not client.is_daemon_active()
     daemon_start(args, client)
     sleep(0.1)
-    is_running = client.is_server_alive()
+    is_running = client.is_daemon_active()
 
     if is_running:
         if not was_running:
@@ -282,7 +276,7 @@ def daemon_restart(args, client) -> Dict:
 
 def daemon_is_active(args, client):
     # mimic response object
-    if client.is_server_alive():
+    if client.is_daemon_active():
         return {"status": Status.OK, "msg": "daemon is running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
     else:
         return {"status": Status.OK, "msg": "no daemon found", "payload":  {"value": False}, "payload_class": PayloadClass.VALUE}
@@ -296,16 +290,20 @@ def queue_stop(args, client):
     return client.send_command(Command.QUEUE_STOP)
 
 
+def queue_active_processes(args, client):
+    return client.send_command(Command.QUEUE_ACTIVE_PROCESSES)
+
+
 def queue_is_active(args, client):
     return client.send_command(Command.QUEUE_IS_ACTIVE)
 
 
-def queue_flush(args, client):
-    return client.send_command(Command.QUEUE_FLUSH_PENDING)
-
-
 def queue_flush_all(args, client):
     return client.send_command(Command.QUEUE_FLUSH_ALL)
+
+
+def queue_flush_pending(args, client):
+    return client.send_command(Command.QUEUE_FLUSH_PENDING)
 
 
 def queue_show(args, client):
@@ -324,7 +322,7 @@ def queue_progress(args, client):
             info = client.get_queue_progress()
             pbar.update(info.total - info.pending - pbar.n)
 
-            if not client.is_server_alive() or client.get_active_processes() < 1:
+            if not client.is_daemon_active() or client.get_active_processes() < 1:
                 break
 
     print(info)
@@ -384,9 +382,10 @@ parser_queue.set_defaults(start_daemon=True)
 parser_queue_sub = parser_queue.add_subparsers()
 parser_queue_sub.add_parser("start", help="start processing the queue").set_defaults(fun=queue_start)
 parser_queue_sub.add_parser("stop",  help="stop processing the queue").set_defaults(fun=queue_stop)
-parser_queue_sub.add_parser("flush", help="remove all pending tasks from the queue").set_defaults(fun=queue_flush)
-parser_queue_sub.add_parser("flush-all", help="completely reset the queue (including finished, failed and skipped tasks)").set_defaults(fun=queue_flush_all)
+parser_queue_sub.add_parser("flush", help="completely reset the queue (including finished, failed and skipped tasks)").set_defaults(fun=queue_flush_all)
+parser_queue_sub.add_parser("flush-pending", help="remove all pending tasks from the queue").set_defaults(fun=queue_flush_pending)
 parser_queue_sub.add_parser("progress", help="show interactive progress bar").set_defaults(fun=queue_progress)
+parser_queue_sub.add_parser("active", help="show number of active queues (usually just one)").set_defaults(fun=queue_active_processes)
 parser_queue_sub.add_parser("is-active", help="show number of active queues (usually just one)").set_defaults(fun=queue_is_active)
 parser_queue_sub.add_parser("show", help="show the queue").set_defaults(fun=queue_show)
 
@@ -419,7 +418,6 @@ if args.log_file is not None:
 else:
     logging.basicConfig(level=log_level, force=True)
 
-
 # client
 client = daemon.QopClient(ip="127.0.0.1", port=9393)
 if args.start_daemon:
@@ -428,7 +426,7 @@ if args.start_daemon:
 res = args.fun(args, client)
 print(format_response(res))
 
-if not client.is_server_alive():
+if not client.is_daemon_active():
     try:
         shutil.rmtree(tasks.CONVERT_CACHE_DIR)
     except:

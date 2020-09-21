@@ -79,7 +79,7 @@ class QopDaemon:
                     client.close()
                     self.close()
 
-                elif command == Command.DAEMON_IS_RUNNING:
+                elif command == Command.DAEMON_IS_ACTIVE:
                     client.sendall(StatusMessage(Status.OK, payload={"value": True}, payload_class=PayloadClass.VALUE).encode())
 
                 elif command == Command.QUEUE_START:
@@ -88,7 +88,7 @@ class QopDaemon:
                     client.sendall(StatusMessage(Status.OK, "start processing queue").encode())
 
                 elif command == Command.QUEUE_STOP:
-                    if self.queue.active_processes > 0:
+                    if self.queue.active_processes() > 0:
                         self.queue.stop()
                         lg.info("stopped queue")
                         client.sendall(StatusMessage(Status.OK, "pause processing queue").encode())
@@ -97,8 +97,7 @@ class QopDaemon:
                         client.sendall(StatusMessage(Status.SKIP, "no running queues found").encode())
 
                 elif command == Command.QUEUE_IS_ACTIVE:
-                    self.queue.flush(status=Status.PENDING)
-                    if self.queue.active_processes > 0:
+                    if self.queue.active_processes() > 0:
                         client.sendall(StatusMessage(Status.OK, "queue is running", payload={"value": True}, payload_class=PayloadClass.VALUE).encode())
                     else:
                         client.sendall(StatusMessage(Status.OK, "queue not running", payload={"value": False}, payload_class=PayloadClass.VALUE).encode())
@@ -107,7 +106,10 @@ class QopDaemon:
                     client.sendall(StatusMessage(Status.OK, payload=self.queue.progress().to_dict(), payload_class=PayloadClass.QUEUE_PROGRESS).encode())
 
                 elif command == Command.QUEUE_ACTIVE_PROCESSES:
-                    client.sendall(StatusMessage(Status.OK, payload={"value": self.queue.active_processes}, payload_class=PayloadClass.VALUE).encode())
+                    client.sendall(StatusMessage(Status.OK, payload={
+                        "transfer":  self.queue.active_processes(type="transfer"),
+                        "convert": self.queue.active_processes(type="convert")
+                    }).encode())
 
                 elif command == Command.QUEUE_FLUSH_ALL:
                     self.queue.flush()
@@ -147,7 +149,9 @@ class QopDaemon:
 
             except:
                 lg.error(f"unknown error processing request {req}: {sys.exc_info()}")
-                client.sendall(StatusMessage(Status.FAIL, msg=str(sys.exc_info()[0])).encode())
+                info = sys.exc_info()
+                lg.error(info, exc_info=info)
+                client.sendall(StatusMessage(Status.FAIL, msg=str(info[0]) + str(info[1])).encode())
 
 
     @property
@@ -191,11 +195,16 @@ class QopClient:
 
         return tasks.QueueProgress.from_dict(res['payload'])
 
-    def is_server_alive(self) -> bool:
-        return utils.is_server_alive(self.ip, self.port)
+    def is_daemon_active(self) -> bool:
+        return utils.is_daemon_active(self.ip, self.port)
 
     def get_active_processes(self) -> int:
-        return self.send_command(Command.QUEUE_ACTIVE_PROCESSES)['payload']['value']
+        x = self.send_command(Command.QUEUE_ACTIVE_PROCESSES)['payload']
+        return x['transfer'] + x['convert']
+
+    def is_queue_active(self) -> int:
+        x = self.send_command(Command.QUEUE_IS_ACTIVE)['payload']['value']
+        return x
 
     """
     Send a CommandMessage to the server
