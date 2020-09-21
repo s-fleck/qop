@@ -44,6 +44,11 @@ class Status(IntEnum):
     PENDING = 4
 
 
+class ConverterType(IntEnum):
+    MP3 = 1
+    OGG = 2
+
+
 class FileExistsAndIsIdenticalError(Exception):
     pass
 
