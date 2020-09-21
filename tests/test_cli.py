@@ -54,17 +54,8 @@ def test_copy_a_directory(testfile_tree):
     """qop can copy a file"""
     root, src, dst = testfile_tree
 
-    subprocess.run(["python3", QOP, "-v", "--log-level", "FATAL", "copy", src, dst], cwd=root)
+    subprocess.run(["python3", QOP, "-v", "--log-file", "/dev/null", "copy", src, dst], cwd=root)
     sleep(1)
     assert src.joinpath("baz.txt").exists()
     assert dst.joinpath("src/baz.txt").exists()
     assert dst.joinpath("src/foo/bar.txt").exists()
-
-
-# def test_killing_the_daemon(testfile_tree):
-#     """qop can copy a file"""
-#     subprocess.run(["python3", QOP, "daemon", "is-active"])
-#     subprocess.run(["python3", QOP, "daemon", "stop"])
-#     subprocess.run(["python3", QOP, "daemon", "is-active"])
-
-

@@ -38,7 +38,7 @@ class TaskQueue:
         - priority: integer value, the lower the value the earlier the task will be processed
         - task: json representation of the task to execute
         - status: status of the task (ok, running, fail,... see enums.Status)
-        - owner: integer id of the python object executing the task. NULL except for currently running tasks. (see `help(id)`)
+        - lock: str lock id. NULL except for currently running tasks. usually an uuid
 
         :param path: Path to store the persistent queue
         :type path: Path or str
@@ -57,7 +57,7 @@ class TaskQueue:
               priority INTEGER,
               task TEXT,
               status INTEGER,
-              owner INTEGER,
+              lock TEXT,
               UNIQUE(task, status)              
             )              
         """)
@@ -115,26 +115,8 @@ class TaskQueue:
         cur = self.con.cursor()
         res = cur.execute("SELECT status, COUNT(1) from tasks GROUP BY status").fetchall()
         cur.close()
-        x = {
-            "pending":0,
-            "ok":0,
-            "skip":0,
-            "running":0,
-            "fail":0
-        }
-        for el in res:
-            if el[0] == Status.PENDING:
-                x.update({"pending":el[1]})
-            elif el[0] == Status.OK:
-                x.update({"ok":el[1]})
-            elif el[0] == Status.SKIP:
-                x.update({"skip":el[1]})
-            elif el[0] == Status.RUNNING:
-                x.update({"running":el[1]})
-            elif el[0] == Status.FAIL:
-                x.update({"fail":el[1]})
 
-        return QueueProgress.from_dict(x)
+        return QueueProgress.from_list(res)
 
     def put(self, task: "Task", priority: int = 10) -> None:
         """
@@ -154,7 +136,6 @@ class TaskQueue:
         )
 
         hammer_commit(self.con)
-
         lg.debug(f"inserted task {task.to_dict()}")
 
     def pop(self, task_type_include: Optional[TaskType] = None, task_type_exclude: Optional[TaskType] = None) -> "Task":
@@ -180,12 +161,16 @@ class TaskQueue:
             cur.execute("SELECT _ROWID_ FROM tasks WHERE status = ? ORDER BY priority LIMIT 1", (Status.PENDING,))
 
         oid = cur.fetchall()[0][0].__str__()
-        self.mark_running(oid, id(self))
 
-        # ensure that the task was not assigned to a second thread
-        cur.execute("SELECT owner, task FROM tasks WHERE _ROWID_ = ?", (oid,))
+        # insert a lock UUID into the table so that we can ensure not second thread tries to execute the same
+        # task
+        lock = uuid.uuid4().hex
+        self.set_status(oid, Status.RUNNING, lock)
+        cur.execute("SELECT lock, task FROM tasks WHERE _ROWID_ = ?", (oid,))
         record = cur.fetchall()[0]
-        if record[0] != id(self):
+        cur.close()
+
+        if record[0] != lock:
             raise AlreadyUnderEvaluationError
 
         task = Task.from_dict(json.loads(record[1]))
@@ -198,7 +183,7 @@ class TaskQueue:
         Retrieves Task object without changing its status in the queue
         """
         cur = self.con.cursor()
-        cur.execute("SELECT owner, task from tasks ORDER BY priority LIMIT 1")
+        cur.execute("SELECT lock, task from tasks ORDER BY priority LIMIT 1")
         record = cur.fetchall()[0]
         oid = record[0]
 
@@ -272,66 +257,43 @@ class TaskQueue:
         res = [{"priority":x[0], "task":json.loads(x[1])} for x in res]
         return res
 
-    def replace_status(self, status_from: Status, status_to: Status) -> None:
+    def reset_running_tasks(self) -> None:
         """
         Mark the operation with one status as another status
 
         :param oid: ID of the task to mark
         :type oid: int
         """
-        lg.info(f"mark all tasks with status {status_from.name} as {status_to.name}")
+        lg.info(f"set all running tasks to pending")
         cur = self.con.cursor()
-        cur.execute("UPDATE tasks SET status = ? where status = ?", (int(status_to), int(status_from)))
+        cur.execute("UPDATE tasks SET status = ?, lock = NULL where status = ?", (int(Status.PENDING), int(Status.RUNNING)))
         hammer_commit(self.con)
+        cur.close()
 
-    def mark_pending(self, oid: int) -> None:
+    def set_status(self, oid: int, status: Status, lock: str = None) -> None:
         """
         Mark the operation with the _ROWID_ `oid` as "pending" (0)
 
         :param oid: ID of the task to mark
         :type oid: int
+        :param status: Status see enums.Status
+        :type status: Status
+        :param lock: python object-id of the Task that executes the queued task. Must be `None` except for switching
+          tasks to *running*.
+        :type lock: int
         """
-        lg.info(f"mark {oid} pending")
+        lg.info(f"mark {oid} {status.name}")
         cur = self.con.cursor()
-        cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.PENDING), oid))
+
+        if status == Status.RUNNING:
+            assert lock is not None
+            cur.execute("UPDATE tasks SET status = ?, lock = ? where _ROWID_ = ?", (int(status), lock, oid))
+        else:
+            assert lock is None
+            cur.execute("UPDATE tasks SET status = ?, lock = NULL where _ROWID_ = ?", (int(status), oid))
+
         hammer_commit(self.con)
-
-    def mark_running(self, oid: int, owner: int) -> None:
-        """Mark the operation with the _ROWID_ `oid` as "running" (1). The "owner" Id is to ensure no two processes
-        are trying to execute the same operation
-
-        :param oid: ID of the task to mark
-        :type oid: int
-        :param owner: Id of the process that is handling the operation
-        :type owner: int
-        """
-        lg.debug(f"mark {oid} running")
-        cur = self.con.cursor()
-        cur.execute("UPDATE tasks SET status = ?, owner = ? where _ROWID_ = ?", (int(Status.RUNNING), owner, oid))
-        hammer_commit(self.con)
-
-    def mark_ok(self, oid: int) -> None:
-        """
-        Mark the operation with the _ROWID_ `oid` as "done" (2)
-        :param oid: ID of the task to mark
-        :type oid: int
-        """
-        lg.debug(f"mark {oid} completed")
-        cur = self.con.cursor()
-        cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.OK), oid))
-        hammer_commit(self.con)
-
-    def mark_fail(self, oid: int) -> None:
-        """
-        Mark the operation with the _ROWID_ `oid` as "failed" (-1)
-
-        :param oid: ID of the task to mark
-        :type oid: int
-        """
-        lg.debug(f"mark {oid} failed")
-        cur = self.con.cursor()
-        cur.execute("UPDATE tasks SET status = ?, owner = NULL where _ROWID_ = ?", (int(Status.FAIL), oid))
-        hammer_commit(self.con)
+        cur.close()
 
     def run(self, max_transfer_processes: int = 1, max_convert_processes: int = 1, ip=None, port=None) -> None:
         """Execute all pending tasks"""
@@ -352,13 +314,13 @@ class TaskQueue:
 
         while len(self.transfer_processes) < max_transfer_processes:
             lg.info("starting new queue runner")
-            p = Process(target=self.__start_run_process, args=(ip, port, None, TaskType.CONVERT2))
+            p = Process(target=self.__start_run_process, args=(ip, port, None, TaskType.CONVERT))
             p.start()
             self.transfer_processes.append(p)
 
         while len(self.convert_processes) < max_convert_processes:
             lg.info("starting new convert queue runner")
-            p = Process(target=self.__start_run_process, args=(ip, port, TaskType.CONVERT2, None))
+            p = Process(target=self.__start_run_process, args=(ip, port, TaskType.CONVERT, None))
             p.start()
             self.convert_processes.append(p)
 
@@ -373,7 +335,7 @@ class TaskQueue:
 
             if ip is not None:
                 if utils.is_server_alive(ip=ip, port=port) is False:
-                    lg.fatal("cannot find server thread. stopping queue.")
+                    lg.fatal("cannot find daemon thread. stopping queue.")
                     break
 
             try:
@@ -385,23 +347,24 @@ class TaskQueue:
 
             try:
                 op.run()
-                if op.type == TaskType.CONVERT2:
+                lg.info(f"task finished: {op}")
+                self.set_status(op.oid, Status.OK)
+                try:
                     follow_up = op.follow_up_task()
                     self.put(follow_up, priority=-1)
-                    lg.info(f"convert task completed, queuing move to final destination: {follow_up}")
-                else:
-                    lg.info(f"task completed: {op}")
-                    self.mark_ok(op.oid)
+                    lg.info(f"queuing follow-up task: {follow_up}")
+                except:
+                    pass
 
                 if op.parent_oid is not None:
-                    self.mark_ok(op.parent_oid)
-                    lg.info(f"parent task completed: {op.parent_oid}")
+                    self.set_status(op.parent_oid, Status.OK)
+                    lg.info(f"parent task finished: {op.parent_oid}")
 
             except:
                 lg.error(f"task failed: {op}")
-                self.mark_fail(op.oid)
+                self.set_status(op.oid, Status.FAIL)
                 if op.parent_oid is not None:
-                    self.mark_fail(op.parent_oid)
+                    self.set_status(op.parent_oid, Status.FAIL)
                     lg.info(f"parent task completed: {op.parent_oid}")
 
             progress = self.progress()
@@ -414,10 +377,9 @@ class TaskQueue:
         lg.info("queue is finished")
 
     def stop(self) -> None:
-        for p in self.convert_processes + self.processes:
+        for p in self.convert_processes + self.transfer_processes:
             p.terminate()
-
-        self.replace_status(Status.RUNNING, Status.PENDING)
+        self.reset_running_tasks()
 
     @property
     def active_processes(self):
@@ -432,9 +394,12 @@ class TaskQueue:
         cur = self.con.cursor()
         if status is None:
             cur.execute("DELETE FROM tasks")
+            lg.info("flushing queue")
         else:
             cur.execute("DELETE FROM tasks where status == ?", (int(status),))
+            lg.info(f"flushing tasks with status '{status.name}' from queue")
         hammer_commit(self.con)
+        cur.close()
 
 
 class Task:
@@ -469,10 +434,10 @@ class Task:
             return CopyTask(x["src"], x["dst"])
         elif task_type == TaskType.MOVE:
             return MoveTask(x["src"], x["dst"], x['parent_oid'])
+        elif task_type == TaskType.CONVERT_SIMPLE:
+            return SimpleConvertTask(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
         elif task_type == TaskType.CONVERT:
             return ConvertTask(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
-        elif task_type == TaskType.CONVERT2:
-            return ConvertTask2(x['src'], x['dst'], converter=converters.Converter.from_dict(x["converter"]))
         elif task_type == TaskType.FAIL:
             return FailTask()
         elif task_type == TaskType.SLEEP:
@@ -651,11 +616,21 @@ class MoveTask(CopyTask):
         else:
             shutil.move(self.src, self.dst)
 
+    def color_repr(self, color=True) -> str:
+        if color:
+            op = Fore.YELLOW + "MOVE" + Fore.RESET
+            arrow = Fore.YELLOW + "->" + Fore.RESET
+            src = self.src
+            dst = self.dst
+            return f'{op} {src} {arrow} {dst}'
+        else:
+            return self.__repr__()
+
     def __repr__(self) -> str:
         return f'MOVE {self.src} -> {self.dst}'
 
 
-class ConvertTask(CopyTask):
+class SimpleConvertTask(CopyTask):
     """convert an audio file"""
     def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter) -> None:
         super().__init__(src=src, dst=dst)
@@ -670,7 +645,7 @@ class ConvertTask(CopyTask):
 
     def color_repr(self, color=True) -> str:
         if color:
-            op = Fore.YELLOW + "CON1" + Fore.RESET
+            op = Fore.YELLOW + "SCON" + Fore.RESET
             arrow = Fore.YELLOW + "->" + Fore.RESET
             src = self.src
             dst = self.dst
@@ -679,7 +654,7 @@ class ConvertTask(CopyTask):
             return self.__repr__()
 
     def __repr__(self) -> str:
-        return f'CONVERT {self.src} -> {self.dst}'
+        return f'SCON {self.src} -> {self.dst}'
 
     def __validate__(self) -> None:
         if not self.src.exists():
@@ -696,14 +671,14 @@ class ConvertTask(CopyTask):
         return r
 
 
-class ConvertTask2(ConvertTask):
+class ConvertTask(SimpleConvertTask):
     """
         ConvertTask2 transcodes an audio file to a temporary directory and then adds a move task to the queue.
         This makes it possible to cleanly separate transcode and transfer processes.
     """
     def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter) -> None:
         super().__init__(src=src, dst=dst, converter=converter)
-        self.type = TaskType.CONVERT2
+        self.type = TaskType.CONVERT
         self.tmpdst = CONVERT_CACHE_DIR.joinpath(uuid.uuid4().hex)
 
     def run(self) -> None:
@@ -719,7 +694,7 @@ class ConvertTask2(ConvertTask):
 
     def color_repr(self, color=True) -> str:
         if color:
-            op = Fore.YELLOW + "CON2" + Fore.RESET
+            op = Fore.YELLOW + "CONV" + Fore.RESET
             arrow = Fore.YELLOW + "->" + Fore.RESET
             src = self.src
             dst = self.dst
@@ -728,7 +703,7 @@ class ConvertTask2(ConvertTask):
             return self.__repr__()
 
     def __repr__(self) -> str:
-        return f'CONVERT2 {self.src} -> {self.dst}'
+        return f'CONV {self.src} -> {self.dst}'
 
     def to_dict(self) -> Dict:
         r = self.__dict__.copy()
@@ -763,8 +738,6 @@ class TaskQueueElement:
         return self.__dict__ != other.__dict__
 
 
-
-
 class QueueProgress:
     """Info on the current status of the Queue"""
 
@@ -788,6 +761,31 @@ class QueueProgress:
             fail=x['fail'],
             running=x['running']
         )
+
+    @staticmethod
+    def from_list(x: List) -> "QueueProgress":
+        """Convert a list (for example as returned by an SQL SELECT statement) to a QueueProgress object"""
+        res = {
+            "pending": 0,
+            "ok": 0,
+            "skip": 0,
+            "running": 0,
+            "fail": 0
+        }
+
+        for el in x:
+            if el[0] == Status.PENDING:
+                res.update({"pending": el[1]})
+            elif el[0] == Status.OK:
+                res.update({"ok": el[1]})
+            elif el[0] == Status.SKIP:
+                res.update({"skip": el[1]})
+            elif el[0] == Status.RUNNING:
+                res.update({"running": el[1]})
+            elif el[0] == Status.FAIL:
+                res.update({"fail": el[1]})
+
+        return QueueProgress.from_dict(res)
 
     def to_dict(self) -> Dict:
         return {

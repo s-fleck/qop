@@ -1,7 +1,6 @@
 import pytest
 from qop import tasks, daemon, utils
 from qop.enums import Command
-from pathlib import Path
 from time import sleep
 import subprocess
 
@@ -72,4 +71,5 @@ def test_daemon_can_be_killed():
     client = daemon.QopClient()
     assert client.is_server_alive() is True
     client.send_command(Command.DAEMON_STOP)
+    sleep(0.1)
     assert client.is_server_alive() is False

@@ -33,7 +33,7 @@ class QopDaemon:
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.new_queue(path=Path(queue_path))
-        self.queue.replace_status(Status.RUNNING, Status.PENDING)
+        self.queue.reset_running_tasks()
         self.persist_queue = persist_queue
 
     def __enter__(self):
@@ -168,12 +168,6 @@ class QopDaemon:
     @staticmethod
     def handle_request(req):
         return RawMessage(req).decode()
-
-    def serve_queue(self, n=100):
-        pass
-
-    def stop(self):
-        pass
 
     def new_queue(self, path: Path):
         self.queue = tasks.TaskQueue(path=path)

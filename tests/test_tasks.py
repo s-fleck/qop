@@ -177,9 +177,9 @@ def test_TaskQueue_sorts_by_priority(tmp_path):
     assert all([el[0] == Status.RUNNING for el in res])
 
     # marking an object as done changes is status
-    oq.mark_ok(or1.oid)
-    oq.mark_ok(or2.oid)
-    oq.mark_ok(or3.oid)
+    oq.set_status(or1.oid, Status.OK)
+    oq.set_status(or2.oid, Status.OK)
+    oq.set_status(or3.oid, Status.OK)
     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
     assert all([el[0] == Status.OK for el in res])
 
@@ -255,3 +255,5 @@ def test_TaskQueue_runs_nonblocking(tmp_path):
     assert q.n_running == 1
     sleep(2)
     assert q.n_running == 0
+
+    q.stop()

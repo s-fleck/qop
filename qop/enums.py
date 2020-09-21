@@ -24,24 +24,26 @@ class PayloadClass(IntEnum):
     QUEUE_PROGRESS = 3
     TASK_LIST = 4
 
+
 class TaskType(IntEnum):
     ECHO = 1
     FILE = 2
     DELETE = 3
     COPY = 4
     MOVE = 5
-    CONVERT = 6
+    CONVERT_SIMPLE = 6
     FAIL = 7
     SLEEP = 8
-    CONVERT2 = 9
+    CONVERT = 9
 
 
 class Status(IntEnum):
-    FAIL = 0
+    FAIL = -1
+    PENDING = 0
     OK = 1
     SKIP = 2
     RUNNING = 3
-    PENDING = 4
+
 
 
 class ConverterType(IntEnum):
