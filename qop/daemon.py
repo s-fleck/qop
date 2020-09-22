@@ -78,6 +78,7 @@ class QopDaemon:
                     self.queue.stop()
                     client.close()
                     self.close()
+                    break
 
                 elif command == Command.DAEMON_IS_ACTIVE:
                     client.sendall(StatusMessage(Status.OK, payload={"value": True}, payload_class=PayloadClass.VALUE).encode())

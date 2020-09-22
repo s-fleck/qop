@@ -12,14 +12,23 @@ QOP = utils.get_project_root("qop.py")
 QOPD = utils.get_project_root("qopd.py")
 
 
-def wait_for_queue(timeout=30):
+def match_true(x) -> bool:
+    pat = re.compile(".*True.*")
+    return bool(pat.match(str(x)))
+
+
+def match_false(x) -> bool:
     pat = re.compile(".*False.*")
+    return bool(pat.match(str(x)))
+
+
+def wait_for_queue(timeout=30):
     i = 0
     while True:
         sleep(0.1)
         i = i+1
         o = subprocess.run(["python3", QOP, "-v", "--log-file", "/dev/null", "queue", "is-active"], capture_output=True)
-        if pat.match(str(o.stdout)):
+        if match_false(o.stdout):
             break
         elif i > timeout * 10:
             raise TimeoutError
@@ -90,3 +99,40 @@ def test_convert_an_audio_file(testfile_tree):
 
     assert src.joinpath("sine.flac").exists()
     assert dst.joinpath("sine.mp3").exists()
+
+
+def test_manage_the_queue(testfile_tree):
+    """qop can copy a file"""
+    root, src, dst = testfile_tree
+
+    # ensure -e only enqueues a task without starting the queue
+    subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "copy", "-e", "foo", "bar"])
+    o = subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "queue", "is-active"], capture_output=True)
+    assert match_false(o.stdout)
+
+    # the task enqueued above will fail because foo does not exist
+    subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "queue", "start"], capture_output=True)
+    wait_for_queue()
+    o = subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "queue", "is-active"], capture_output=True)
+    assert match_false(o.stdout)
+
+
+def test_manage_the_daemon(testfile_tree):
+    """qop can copy a file"""
+    root, src, dst = testfile_tree
+
+    subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "daemon", "stop"])
+    o = subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "daemon", "is-active"], capture_output=True)
+    assert match_false(o.stdout)
+
+    subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "daemon", "restart"])
+    o = subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "daemon", "is-active"], capture_output=True)
+    assert match_true(o.stdout)
+
+    subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "daemon", "destroy"])
+    o = subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "daemon", "is-active"], capture_output=True)
+    assert match_false(o.stdout)
+
+
+
+

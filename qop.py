@@ -275,39 +275,14 @@ def daemon_restart(args, client) -> Dict:
 
 
 def daemon_is_active(args, client):
-    # mimic response object
     if client.is_daemon_active():
         return {"status": Status.OK, "msg": "daemon is running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
     else:
         return {"status": Status.OK, "msg": "no daemon found", "payload":  {"value": False}, "payload_class": PayloadClass.VALUE}
 
 
-def queue_start(args, client):
-    return client.send_command(Command.QUEUE_START)
-
-
-def queue_stop(args, client):
-    return client.send_command(Command.QUEUE_STOP)
-
-
-def queue_active_processes(args, client):
-    return client.send_command(Command.QUEUE_ACTIVE_PROCESSES)
-
-
-def queue_is_active(args, client):
-    return client.send_command(Command.QUEUE_IS_ACTIVE)
-
-
-def queue_flush_all(args, client):
-    return client.send_command(Command.QUEUE_FLUSH_ALL)
-
-
-def queue_flush_pending(args, client):
-    return client.send_command(Command.QUEUE_FLUSH_PENDING)
-
-
-def queue_show(args, client):
-    return client.send_command(Command.QUEUE_SHOW)
+def handle_simple_command(args, client):
+    return client.send_command(args.command)
 
 
 def queue_progress(args, client):
@@ -380,14 +355,14 @@ parser_progress.set_defaults(fun=queue_progress, start_daemon=True)
 parser_queue = subparsers.add_parser("queue", help="manage the file processing queue (start, stop, ...)")
 parser_queue.set_defaults(start_daemon=True)
 parser_queue_sub = parser_queue.add_subparsers()
-parser_queue_sub.add_parser("start", help="start processing the queue").set_defaults(fun=queue_start)
-parser_queue_sub.add_parser("stop",  help="stop processing the queue").set_defaults(fun=queue_stop)
-parser_queue_sub.add_parser("flush", help="completely reset the queue (including finished, failed and skipped tasks)").set_defaults(fun=queue_flush_all)
-parser_queue_sub.add_parser("flush-pending", help="remove all pending tasks from the queue").set_defaults(fun=queue_flush_pending)
+parser_queue_sub.add_parser("start", help="start processing the queue").set_defaults(fun=handle_simple_command, command=Command.QUEUE_START)
+parser_queue_sub.add_parser("stop",  help="stop processing the queue").set_defaults(fun=handle_simple_command, command=Command.QUEUE_STOP)
+parser_queue_sub.add_parser("flush", help="completely reset the queue (including finished, failed and skipped tasks)").set_defaults(fun=handle_simple_command, command=Command.QUEUE_FLUSH_ALL)
+parser_queue_sub.add_parser("flush-pending", help="remove all pending tasks from the queue").set_defaults(fun=handle_simple_command, command=Command.QUEUE_FLUSH_PENDING)
 parser_queue_sub.add_parser("progress", help="show interactive progress bar").set_defaults(fun=queue_progress)
-parser_queue_sub.add_parser("active", help="show number of active queues (usually just one)").set_defaults(fun=queue_active_processes)
-parser_queue_sub.add_parser("is-active", help="show number of active queues (usually just one)").set_defaults(fun=queue_is_active)
-parser_queue_sub.add_parser("show", help="show the queue").set_defaults(fun=queue_show)
+parser_queue_sub.add_parser("active", help="show number of active queues (usually just one)").set_defaults(fun=handle_simple_command, command=Command.QUEUE_ACTIVE_PROCESSES)
+parser_queue_sub.add_parser("is-active", help="show number of active queues (usually just one)").set_defaults(fun=handle_simple_command, command=Command.QUEUE_IS_ACTIVE)
+parser_queue_sub.add_parser("show", help="show the queue").set_defaults(fun=handle_simple_command, command=Command.QUEUE_SHOW)
 
 # daemon management
 parser_daemon = subparsers.add_parser("daemon", help="manage the daemon process")
