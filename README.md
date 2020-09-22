@@ -24,7 +24,7 @@ player, while leaving your old mp3 files from the 90is untouched.
 qop is in an alpha stage and not fit for general use.
 
 
-# usage examples
+## Usage 
 
 ```
 # queued operations
@@ -40,13 +40,13 @@ qop convert song.mp3 fugue.flac cover.jpg /mnt/mp3player --convert-only flac --i
 qop re ~/music
 ```
 
-# architecture
+## Architecture
 
 qop consists of two programs: 
 
-    - *qopd*, a daemon which processes the transfer queue and executes the copy and transcode tasks, and 
-    - *qop*, a command line client which can put tasks into the queue, tell the daemon to start or stop processing
-      the queue, monitor transfer progress, etc...
+- *qopd*, a daemon which processes the transfer queue and executes the copy and transcode tasks, and 
+- *qop*, a command line client which can put tasks into the queue, tell the daemon to start or stop processing
+    the queue, monitor transfer progress, etc...
     
 Transfer queues are stored as json strings in sqlite3 databases. If you are familiar with these 
 technologies you can easily create transfer queues from the scripting language of your choice without needing to
