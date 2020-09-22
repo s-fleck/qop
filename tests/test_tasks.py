@@ -1,9 +1,10 @@
-from qop import tasks
+from qop import tasks, converters
 from qop.exceptions import FileExistsAndIsIdenticalError
 from qop.enums import Status
 from pathlib import Path
 import pytest
 from time import sleep
+from pydub import generators
 import datetime
 
 
@@ -143,7 +144,7 @@ def test_TaskQueueElements_can_be_ordered_by_priority():
     assert op3 > op1
 
 
-def test_TaskQueue(tmp_path):
+def test_TaskQueue_can_run_baisc_tasks(tmp_path):
     """TaskQueue can queue and run tasks"""
     src = tmp_path.joinpath("foo")
     src.touch()
@@ -163,10 +164,31 @@ def test_TaskQueue(tmp_path):
     wait_for_queue(q)
     assert not tmp_path.joinpath("moved_file").is_file()
     assert src.is_file()
+    assert q.active_processes() == 0
+
+
+def test_TaskQueue_can_run_convert_tasks(tmp_path):
+    """Ensure all TaskQueue transfer and convert processes are closed after the queue finishes processing all tasks"""
+
+    # test this on a ConvertTask because that launches additional processes that we also want to ensure are shut down
+    sound = generators.Sine(440).to_audio_segment()
+    src = tmp_path.joinpath("sine.flac")
+    dst = tmp_path.joinpath("sine.mp3")
+
+    sound.export(src, format="flac")
+    q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
+    q.put(tasks.ConvertTask(src, dst, converter=converters.OggConverter()))
+    q.run()
+    wait_for_queue(q)
+
+    assert src.exists()
+    assert dst.exists()
+    assert q.n_running == 0
+    assert q.active_processes() == 0
 
 
 def test_TaskQueue_sorts_by_priority(tmp_path):
-    """Tasks are inserted into the TasksQueue in order of their priority"""
+    """Tasks are retrieved from the TasksQueue in order of their priority"""
     op1 = tasks.EchoTask('one')
     op2 = tasks.EchoTask('two')
     op3 = tasks.EchoTask('three')
@@ -187,7 +209,7 @@ def test_TaskQueue_sorts_by_priority(tmp_path):
     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
     assert all([el[0] == Status.RUNNING for el in res])
 
-    # marking an object as done changes is status
+    # marking an object as done changes its status
     oq.set_status(or1.oid, Status.OK)
     oq.set_status(or2.oid, Status.OK)
     oq.set_status(or3.oid, Status.OK)
@@ -251,6 +273,7 @@ def test_TaskQueue_fetch(tmp_path):
 
 
 def test_TaskQueue_runs_nonblocking(tmp_path):
+    """Ensure processing of the queue happens in a background process and does not block the main process"""
     src = tmp_path.joinpath("foo")
     src.touch()
 
@@ -266,5 +289,3 @@ def test_TaskQueue_runs_nonblocking(tmp_path):
     assert q.n_running == 1
     sleep(2)
     assert q.n_running == 0
-
-    q.stop()

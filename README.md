@@ -42,10 +42,13 @@ qop re ~/music
 
 # architecture
 
-qop consists of two programs: *qop*, the command line client and *qopd*, the daemon. The daemon processes
-the transfer queue and executes the copy and transcode tasks, while the client can be used to manage and monitor 
-the daemon (enqueue new files, start and stop processing the queue, monitor queue progress, etc...). The daemon
-can be launched manually for greater control, but if no daemon process is found the client creates its own
-process. Transfer queues are stored as json strings in sqlite3 databases, and if you are familiar with these 
-technologies you can easily create transfer queues without relying on the CLI client.
+qop consists of two programs: 
+
+    - *qopd*, a daemon which processes the transfer queue and executes the copy and transcode tasks, and 
+    - *qop*, a command line client which can put tasks into the queue, tell the daemon to start or stop processing
+      the queue, monitor transfer progress, etc...
+    
+Transfer queues are stored as json strings in sqlite3 databases. If you are familiar with these 
+technologies you can easily create transfer queues from the scripting language of your choice without needing to
+go through the cli program.
  

@@ -26,6 +26,11 @@ LOSSLESS_AUDIO = ("flac", "wav", "ape", "wv")
 AUDIO_FILES = (LOSSY_AUDIO, LOSSLESS_AUDIO)
 
 
+def handle_missing_args(args, client):
+    args.parser.print_help()
+    args.parser.exit()
+
+
 def format_response(rsp) -> str:
     res = color_status(rsp['status']) + " "
 
@@ -111,6 +116,7 @@ def handle_copy_move(args, client) -> Dict:
     if args_cache.exists():
         args_cache.unlink()
     with open(args_cache, 'wb') as f:
+        args.parser = None
         pickle.dump(args, f, pickle.HIGHEST_PROTOCOL)
 
     if args.include is not None:
@@ -168,6 +174,7 @@ def handle_convert(args, client) -> Dict:
     if args_cache.exists():
         args_cache.unlink()
     with open(args_cache, 'wb') as f:
+        args.parser = None
         pickle.dump(args, f, pickle.HIGHEST_PROTOCOL)
 
     if args.include is not None:
@@ -310,6 +317,7 @@ def queue_progress(args, client):
 
 # args
 parser = argparse.ArgumentParser()
+parser.set_defaults(fun=handle_missing_args, start_daemon=False, parser=parser)
 subparsers = parser.add_subparsers()
 
 # copy
@@ -353,7 +361,7 @@ parser_progress.set_defaults(fun=queue_progress, start_daemon=True)
 
 # queue management
 parser_queue = subparsers.add_parser("queue", help="manage the file processing queue (start, stop, ...)")
-parser_queue.set_defaults(start_daemon=True)
+parser_queue.set_defaults(start_daemon=True, fun=handle_missing_args, parser=parser_queue)
 parser_queue_sub = parser_queue.add_subparsers()
 parser_queue_sub.add_parser("start", help="start processing the queue").set_defaults(fun=handle_simple_command, command=Command.QUEUE_START)
 parser_queue_sub.add_parser("stop",  help="stop processing the queue").set_defaults(fun=handle_simple_command, command=Command.QUEUE_STOP)
@@ -364,9 +372,10 @@ parser_queue_sub.add_parser("active", help="show number of active queues (usuall
 parser_queue_sub.add_parser("is-active", help="show number of active queues (usually just one)").set_defaults(fun=handle_simple_command, command=Command.QUEUE_IS_ACTIVE)
 parser_queue_sub.add_parser("show", help="show the queue").set_defaults(fun=handle_simple_command, command=Command.QUEUE_SHOW)
 
+
 # daemon management
 parser_daemon = subparsers.add_parser("daemon", help="manage the daemon process")
-parser_daemon.set_defaults(start_daemon=False)
+parser_daemon.set_defaults(start_daemon=False, fun = handle_missing_args, parser=parser_daemon)
 parser_daemon_sub = parser_daemon.add_subparsers()
 parser_daemon_sub.add_parser("restart", help="restart the daemon").set_defaults(fun=daemon_restart)
 parser_daemon_sub.add_parser("stop", help="stop the daemon").set_defaults(fun=daemon_stop)

@@ -132,7 +132,3 @@ def test_manage_the_daemon(testfile_tree):
     subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "daemon", "destroy"])
     o = subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "daemon", "is-active"], capture_output=True)
     assert match_false(o.stdout)
-
-
-
-
