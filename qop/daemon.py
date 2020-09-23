@@ -29,6 +29,17 @@ class QopDaemon:
         queue_path: Pathish = Path(tempfile.gettempdir()).joinpath("qop-temp.sqlite3"),
         persist_queue: bool = False
     ):
+        """
+        QopDaemon manages a TaskQueue that stores and executes Tasks (such as file transfer of file convert operations).
+        It accepts Commands sent by QopClient.
+
+        :param port: Port to bind the daemon to
+        :type port: integer
+        :param queue_path: Path for storing the transfer queue
+        :type queue_path: Path or str
+        :param persist_queue: Whether or not to delete the queue when the daemon is stoped
+        :type persist_queue: bool
+        """
         self.port = port
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -62,6 +73,16 @@ class QopDaemon:
             lg.debug(f'client connected: {address}')
             req = client.recv(1024)
             lg.debug(f"processing request {req}")
+
+            if self.queue.is_active():
+                if self.queue.convert_processes < self.queue.max_convert_processes:
+                    self.queue.run()
+                elif self.queue.transfer_processes < self.queue.max_transfer_processes:
+                    self.queue.run()
+                elif self.queue.convert_processes > self.queue.convert_processes:
+                    self.queue.stop()
+                elif self.queue.transfer_processes > self.queue.transfer_processes:
+                    self.queue.stop()
 
             if not req:
                 continue
