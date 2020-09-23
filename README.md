@@ -30,11 +30,12 @@ qop copy file1 file2 /my/audio/dir
 qop move file1 file2 /my/audio/dir
 qop convert file1 file2 /my/audio/dir
 
-# practical example:
-# copy mp3s and transcode flacs to an mp3 player, ignoring all files that are not mp3s or flacs
-qop convert song.mp3 fugue.flac cover.jpg /mnt/mp3player --convert-only flac --include mp3 flac
+## practical example: ###
+# - inlcude only flac and mp3 files (ignores cover.jpg)
+# - conver only flac files, leave mp3 files untouched
+qop convert song.mp3 fugue.flac cover.jpg /mnt/mp3player --include mp3 flac --convert-only flac 
 
-# repeat the last command for your whole music directory (with the same output directory) 
+# repeat the last command for your whole music directory
 qop re ~/music
 ```
 
