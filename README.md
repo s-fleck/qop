@@ -36,6 +36,9 @@ qop convert song.mp3 fugue.flac cover.jpg /mnt/mp3player --include mp3 flac --co
 
 # repeat the last command for your whole music directory
 qop re ~/music
+
+# dsiplay a progress bar
+qop progress 
 ```
 
 ## Architecture
