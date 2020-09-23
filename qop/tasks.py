@@ -7,15 +7,18 @@ import json
 import sqlite3
 import appdirs
 import uuid
-
+import filecmp
+import multiprocessing
 import logging
+from time import sleep
+
+from colorama import init, Fore
 from qop.enums import TaskType, Status, Command
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
 from qop import utils
-from colorama import init, Fore
-import filecmp
-from multiprocessing import Process
-from time import sleep
+
+
+
 
 
 init()
@@ -30,7 +33,7 @@ class TaskQueue:
     transfer_processes = []
     convert_processes = []
 
-    def __init__(self, path: Pathish) -> None:
+    def __init__(self, path: Pathish, max_transfer_processes=1, max_convert_processes=multiprocessing.cpu_count() - 1) -> None:
         """
         Instantiate a TaskQueue
 
@@ -49,8 +52,11 @@ class TaskQueue:
         else:
             lg.info(f"initializing new queue {path}")
 
+        self.max_transfer_processes = max_transfer_processes
+        self.max_convert_processes = max_convert_processes
         self.con = sqlite3.connect(path, isolation_level="EXCLUSIVE", timeout=10)
         self.path = Path(path)
+
         cur = self.con.cursor()
         cur.execute("""
            CREATE TABLE IF NOT EXISTS tasks (
@@ -295,7 +301,7 @@ class TaskQueue:
         hammer_commit(self.con)
         cur.close()
 
-    def run(self, max_transfer_processes: int = 1, max_convert_processes: int = 1, ip=None, port=None) -> None:
+    def run(self, ip=None, port=None) -> None:
         """Execute all pending tasks"""
 
         # remove finished que runs
@@ -306,21 +312,21 @@ class TaskQueue:
             lg.warning("queue is empty")
             return None
 
-        if len(self.transfer_processes) >= max_transfer_processes:
-            lg.debug(f"already running {max_transfer_processes} queues")
+        if len(self.transfer_processes) >= self.max_transfer_processes:
+            lg.debug(f"already running {self.max_transfer_processes} queues")
 
-        if len(self.convert_processes) >= max_convert_processes:
-            lg.debug(f"already running {max_convert_processes} convert queues")
+        if len(self.convert_processes) >= self.max_convert_processes:
+            lg.debug(f"already running {self.max_convert_processes} convert queues")
 
-        while len(self.transfer_processes) < max_transfer_processes:
+        while len(self.transfer_processes) < self.max_transfer_processes:
             lg.info("starting new queue runner")
-            p = Process(target=self.__start_run_process, args=(ip, port, None, TaskType.CONVERT))
+            p = multiprocessing.Process(target=self.__start_run_process, args=(ip, port, None, TaskType.CONVERT))
             p.start()
             self.transfer_processes.append(p)
 
-        while len(self.convert_processes) < max_convert_processes:
+        while len(self.convert_processes) < self.max_convert_processes:
             lg.info("starting new convert queue runner")
-            p = Process(target=self.__start_run_process, args=(ip, port, TaskType.CONVERT, None))
+            p = multiprocessing.Process(target=self.__start_run_process, args=(ip, port, TaskType.CONVERT, None))
             p.start()
             self.convert_processes.append(p)
 
