@@ -26,27 +26,24 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from pathlib import Path
-from typing import Union, Optional, Dict, Tuple, List
-from qop import converters
-import shutil
+<pre><code class="python">import shutil
 import os
 import json
 import sqlite3
-import appdirs
 import uuid
 import filecmp
 import multiprocessing
 import logging
+from pathlib import Path
+from typing import Union, Optional, Dict, Tuple, List
 from time import sleep
 
+import appdirs
 from colorama import init, Fore
+
 from qop.enums import TaskType, Status, Command
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
-from qop import utils
-
-
-
+from qop import converters, utils
 
 
 init()
@@ -56,8 +53,12 @@ CONVERT_CACHE_DIR = Path(appdirs.user_cache_dir(&#34;qop&#34;)).joinpath(&#34;co
 
 
 class TaskQueue:
-    &#34;&#34;&#34;A prioritized queue for file operations with support for multi process audio transcoding&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    A persistent, prioritized queue with multi process support. Use sqlite3 as a storage backend.
 
+    :param transfer_processes: A list of file transfer processes
+    :param convert_processes: A list of audio transcode processes
+    &#34;&#34;&#34;
     transfer_processes = []
     convert_processes = []
 
@@ -73,6 +74,12 @@ class TaskQueue:
 
         :param path: Path to store the persistent queue
         :type path: Path or str
+        :param max_transfer_processes: maximum number of processes spawned for file transfer operations. Should usually
+            be 1.
+        :type max_transfer_processes: int
+        :param max_convert_processes: maximum number of processes spawned for converting audio files. Defaults to
+            `number-of-cpu-cores - 1`.
+        :type max_convert_processes: int
         &#34;&#34;&#34;
 
         if path.exists():
@@ -1937,7 +1944,9 @@ def from_dict(x: Dict) -&gt; &#34;Task&#34;:
 <span>(</span><span>path: Union[pathlib.Path, str], max_transfer_processes=1, max_convert_processes=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A prioritized queue for file operations with support for multi process audio transcoding</p>
+<div class="desc"><p>A persistent, prioritized queue with multi process support. Use sqlite3 as a storage backend.</p>
+<p>:param transfer_processes: A list of file transfer processes
+:param convert_processes: A list of audio transcode processes</p>
 <p>Instantiate a TaskQueue</p>
 <p>A TaskQueue is a sqlite3 database with the following columns
 - priority: integer value, the lower the value the earlier the task will be processed
@@ -1945,14 +1954,24 @@ def from_dict(x: Dict) -&gt; &#34;Task&#34;:
 - status: status of the task (ok, running, fail,&hellip; see enums.Status)
 - lock: str lock id. NULL except for currently running tasks. usually an uuid</p>
 <p>:param path: Path to store the persistent queue
-:type path: Path or str</p></div>
+:type path: Path or str
+:param max_transfer_processes: maximum number of processes spawned for file transfer operations. Should usually
+be 1.
+:type max_transfer_processes: int
+:param max_convert_processes: maximum number of processes spawned for converting audio files. Defaults to
+<code>number-of-cpu-cores - 1</code>.
+:type max_convert_processes: int</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class TaskQueue:
-    &#34;&#34;&#34;A prioritized queue for file operations with support for multi process audio transcoding&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    A persistent, prioritized queue with multi process support. Use sqlite3 as a storage backend.
 
+    :param transfer_processes: A list of file transfer processes
+    :param convert_processes: A list of audio transcode processes
+    &#34;&#34;&#34;
     transfer_processes = []
     convert_processes = []
 
@@ -1968,6 +1987,12 @@ def from_dict(x: Dict) -&gt; &#34;Task&#34;:
 
         :param path: Path to store the persistent queue
         :type path: Path or str
+        :param max_transfer_processes: maximum number of processes spawned for file transfer operations. Should usually
+            be 1.
+        :type max_transfer_processes: int
+        :param max_convert_processes: maximum number of processes spawned for converting audio files. Defaults to
+            `number-of-cpu-cores - 1`.
+        :type max_convert_processes: int
         &#34;&#34;&#34;
 
         if path.exists():
