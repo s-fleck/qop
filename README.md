@@ -25,7 +25,6 @@ qop is in a beta stage and under active development. While the core functionalit
 ## Usage 
 
 ```
-# queued operations
 qop copy file1 file2 /my/audio/dir
 qop move file1 file2 /my/audio/dir
 qop convert file1 file2 /my/audio/dir
