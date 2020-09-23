@@ -51,5 +51,5 @@ qop consists of two programs:
     
 Transfer queues are stored as json strings in sqlite3 databases. If you are familiar with these 
 technologies you can easily create transfer queues from the scripting language of your choice without needing to
-go through the cli program.
+go through the cli program. For more details please refer to the [api documentation](https://s-fleck.github.io/qop/).
  

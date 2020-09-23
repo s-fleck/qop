@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='qop',
-    version='0.1',
+    version='0.0.1',
     description='Queued File Operations',
     url='http://github.com/s-fleck/qop',
     author='Stefan Fleck',
