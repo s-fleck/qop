@@ -1,24 +1,21 @@
-from pathlib import Path
-from typing import Union, Optional, Dict, Tuple, List
-from qop import converters
 import shutil
 import os
 import json
 import sqlite3
-import appdirs
 import uuid
 import filecmp
 import multiprocessing
 import logging
+from pathlib import Path
+from typing import Union, Optional, Dict, Tuple, List
 from time import sleep
 
+import appdirs
 from colorama import init, Fore
+
 from qop.enums import TaskType, Status, Command
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
-from qop import utils
-
-
-
+from qop import converters, utils
 
 
 init()
@@ -28,8 +25,12 @@ CONVERT_CACHE_DIR = Path(appdirs.user_cache_dir("qop")).joinpath("convert_temp")
 
 
 class TaskQueue:
-    """A prioritized queue for file operations with support for multi process audio transcoding"""
+    """
+    A persistent, prioritized queue with multi process support. Use sqlite3 as a storage backend.
 
+    :param transfer_processes: A list of file transfer processes
+    :param convert_processes: A list of audio transcode processes
+    """
     transfer_processes = []
     convert_processes = []
 
@@ -45,6 +46,12 @@ class TaskQueue:
 
         :param path: Path to store the persistent queue
         :type path: Path or str
+        :param max_transfer_processes: maximum number of processes spawned for file transfer operations. Should usually
+            be 1.
+        :type max_transfer_processes: int
+        :param max_convert_processes: maximum number of processes spawned for converting audio files. Defaults to
+            `number-of-cpu-cores - 1`.
+        :type max_convert_processes: int
         """
 
         if path.exists():
