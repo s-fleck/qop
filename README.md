@@ -19,7 +19,7 @@ can also smartly transcode files based on their format. For example, qop can tra
 
 ## Development status:
 
-qop is in a beta stage and under active development. While the core functionality is stable, the user interface is still beeing refined. 
+qop is in a beta stage and under active development. While the core functionality is stable, the user interface is still beeing refined. A public release fit for general usage is planned for early 2021.
 
 
 ## Usage 
