@@ -4,24 +4,22 @@ qop (pronounced like "cop") is a file transfer tool that is optimized for copyin
 media players, where connection speed, drive space or audio format support are an issue.
 
 qop manages a single copy process in the background, so you do not have to worry about large numbers of transfers
-spamming your legacy USB connections. If your device gets disconnected for whatever reason, qop retains the last
-transfer queue (or an arbitrary number of named queues if you desire) and it can be resumed whenever you wish. qop
-can also smartly transcode your 192khz 24bit audiophile flac files to something more appropriate for your portable music
-player, while leaving your old mp3 files from the 90is untouched.
+spamming your legacy USB connections. If your device gets disconnected, qop retains transfer queues that can be resume whenever desired. qop
+can also smartly transcode files based on their format. For example, qop can transcode your 192khz 48bit audiophile flac files to mp3 before sending them to a portable media player while, while leaving files that are already in a lossy format untouched.
 
 
 ## Features:
 
 * Conditional audio transcoding (e.g. transcode only lossless files) 
 * Tag cleanup (e.g. remove album covers) [planned]
-* Multicore audio transcoding [wip] 
+* Multicore audio transcoding
 * Persistent job-queues to resume aborted transfers 
 * Clean and powerful CLI
 
 
 ## Development status:
 
-qop is in an alpha stage and not fit for general use.
+qop is in a beta stage and under active development. While the core functionality is stable, the user interface is still beeing refined. 
 
 
 ## Usage 
