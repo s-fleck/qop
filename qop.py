@@ -186,7 +186,8 @@ def handle_convert(args, client) -> Dict:
 
     sources = scanner.run(sources)
 
-    conv = converters.Mp3Converter()  # todo
+    conv = converters.Mp3Converter(remove_art=args.remove_art)  # TODO
+    conv_copy = converters.CopyConverter(remove_art=args.remove_art)
     conv_mode = "all"
     if args.convert_only is not None:
         conv_include = ["." + e for e in args.convert_only]
@@ -217,7 +218,7 @@ def handle_convert(args, client) -> Dict:
                 dst = Path(dst).resolve().with_suffix(".mp3")
                 tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
             else:
-                tsk = tasks.CopyTask(src=src, dst=dst)
+                tsk = tasks.SimpleConvertTask(src=src, dst=dst, converter=conv_copy)
 
             rsp = client.send_command(Command.QUEUE_PUT, payload=tsk)
 
@@ -331,9 +332,11 @@ parser_move.set_defaults(fun=handle_copy_move, mode="move", start_daemon=True)
 # convert
 parser_convert = subparsers.add_parser("convert", help="convert an audio file")
 parser_convert.set_defaults(fun=handle_convert, start_daemon=True, mode="convert")
+parser_convert.add_argument("-a", "--remove-art", action="store_true", help="remove album art from file tags", default=False)
 g = parser_convert.add_mutually_exclusive_group()
 g.add_argument("-c", "--convert-only", nargs="+", type=str, help="extensions of files to convert")
 g.add_argument("-C", "--convert-not", nargs="+", type=str, help="extensions of files not to convert")
+
 
 # shared arguments
 for p in [parser_copy, parser_convert, parser_move]:
@@ -341,8 +344,8 @@ for p in [parser_copy, parser_convert, parser_move]:
     p.add_argument("-r", "--recursive", action="store_true", help="recurse")
     p.add_argument("-e", "--enqueue-only", action="store_true", help="enqueue only. do not start processing queue.")
     g = p.add_mutually_exclusive_group()
-    g.add_argument("-f", "--exclude", nargs="+", type=str, help="keep only files that do not have these extensions")
-    g.add_argument("-F", "--include", nargs="+", type=str, help="keep only files with these extensions")
+    g.add_argument("-i", "--include", nargs="+", type=str, help="keep only files with these extensions")
+    g.add_argument("-I", "--exclude", nargs="+", type=str, help="keep only files that do not have these extensions")
 
 # re
 parser_re = subparsers.add_parser("re", help="repeat the last copy/convert/move operation on different source paths")

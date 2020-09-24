@@ -45,8 +45,8 @@ class Status(IntEnum):
     RUNNING = 3
 
 
-
 class ConverterType(IntEnum):
+    COPY = 0
     MP3 = 1
     OGG = 2
 

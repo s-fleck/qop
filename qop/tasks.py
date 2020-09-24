@@ -9,7 +9,6 @@ import logging
 from pathlib import Path
 from typing import Union, Optional, Dict, Tuple, List
 from time import sleep
-from mutagen.id3 import APIC, ID3
 
 import appdirs
 from colorama import init, Fore
@@ -363,7 +362,7 @@ class TaskQueue:
                 try:
                     follow_up = op.follow_up_task()
                     self.put(follow_up, priority=-1)
-                    lg.info(f"queuing follow-up task: {follow_up}")
+                    lg.info(f"queued follow-up task: {follow_up}")
                 except:
                     pass
 
@@ -656,7 +655,7 @@ class SimpleConvertTask(CopyTask):
     """convert an audio file"""
     def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter) -> None:
         super().__init__(src=src, dst=dst)
-        self.type = TaskType.CONVERT
+        self.type = TaskType.CONVERT_SIMPLE
         self.converter = converter
         self.src = Path(src).resolve()
         self.dst = Path(dst).resolve()
@@ -707,11 +706,6 @@ class ConvertTask(SimpleConvertTask):
         super().__validate__()
         lg.debug(f"converting file to temporary destination: {self.tmpdst}")
         self.converter.run(self.src, self.tmpdst)
-
-        # remove cover art tags
-        file = ID3(self.tmpdst)
-        file.delall("APIC")  # Delete every APIC tag (Cover art)
-        file.save()  # Save the file
 
     def follow_up_task(self) -> MoveTask:
         # follow_up_task requires that the task was retrieved from the queue and therefore already as an oid that

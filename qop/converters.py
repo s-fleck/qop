@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Union, Optional, Dict
 import json
 from qop.enums import ConverterType
-
+import mutagen
+from mutagen import id3
 
 class Converter:
     def to_dict(self) -> Dict:
@@ -13,10 +14,12 @@ class Converter:
     @staticmethod
     def from_dict(x: Dict) -> "Converter":
         t = ConverterType(x['type'])
-        if t == 1:
-            return Mp3Converter()
-        elif t == 2:
-            return OggConverter(bitrate=x['bitrate'])
+        if t == ConverterType.COPY:
+            return CopyConverter(remove_art=x['remove_art'])
+        if t == ConverterType.MP3:
+            return Mp3Converter(remove_art=x['remove_art'])
+        elif t == ConverterType.OGG:
+            return OggConverter(bitrate=x['bitrate'], remove_art=x['remove_art'])
         else:
             raise ImportError("Unknown 'type': {}")
 
@@ -38,59 +41,81 @@ class Converter:
     def __ne__(self, other) -> bool:
         return self.__dict__ != other.__dict__
 
+    def do_remove_art(self, file: Path):
+        f = mutagen.File(file)
+
+        try:
+            f.delall("APIC")
+        except:
+            f.clear_pictures()
+
+        f.save()
+
 
 class CopyConverter(Converter):
     """Dummy converter that only copies a file without any processing"""
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, remove_art: bool = False) -> None:
+        self.remove_art = remove_art
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]):
         shutil.copy(src, dst)
+        if self.remove_art:
+            print("removing art")
+            self.do_remove_art(dst)
 
     def to_dict(self) -> Dict:
-        return {"type": 0}
+        return {"type": ConverterType.COPY, "remove_art": self.remove_art}
 
 
 class OggConverter(Converter):
     """Convert audio files to ogg vorbis"""
 
-    def __init__(self, bitrate: str = "192k") -> None:
+    def __init__(self, bitrate: str = "192k", remove_art: bool = False) -> None:
         self.bitrate = bitrate
-        pass
+        self.remove_art = remove_art
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         src = Path(src).resolve()
         dst = Path(dst).resolve()
-
         if not dst.parent.exists():
             dst.parent.mkdir(parents=True)
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="ogg")
 
+        if self.remove_art:
+            self.do_remove_art(dst)
+
     def to_dict(self) -> Dict:
-        return {"type": ConverterType.OGG, "bitrate": self.bitrate}
+        return {"type": ConverterType.OGG, "bitrate": self.bitrate, "remove_art": self.remove_art}
 
 
 class Mp3Converter(Converter):
-    """Convert audio files to ogg vorbis"""
+    """Convert audio files to mp3"""
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, remove_art: bool = False) -> None:
+        self.remove_art = remove_art
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         src = Path(src).resolve()
         dst = Path(dst).resolve()
-
         if not dst.parent.exists():
             dst.parent.mkdir(parents=True)
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="mp3", parameters=["-q:a", "0"])
 
+        if self.remove_art:
+            self.do_remove_art(dst)
+
     def to_dict(self) -> Dict:
-        return {"type": ConverterType.MP3}
+        return {"type": ConverterType.MP3, "remove_art": self.remove_art}
+
+    def do_remove_art(self, file: Path):
+        f = id3.ID3(file)
+        f.delall("APIC")
+        f.save()
 
 
 Converter_ = Union[Converter, OggConverter, Mp3Converter]
