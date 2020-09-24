@@ -32,7 +32,8 @@ from pathlib import Path
 from typing import Union, Optional, Dict
 import json
 from qop.enums import ConverterType
-
+import mutagen
+from mutagen import id3
 
 class Converter:
     def to_dict(self) -&gt; Dict:
@@ -41,10 +42,12 @@ class Converter:
     @staticmethod
     def from_dict(x: Dict) -&gt; &#34;Converter&#34;:
         t = ConverterType(x[&#39;type&#39;])
-        if t == 1:
-            return Mp3Converter()
-        elif t == 2:
-            return OggConverter(bitrate=x[&#39;bitrate&#39;])
+        if t == ConverterType.COPY:
+            return CopyConverter(remove_art=x[&#39;remove_art&#39;])
+        if t == ConverterType.MP3:
+            return Mp3Converter(remove_art=x[&#39;remove_art&#39;])
+        elif t == ConverterType.OGG:
+            return OggConverter(bitrate=x[&#39;bitrate&#39;], remove_art=x[&#39;remove_art&#39;])
         else:
             raise ImportError(&#34;Unknown &#39;type&#39;: {}&#34;)
 
@@ -66,59 +69,81 @@ class Converter:
     def __ne__(self, other) -&gt; bool:
         return self.__dict__ != other.__dict__
 
+    def do_remove_art(self, file: Path):
+        f = mutagen.File(file)
+
+        try:
+            f.delall(&#34;APIC&#34;)
+        except:
+            f.clear_pictures()
+
+        f.save()
+
 
 class CopyConverter(Converter):
     &#34;&#34;&#34;Dummy converter that only copies a file without any processing&#34;&#34;&#34;
 
-    def __init__(self) -&gt; None:
-        pass
+    def __init__(self, remove_art: bool = False) -&gt; None:
+        self.remove_art = remove_art
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]):
         shutil.copy(src, dst)
+        if self.remove_art:
+            print(&#34;removing art&#34;)
+            self.do_remove_art(dst)
 
     def to_dict(self) -&gt; Dict:
-        return {&#34;type&#34;: 0}
+        return {&#34;type&#34;: ConverterType.COPY, &#34;remove_art&#34;: self.remove_art}
 
 
 class OggConverter(Converter):
     &#34;&#34;&#34;Convert audio files to ogg vorbis&#34;&#34;&#34;
 
-    def __init__(self, bitrate: str = &#34;192k&#34;) -&gt; None:
+    def __init__(self, bitrate: str = &#34;192k&#34;, remove_art: bool = False) -&gt; None:
         self.bitrate = bitrate
-        pass
+        self.remove_art = remove_art
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -&gt; None:
         src = Path(src).resolve()
         dst = Path(dst).resolve()
-
         if not dst.parent.exists():
             dst.parent.mkdir(parents=True)
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format=&#34;ogg&#34;)
 
+        if self.remove_art:
+            self.do_remove_art(dst)
+
     def to_dict(self) -&gt; Dict:
-        return {&#34;type&#34;: ConverterType.OGG, &#34;bitrate&#34;: self.bitrate}
+        return {&#34;type&#34;: ConverterType.OGG, &#34;bitrate&#34;: self.bitrate, &#34;remove_art&#34;: self.remove_art}
 
 
 class Mp3Converter(Converter):
-    &#34;&#34;&#34;Convert audio files to ogg vorbis&#34;&#34;&#34;
+    &#34;&#34;&#34;Convert audio files to mp3&#34;&#34;&#34;
 
-    def __init__(self) -&gt; None:
-        pass
+    def __init__(self, remove_art: bool = False) -&gt; None:
+        self.remove_art = remove_art
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -&gt; None:
         src = Path(src).resolve()
         dst = Path(dst).resolve()
-
         if not dst.parent.exists():
             dst.parent.mkdir(parents=True)
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format=&#34;mp3&#34;, parameters=[&#34;-q:a&#34;, &#34;0&#34;])
 
+        if self.remove_art:
+            self.do_remove_art(dst)
+
     def to_dict(self) -&gt; Dict:
-        return {&#34;type&#34;: ConverterType.MP3}
+        return {&#34;type&#34;: ConverterType.MP3, &#34;remove_art&#34;: self.remove_art}
+
+    def do_remove_art(self, file: Path):
+        f = id3.ID3(file)
+        f.delall(&#34;APIC&#34;)
+        f.save()
 
 
 Converter_ = Union[Converter, OggConverter, Mp3Converter]</code></pre>
@@ -149,10 +174,12 @@ Converter_ = Union[Converter, OggConverter, Mp3Converter]</code></pre>
     @staticmethod
     def from_dict(x: Dict) -&gt; &#34;Converter&#34;:
         t = ConverterType(x[&#39;type&#39;])
-        if t == 1:
-            return Mp3Converter()
-        elif t == 2:
-            return OggConverter(bitrate=x[&#39;bitrate&#39;])
+        if t == ConverterType.COPY:
+            return CopyConverter(remove_art=x[&#39;remove_art&#39;])
+        if t == ConverterType.MP3:
+            return Mp3Converter(remove_art=x[&#39;remove_art&#39;])
+        elif t == ConverterType.OGG:
+            return OggConverter(bitrate=x[&#39;bitrate&#39;], remove_art=x[&#39;remove_art&#39;])
         else:
             raise ImportError(&#34;Unknown &#39;type&#39;: {}&#34;)
 
@@ -172,7 +199,17 @@ Converter_ = Union[Converter, OggConverter, Mp3Converter]</code></pre>
         return self.__dict__ == other.__dict__
 
     def __ne__(self, other) -&gt; bool:
-        return self.__dict__ != other.__dict__</code></pre>
+        return self.__dict__ != other.__dict__
+
+    def do_remove_art(self, file: Path):
+        f = mutagen.File(file)
+
+        try:
+            f.delall(&#34;APIC&#34;)
+        except:
+            f.clear_pictures()
+
+        f.save()</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -194,10 +231,12 @@ Converter_ = Union[Converter, OggConverter, Mp3Converter]</code></pre>
 <pre><code class="python">@staticmethod
 def from_dict(x: Dict) -&gt; &#34;Converter&#34;:
     t = ConverterType(x[&#39;type&#39;])
-    if t == 1:
-        return Mp3Converter()
-    elif t == 2:
-        return OggConverter(bitrate=x[&#39;bitrate&#39;])
+    if t == ConverterType.COPY:
+        return CopyConverter(remove_art=x[&#39;remove_art&#39;])
+    if t == ConverterType.MP3:
+        return Mp3Converter(remove_art=x[&#39;remove_art&#39;])
+    elif t == ConverterType.OGG:
+        return OggConverter(bitrate=x[&#39;bitrate&#39;], remove_art=x[&#39;remove_art&#39;])
     else:
         raise ImportError(&#34;Unknown &#39;type&#39;: {}&#34;)</code></pre>
 </details>
@@ -224,6 +263,26 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="qop.converters.Converter.do_remove_art"><code class="name flex">
+<span>def <span class="ident">do_remove_art</span></span>(<span>self, file: pathlib.Path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def do_remove_art(self, file: Path):
+    f = mutagen.File(file)
+
+    try:
+        f.delall(&#34;APIC&#34;)
+    except:
+        f.clear_pictures()
+
+    f.save()</code></pre>
+</details>
+</dd>
 <dt id="qop.converters.Converter.run"><code class="name flex">
 <span>def <span class="ident">run</span></span>(<span>self, src: Union[pathlib.Path, str], dst: Union[pathlib.Path, str])</span>
 </code></dt>
@@ -254,6 +313,7 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 </dd>
 <dt id="qop.converters.CopyConverter"><code class="flex name class">
 <span>class <span class="ident">CopyConverter</span></span>
+<span>(</span><span>remove_art: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Dummy converter that only copies a file without any processing</p></div>
@@ -264,14 +324,17 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <pre><code class="python">class CopyConverter(Converter):
     &#34;&#34;&#34;Dummy converter that only copies a file without any processing&#34;&#34;&#34;
 
-    def __init__(self) -&gt; None:
-        pass
+    def __init__(self, remove_art: bool = False) -&gt; None:
+        self.remove_art = remove_art
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]):
         shutil.copy(src, dst)
+        if self.remove_art:
+            print(&#34;removing art&#34;)
+            self.do_remove_art(dst)
 
     def to_dict(self) -&gt; Dict:
-        return {&#34;type&#34;: 0}</code></pre>
+        return {&#34;type&#34;: ConverterType.COPY, &#34;remove_art&#34;: self.remove_art}</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -289,7 +352,10 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def run(self, src: Union[Path, str], dst: Union[Path, str]):
-    shutil.copy(src, dst)</code></pre>
+    shutil.copy(src, dst)
+    if self.remove_art:
+        print(&#34;removing art&#34;)
+        self.do_remove_art(dst)</code></pre>
 </details>
 </dd>
 <dt id="qop.converters.CopyConverter.to_dict"><code class="name flex">
@@ -302,7 +368,7 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_dict(self) -&gt; Dict:
-    return {&#34;type&#34;: 0}</code></pre>
+    return {&#34;type&#34;: ConverterType.COPY, &#34;remove_art&#34;: self.remove_art}</code></pre>
 </details>
 </dd>
 </dl>
@@ -317,31 +383,39 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 </dd>
 <dt id="qop.converters.Mp3Converter"><code class="flex name class">
 <span>class <span class="ident">Mp3Converter</span></span>
+<span>(</span><span>remove_art: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Convert audio files to ogg vorbis</p></div>
+<div class="desc"><p>Convert audio files to mp3</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Mp3Converter(Converter):
-    &#34;&#34;&#34;Convert audio files to ogg vorbis&#34;&#34;&#34;
+    &#34;&#34;&#34;Convert audio files to mp3&#34;&#34;&#34;
 
-    def __init__(self) -&gt; None:
-        pass
+    def __init__(self, remove_art: bool = False) -&gt; None:
+        self.remove_art = remove_art
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -&gt; None:
         src = Path(src).resolve()
         dst = Path(dst).resolve()
-
         if not dst.parent.exists():
             dst.parent.mkdir(parents=True)
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format=&#34;mp3&#34;, parameters=[&#34;-q:a&#34;, &#34;0&#34;])
 
+        if self.remove_art:
+            self.do_remove_art(dst)
+
     def to_dict(self) -&gt; Dict:
-        return {&#34;type&#34;: ConverterType.MP3}</code></pre>
+        return {&#34;type&#34;: ConverterType.MP3, &#34;remove_art&#34;: self.remove_art}
+
+    def do_remove_art(self, file: Path):
+        f = id3.ID3(file)
+        f.delall(&#34;APIC&#34;)
+        f.save()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -349,6 +423,21 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 </ul>
 <h3>Methods</h3>
 <dl>
+<dt id="qop.converters.Mp3Converter.do_remove_art"><code class="name flex">
+<span>def <span class="ident">do_remove_art</span></span>(<span>self, file: pathlib.Path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def do_remove_art(self, file: Path):
+    f = id3.ID3(file)
+    f.delall(&#34;APIC&#34;)
+    f.save()</code></pre>
+</details>
+</dd>
 <dt id="qop.converters.Mp3Converter.run"><code class="name flex">
 <span>def <span class="ident">run</span></span>(<span>self, src: Union[pathlib.Path, str], dst: Union[pathlib.Path, str]) ‑> NoneType</span>
 </code></dt>
@@ -361,12 +450,14 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <pre><code class="python">def run(self, src: Union[Path, str], dst: Union[Path, str]) -&gt; None:
     src = Path(src).resolve()
     dst = Path(dst).resolve()
-
     if not dst.parent.exists():
         dst.parent.mkdir(parents=True)
 
     x = pydub.AudioSegment.from_file(src)
-    x.export(dst, format=&#34;mp3&#34;, parameters=[&#34;-q:a&#34;, &#34;0&#34;])</code></pre>
+    x.export(dst, format=&#34;mp3&#34;, parameters=[&#34;-q:a&#34;, &#34;0&#34;])
+
+    if self.remove_art:
+        self.do_remove_art(dst)</code></pre>
 </details>
 </dd>
 <dt id="qop.converters.Mp3Converter.to_dict"><code class="name flex">
@@ -379,7 +470,7 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_dict(self) -&gt; Dict:
-    return {&#34;type&#34;: ConverterType.MP3}</code></pre>
+    return {&#34;type&#34;: ConverterType.MP3, &#34;remove_art&#34;: self.remove_art}</code></pre>
 </details>
 </dd>
 </dl>
@@ -394,7 +485,7 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 </dd>
 <dt id="qop.converters.OggConverter"><code class="flex name class">
 <span>class <span class="ident">OggConverter</span></span>
-<span>(</span><span>bitrate: str = '192k')</span>
+<span>(</span><span>bitrate: str = '192k', remove_art: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert audio files to ogg vorbis</p></div>
@@ -405,22 +496,24 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <pre><code class="python">class OggConverter(Converter):
     &#34;&#34;&#34;Convert audio files to ogg vorbis&#34;&#34;&#34;
 
-    def __init__(self, bitrate: str = &#34;192k&#34;) -&gt; None:
+    def __init__(self, bitrate: str = &#34;192k&#34;, remove_art: bool = False) -&gt; None:
         self.bitrate = bitrate
-        pass
+        self.remove_art = remove_art
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -&gt; None:
         src = Path(src).resolve()
         dst = Path(dst).resolve()
-
         if not dst.parent.exists():
             dst.parent.mkdir(parents=True)
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format=&#34;ogg&#34;)
 
+        if self.remove_art:
+            self.do_remove_art(dst)
+
     def to_dict(self) -&gt; Dict:
-        return {&#34;type&#34;: ConverterType.OGG, &#34;bitrate&#34;: self.bitrate}</code></pre>
+        return {&#34;type&#34;: ConverterType.OGG, &#34;bitrate&#34;: self.bitrate, &#34;remove_art&#34;: self.remove_art}</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -440,12 +533,14 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <pre><code class="python">def run(self, src: Union[Path, str], dst: Union[Path, str]) -&gt; None:
     src = Path(src).resolve()
     dst = Path(dst).resolve()
-
     if not dst.parent.exists():
         dst.parent.mkdir(parents=True)
 
     x = pydub.AudioSegment.from_file(src)
-    x.export(dst, format=&#34;ogg&#34;)</code></pre>
+    x.export(dst, format=&#34;ogg&#34;)
+
+    if self.remove_art:
+        self.do_remove_art(dst)</code></pre>
 </details>
 </dd>
 <dt id="qop.converters.OggConverter.to_dict"><code class="name flex">
@@ -458,7 +553,7 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_dict(self) -&gt; Dict:
-    return {&#34;type&#34;: ConverterType.OGG, &#34;bitrate&#34;: self.bitrate}</code></pre>
+    return {&#34;type&#34;: ConverterType.OGG, &#34;bitrate&#34;: self.bitrate, &#34;remove_art&#34;: self.remove_art}</code></pre>
 </details>
 </dd>
 </dl>
@@ -490,6 +585,7 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <li>
 <h4><code><a title="qop.converters.Converter" href="#qop.converters.Converter">Converter</a></code></h4>
 <ul class="">
+<li><code><a title="qop.converters.Converter.do_remove_art" href="#qop.converters.Converter.do_remove_art">do_remove_art</a></code></li>
 <li><code><a title="qop.converters.Converter.from_dict" href="#qop.converters.Converter.from_dict">from_dict</a></code></li>
 <li><code><a title="qop.converters.Converter.from_json" href="#qop.converters.Converter.from_json">from_json</a></code></li>
 <li><code><a title="qop.converters.Converter.run" href="#qop.converters.Converter.run">run</a></code></li>
@@ -506,6 +602,7 @@ def from_json(s: str) -&gt; &#34;Converter&#34;:
 <li>
 <h4><code><a title="qop.converters.Mp3Converter" href="#qop.converters.Mp3Converter">Mp3Converter</a></code></h4>
 <ul class="">
+<li><code><a title="qop.converters.Mp3Converter.do_remove_art" href="#qop.converters.Mp3Converter.do_remove_art">do_remove_art</a></code></li>
 <li><code><a title="qop.converters.Mp3Converter.run" href="#qop.converters.Mp3Converter.run">run</a></code></li>
 <li><code><a title="qop.converters.Mp3Converter.to_dict" href="#qop.converters.Mp3Converter.to_dict">to_dict</a></code></li>
 </ul>
