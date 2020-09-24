@@ -103,14 +103,16 @@ class QopDaemon:
             lg.debug(f&#34;processing request {req}&#34;)
 
             if self.queue.is_active():
-                if self.queue.convert_processes &lt; self.queue.max_convert_processes:
+                if len(self.queue.convert_processes) &lt; self.queue.max_convert_processes:
                     self.queue.run()
-                elif self.queue.transfer_processes &lt; self.queue.max_transfer_processes:
+                elif len(self.queue.transfer_processes) &lt; self.queue.max_transfer_processes:
                     self.queue.run()
-                elif self.queue.convert_processes &gt; self.queue.convert_processes:
+                elif len(self.queue.convert_processes) &gt; self.queue.max_convert_processes:
                     self.queue.stop()
-                elif self.queue.transfer_processes &gt; self.queue.transfer_processes:
+                    self.queue.run()
+                elif len(self.queue.transfer_processes) &gt; self.queue.max_transfer_processes:
                     self.queue.stop()
+                    self.queue.run()
 
             if not req:
                 continue
@@ -794,14 +796,16 @@ It accepts Commands sent by QopClient.</p>
             lg.debug(f&#34;processing request {req}&#34;)
 
             if self.queue.is_active():
-                if self.queue.convert_processes &lt; self.queue.max_convert_processes:
+                if len(self.queue.convert_processes) &lt; self.queue.max_convert_processes:
                     self.queue.run()
-                elif self.queue.transfer_processes &lt; self.queue.max_transfer_processes:
+                elif len(self.queue.transfer_processes) &lt; self.queue.max_transfer_processes:
                     self.queue.run()
-                elif self.queue.convert_processes &gt; self.queue.convert_processes:
+                elif len(self.queue.convert_processes) &gt; self.queue.max_convert_processes:
                     self.queue.stop()
-                elif self.queue.transfer_processes &gt; self.queue.transfer_processes:
+                    self.queue.run()
+                elif len(self.queue.transfer_processes) &gt; self.queue.max_transfer_processes:
                     self.queue.stop()
+                    self.queue.run()
 
             if not req:
                 continue
@@ -1002,14 +1006,16 @@ def is_listening(self) -&gt; bool:
         lg.debug(f&#34;processing request {req}&#34;)
 
         if self.queue.is_active():
-            if self.queue.convert_processes &lt; self.queue.max_convert_processes:
+            if len(self.queue.convert_processes) &lt; self.queue.max_convert_processes:
                 self.queue.run()
-            elif self.queue.transfer_processes &lt; self.queue.max_transfer_processes:
+            elif len(self.queue.transfer_processes) &lt; self.queue.max_transfer_processes:
                 self.queue.run()
-            elif self.queue.convert_processes &gt; self.queue.convert_processes:
+            elif len(self.queue.convert_processes) &gt; self.queue.max_convert_processes:
                 self.queue.stop()
-            elif self.queue.transfer_processes &gt; self.queue.transfer_processes:
+                self.queue.run()
+            elif len(self.queue.transfer_processes) &gt; self.queue.max_transfer_processes:
                 self.queue.stop()
+                self.queue.run()
 
         if not req:
             continue
