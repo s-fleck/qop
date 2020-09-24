@@ -188,13 +188,17 @@ def handle_convert(args, client) -> Dict:
 
     conv = converters.Mp3Converter(remove_art=args.remove_art)  # TODO
     conv_copy = converters.CopyConverter(remove_art=args.remove_art)
-    conv_mode = "all"
+
     if args.convert_only is not None:
         conv_include = ["." + e for e in args.convert_only]
         conv_mode = "include"
     elif args.convert_not is not None:
         conv_exclude = ["." + e for e in args.convert_not]
         conv_mode = "exclude"
+    elif args.convert_none:
+        conv_mode = "none"
+    else:
+        conv_mode = "all"
 
     for source in sources:
         if not isinstance(source, Dict):
@@ -336,6 +340,7 @@ parser_convert.add_argument("-a", "--remove-art", action="store_true", help="rem
 g = parser_convert.add_mutually_exclusive_group()
 g.add_argument("-c", "--convert-only", nargs="+", type=str, help="extensions of files to convert")
 g.add_argument("-C", "--convert-not", nargs="+", type=str, help="extensions of files not to convert")
+g.add_argument("-K", "--convert-none", action="store_true", help="copy all files without transcoding (useful in combination with --remove-art)", default=False)
 
 
 # shared arguments

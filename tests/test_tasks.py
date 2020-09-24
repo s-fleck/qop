@@ -131,6 +131,42 @@ def test_MoveTask_can_be_serialized(tmp_path):
     assert tsk == tasks.Task.from_dict(tsk.__dict__)
 
 
+def test_SimpleConvertTask(tmp_path):
+    """SimpleConvertTask can convert an audio file"""
+    src = tmp_path.joinpath("sine.flac")
+    dst = tmp_path.joinpath("sine.mp3")
+
+    sound = generators.Sine(440).to_audio_segment()
+    sound.export(src, format="flac")
+
+    tsk = tasks.SimpleConvertTask(src, dst, converter=converters.Mp3Converter())
+    tsk.run()
+
+    assert src.exists()
+    assert dst.exists()
+
+
+def test_ConvertTask(tmp_path):
+    """ConvertTask can convert an audio file in a two-step process"""
+    src = tmp_path.joinpath("sine.flac")
+    dst = tmp_path.joinpath("sine.mp3")
+
+    sound = generators.Sine(440).to_audio_segment()
+    sound.export(src, format="flac")
+
+    tsk = tasks.ConvertTask(src, dst, converter=converters.Mp3Converter(), tempdir=tmp_path)
+    tsk.run()
+    assert src.exists()
+    assert not dst.exists()
+
+    # mock `oid` that is used to match a task to its follow_up_task under production conditions. oid fulfils no function
+    # if the follow_up_task is not executed by a TaskQueue.
+    tsk.oid = 1
+    tsk.follow_up_task().run()
+    assert src.exists()
+    assert dst.exists()
+
+
 def test_TaskQueueElements_can_be_ordered_by_priority():
     """TaskQueueElements can be ordered by their priority"""
     op1 = tasks.TaskQueueElement(tasks.EchoTask('one'), 1)

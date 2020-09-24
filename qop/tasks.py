@@ -697,10 +697,10 @@ class ConvertTask(SimpleConvertTask):
         ConvertTask transcodes an audio file to a temporary directory and then adds a move task to the queue.
         This makes it possible to cleanly separate transcode and transfer processes.
     """
-    def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter, tagger = None) -> None:
+    def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter, tempdir=CONVERT_CACHE_DIR) -> None:
         super().__init__(src=src, dst=dst, converter=converter)
         self.type = TaskType.CONVERT
-        self.tmpdst = CONVERT_CACHE_DIR.joinpath(uuid.uuid4().hex)
+        self.tmpdst = tempdir.joinpath(uuid.uuid4().hex)
 
     def run(self) -> None:
         super().__validate__()

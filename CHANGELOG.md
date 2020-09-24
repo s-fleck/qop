@@ -2,6 +2,8 @@
 
 ## dev
 
+- `qop convert [...] --remove-art` removes album art from files. Use `qop convert ... --convert-none --remove-art` to 
+  only remove album covers without transcoding any files.
 
 ## 0.0.1 (2020-09-23)
 
