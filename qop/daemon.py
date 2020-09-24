@@ -75,14 +75,16 @@ class QopDaemon:
             lg.debug(f"processing request {req}")
 
             if self.queue.is_active():
-                if self.queue.convert_processes < self.queue.max_convert_processes:
+                if len(self.queue.convert_processes) < self.queue.max_convert_processes:
                     self.queue.run()
-                elif self.queue.transfer_processes < self.queue.max_transfer_processes:
+                elif len(self.queue.transfer_processes) < self.queue.max_transfer_processes:
                     self.queue.run()
-                elif self.queue.convert_processes > self.queue.convert_processes:
+                elif len(self.queue.convert_processes) > self.queue.max_convert_processes:
                     self.queue.stop()
-                elif self.queue.transfer_processes > self.queue.transfer_processes:
+                    self.queue.run()
+                elif len(self.queue.transfer_processes) > self.queue.max_transfer_processes:
                     self.queue.stop()
+                    self.queue.run()
 
             if not req:
                 continue
