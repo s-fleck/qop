@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 from typing import Union, Optional, Dict, Tuple, List
 from time import sleep
+from mutagen.id3 import APIC, ID3
 
 import appdirs
 from colorama import init, Fore
@@ -697,7 +698,7 @@ class ConvertTask(SimpleConvertTask):
         ConvertTask transcodes an audio file to a temporary directory and then adds a move task to the queue.
         This makes it possible to cleanly separate transcode and transfer processes.
     """
-    def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter) -> None:
+    def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter, tagger = None) -> None:
         super().__init__(src=src, dst=dst, converter=converter)
         self.type = TaskType.CONVERT
         self.tmpdst = CONVERT_CACHE_DIR.joinpath(uuid.uuid4().hex)
@@ -706,6 +707,11 @@ class ConvertTask(SimpleConvertTask):
         super().__validate__()
         lg.debug(f"converting file to temporary destination: {self.tmpdst}")
         self.converter.run(self.src, self.tmpdst)
+
+        # remove cover art tags
+        file = ID3(self.tmpdst)
+        file.delall("APIC")  # Delete every APIC tag (Cover art)
+        file.save()  # Save the file
 
     def follow_up_task(self) -> MoveTask:
         # follow_up_task requires that the task was retrieved from the queue and therefore already as an oid that
