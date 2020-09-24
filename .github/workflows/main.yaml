@@ -12,7 +12,7 @@ jobs:
           python-version: 3.8
       - name: Install dependencies
         run: |
-          pip3 install pdoc3 appdirs pydub colorama
+          pip3 install pdoc3 appdirs pydub colorama mutagen
       - name: Build docs
         run: |
           pdoc --html qop -o docs
