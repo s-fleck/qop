@@ -25,17 +25,26 @@ qop is in a beta stage and under active development. While the core functionalit
 ## Usage 
 
 ```
-qop copy file1 file2 /my/audio/dir
-qop move file1 file2 /my/audio/dir
-qop convert file1 file2 /my/audio/dir
+# basic usage
+qop copy file1 file2 /media/mp3player
+qop move file1 file2 /media/mp3player
+qop convert file1 file2 /media/mp3player
 
-# practical example: copy music to a portable media player
+# repeats the last command with the same paramters and output directory on different inputs
+qop re file3 file4
+
+# practical examples: 
+
+# copy music to a portable media player
 # - inlcude only flac and mp3 files (ignore cover.jpg)
 # - convert only flac files, leave mp3 files untouched
-qop convert song.mp3 fugue.flac cover.jpg /mnt/mp3player --include mp3 flac --convert-only flac 
+qop convert song.mp3 fugue.flac cover.jpg /media/mp3player --include mp3 flac --convert-only flac 
 
 # repeat the last command for your whole music directory
 qop re ~/music
+
+# copy all files to media player (without transcoding) but remove album art
+qop convert * /media/m3player --convert-none --remove-art  
 
 # dsiplay a progress bar
 qop progress 
