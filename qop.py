@@ -436,6 +436,10 @@ else:
 client = daemon.QopClient(ip="127.0.0.1", port=9393)
 if args.start_daemon:
     daemon_start(args, client)
+    for i in range(100):
+        sleep(0.1)
+        if client.is_daemon_active():
+            break
 
 res = args.fun(args, client)
 print(format_response(res))
