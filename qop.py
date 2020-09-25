@@ -303,16 +303,38 @@ def queue_progress(args, client):
     if info.total == 0:
         return {"status": Status.OK, "msg": "queue is empty"}
 
+    CPL = "\033[A"  # ANSI move cursor previous line
+    EL  = "\033[K"  # ANSI erase line
+
+    max_lines = client.active_processes + 1
+
+    print("\n" * max_lines)
+
     with tqdm(total=info.total, initial=info.total - info.pending) as pbar:
-        for i in range(info.total):
-            sleep(0.5)
-            info = client.get_queue_progress()
+        while True:
+            sleep(0.1)
+
+            try:
+                info = client.get_queue_progress()
+                is_daemon_active = client.is_daemon_active()
+                active_processes = client.active_processes
+                transfers = client.active_tasks['payload']
+                transfers_str = "\n".join([tasks.Task.from_dict(x['task']).color_repr() for x in transfers])
+            except:
+                continue
+
+            lbs = '\n' * (max_lines - len(transfers) + (len(transfers) > 0))
+            clr = (CPL + EL) * max_lines
+
+            pbar.write(clr, end="")
+            pbar.write(transfers_str + lbs, end="")
+
             pbar.update(info.total - info.pending - pbar.n)
+            pbar.set_description(f"{active_processes} processes")
 
-            if not client.is_daemon_active() or client.get_active_processes() < 1:
+            if not is_daemon_active or active_processes < 1:
+                pbar.write(clr)
                 break
-
-    print(info)
 
     if info.total == info.ok + info.skip:
         return {"status": Status.OK, "msg": "all files transferred successfully"}

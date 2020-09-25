@@ -222,7 +222,12 @@ class QopClient:
     def is_daemon_active(self) -> bool:
         return utils.is_daemon_active(self.ip, self.port)
 
-    def get_active_processes(self) -> int:
+    @property
+    def active_tasks(self) -> list:
+        return self.send_command(Command.QUEUE_SHOW)
+
+    @property
+    def active_processes(self) -> int:
         x = self.send_command(Command.QUEUE_ACTIVE_PROCESSES)['payload']
         return x['transfer'] + x['convert']
 
@@ -238,7 +243,7 @@ class QopClient:
     :param payload: Optional payload to send along with the command (usually a Task)
     :type None, Dict, Task    
     """
-    def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task] = None) -> Dict:
+    def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task, list] = None) -> Dict:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect((self.ip, self.port))
             req = CommandMessage(command, payload=payload)

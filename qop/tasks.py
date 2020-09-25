@@ -67,10 +67,11 @@ class TaskQueue:
         cur = self.con.cursor()
         cur.execute("""
            CREATE TABLE IF NOT EXISTS tasks (
-              priority INTEGER,
-              task TEXT,
-              status INTEGER,
+              priority INTEGER NOT NULL,
+              task TEXT NOT NULL,
+              status INTEGER NOT NULL,
               lock TEXT,
+              parent INTEGER,
               UNIQUE(task, status)              
             )              
         """)
@@ -124,14 +125,18 @@ class TaskQueue:
         cur.close()
         return res
 
-    def progress(self) -> "QueueProgress":
+    def progress(self, include_children: bool = False) -> "QueueProgress":
         cur = self.con.cursor()
-        res = cur.execute("SELECT status, COUNT(1) from tasks GROUP BY status").fetchall()
+        if include_children:
+            cur.execute("SELECT status, COUNT(1) from tasks GROUP BY status")
+        else:
+            cur.execute("SELECT status, COUNT(1) FROM tasks WHERE parent is NULL GROUP BY status")
+        res = cur.fetchall()
         cur.close()
 
         return QueueProgress.from_list(res)
 
-    def put(self, task: "Task", priority: int = 10) -> None:
+    def put(self, task: "Task", priority: int = 10, parent: Optional[int] = None) -> None:
         """
         Enqueue a task
 
@@ -139,13 +144,15 @@ class TaskQueue:
         :type task: Task
         :param priority: (optional) priority for executing `task` (tasks with lower priority will be executed earlier)
         :type priority: int
+        :param parent: (optional) only for child tasks, oid/_ROWID_ of the task that spawned this task
+        :type parent: int
         """
 
         lg.debug(f"trying to inserted task {task.to_dict()}")
         cur = self.con.cursor()
         cur.execute(
-            "INSERT OR REPLACE INTO tasks (priority, task, status) VALUES (?, ?, ?)",
-            (priority, task.to_json(), Status.PENDING)
+            "INSERT OR REPLACE INTO tasks (priority, task, status, parent) VALUES (?, ?, ?, ?)",
+            (priority, task.to_json(), Status.PENDING, parent)
         )
 
         hammer_commit(self.con)
@@ -360,9 +367,9 @@ class TaskQueue:
                 lg.info(f"task finished: {op}")
                 self.set_status(op.oid, Status.OK)
                 try:
-                    follow_up = op.follow_up_task()
-                    self.put(follow_up, priority=-1)
-                    lg.info(f"queued follow-up task: {follow_up}")
+                    follow_up = op.spawn()
+                    self.put(follow_up, priority=-1, parent=op.oid)
+                    lg.info(f"spawned childtask: {follow_up}")
                 except:
                     pass
 
@@ -707,8 +714,8 @@ class ConvertTask(SimpleConvertTask):
         lg.debug(f"converting file to temporary destination: {self.tmpdst}")
         self.converter.run(self.src, self.tmpdst)
 
-    def follow_up_task(self) -> MoveTask:
-        # follow_up_task requires that the task was retrieved from the queue and therefore already as an oid that
+    def spawn(self) -> MoveTask:
+        # spawn requires that the task was retrieved from the queue and therefore already as an oid that
         # links it to a row in the queue
         assert self.oid is not None
         return MoveTask(self.tmpdst, self.dst, parent_oid=self.oid)

@@ -162,7 +162,7 @@ def test_ConvertTask(tmp_path):
     # mock `oid` that is used to match a task to its follow_up_task under production conditions. oid fulfils no function
     # if the follow_up_task is not executed by a TaskQueue.
     tsk.oid = 1
-    tsk.follow_up_task().run()
+    tsk.spawn().run()
     assert src.exists()
     assert dst.exists()
 
