@@ -378,7 +378,7 @@ class TaskQueue:
                     lg.info(f"parent task finished: {op.parent_oid}")
 
             except:
-                lg.error(f"task failed: {op}")
+                lg.error(f"task failed: {op}", exc_info=True)
                 self.set_status(op.oid, Status.FAIL)
                 if op.parent_oid is not None:
                     self.set_status(op.parent_oid, Status.FAIL)
@@ -639,10 +639,7 @@ class MoveTask(CopyTask):
         if not self.dst.parent.exists():
             self.dst.parent.mkdir(parents=True)
 
-        if self.src.is_dir():
-            shutil.move(self.src, self.dst)
-        else:
-            shutil.move(self.src, self.dst)
+        shutil.move(self.src, self.dst)
 
     def color_repr(self, color=True) -> str:
         if color:

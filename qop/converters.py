@@ -1,11 +1,15 @@
 import shutil
-import pydub
+import json
 from pathlib import Path
 from typing import Union, Optional, Dict
-import json
-from qop.enums import ConverterType
+
+import pydub
 import mutagen
 from mutagen import id3
+
+from qop.enums import ConverterType
+
+Pathish = Union[Path, str]
 
 class Converter:
     def to_dict(self) -> Dict:
@@ -47,7 +51,10 @@ class Converter:
         try:
             f.delall("APIC")
         except:
-            f.clear_pictures()
+            try:
+                f.clear_pictures()
+            except:
+                pass
 
         f.save()
 
@@ -58,20 +65,25 @@ class CopyConverter(Converter):
     def __init__(self, remove_art: bool = False) -> None:
         self.remove_art = remove_art
 
-    def run(self, src: Union[Path, str], dst: Union[Path, str]):
+    def run(self, src: Pathish, dst: Pathish):
+        src = Path(src).resolve()
+        dst = Path(dst).resolve()
+        if not dst.parent.exists():
+            dst.parent.mkdir(parents=True)
+
         shutil.copy(src, dst)
         if self.remove_art:
-            print("removing art")
             self.do_remove_art(dst)
 
     def to_dict(self) -> Dict:
         return {"type": ConverterType.COPY, "remove_art": self.remove_art}
 
 
-class OggConverter(Converter):
+class OggConverter(CopyConverter):
     """Convert audio files to ogg vorbis"""
 
     def __init__(self, bitrate: str = "192k", remove_art: bool = False) -> None:
+        super().__init__(remove_art=remove_art)
         self.bitrate = bitrate
         self.remove_art = remove_art
 
@@ -83,7 +95,6 @@ class OggConverter(Converter):
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="ogg")
-
         if self.remove_art:
             self.do_remove_art(dst)
 
@@ -91,11 +102,11 @@ class OggConverter(Converter):
         return {"type": ConverterType.OGG, "bitrate": self.bitrate, "remove_art": self.remove_art}
 
 
-class Mp3Converter(Converter):
+class Mp3Converter(CopyConverter):
     """Convert audio files to mp3"""
 
     def __init__(self, remove_art: bool = False) -> None:
-        self.remove_art = remove_art
+        super().__init__(remove_art=remove_art)
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         src = Path(src).resolve()
@@ -105,7 +116,6 @@ class Mp3Converter(Converter):
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="mp3", parameters=["-q:a", "0"])
-
         if self.remove_art:
             self.do_remove_art(dst)
 
