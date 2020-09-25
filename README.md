@@ -1,11 +1,13 @@
 # qop - Queued file operation
 
-qop (pronounced like "cop") is a file transfer tool that is optimized for copying or transcoding audio files to mobile 
-media players, where connection speed, drive space or audio format support are an issue.
+qop (pronounced like "cop") is a file transfer tool optimized for copying and transcoding audio files to mobile 
+media players where connection speed, drive space, or audio format support are limited.
 
-qop manages a single copy process in the background, so you do not have to worry about large numbers of transfers
-spamming your legacy USB connections. If your device gets disconnected, qop retains transfer queues that can be resume whenever desired. qop
-can also smartly transcode files based on their format. For example, qop can transcode your 192khz 48bit audiophile flac files to mp3 before sending them to a portable media player while, while leaving files that are already in a lossy format untouched.
+qop manages a single transfer process in the background because large numbers of concurrent transfers can clog USB 
+connections and provide no advantage for total transfer speed. If your device gets disconnected, qop retains transfer 
+queues that can be resume whenever desired. qop can also smartly transcode files based on their format. For example, 
+qop can transcode your 192khz 48bit audiophile flac files to mp3 before sending them to your media device  
+while leaving files that are already in a lossy format untouched.
 
 
 ## Features:
@@ -30,23 +32,23 @@ qop copy file1 file2 /media/mp3player
 qop move file1 file2 /media/mp3player
 qop convert file1 file2 /media/mp3player
 
-# repeats the last command with the same paramters and output directory on different inputs
+# repeat the last command with the same paramters and output directory on different inputs
 qop re file3 file4
 
-# practical examples: 
+# examples: 
 
-# copy music to a portable media player
+# copy two songs to a portable media player
 # - inlcude only flac and mp3 files (ignore cover.jpg)
-# - convert only flac files, leave mp3 files untouched
+# - transcoe flac files and leave mp3 files untouched
 qop convert song.mp3 fugue.flac cover.jpg /media/mp3player --include mp3 flac --convert-only flac 
 
 # repeat the last command for your whole music directory
 qop re ~/music
 
-# copy all files to media player (without transcoding) but remove album art
+# copy files to a media player and remove album art tags (without audio-transcoding)
 qop convert * /media/m3player --convert-none --remove-art  
 
-# dsiplay a progress bar
+# display a progress bar
 qop progress 
 ```
 
