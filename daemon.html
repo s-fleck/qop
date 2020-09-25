@@ -250,7 +250,12 @@ class QopClient:
     def is_daemon_active(self) -&gt; bool:
         return utils.is_daemon_active(self.ip, self.port)
 
-    def get_active_processes(self) -&gt; int:
+    @property
+    def active_tasks(self) -&gt; list:
+        return self.send_command(Command.QUEUE_SHOW)
+
+    @property
+    def active_processes(self) -&gt; int:
         x = self.send_command(Command.QUEUE_ACTIVE_PROCESSES)[&#39;payload&#39;]
         return x[&#39;transfer&#39;] + x[&#39;convert&#39;]
 
@@ -266,7 +271,7 @@ class QopClient:
     :param payload: Optional payload to send along with the command (usually a Task)
     :type None, Dict, Task    
     &#34;&#34;&#34;
-    def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task] = None) -&gt; Dict:
+    def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task, list] = None) -&gt; Dict:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect((self.ip, self.port))
             req = CommandMessage(command, payload=payload)
@@ -592,7 +597,12 @@ Currently the only practical payload is a Task.
     def is_daemon_active(self) -&gt; bool:
         return utils.is_daemon_active(self.ip, self.port)
 
-    def get_active_processes(self) -&gt; int:
+    @property
+    def active_tasks(self) -&gt; list:
+        return self.send_command(Command.QUEUE_SHOW)
+
+    @property
+    def active_processes(self) -&gt; int:
         x = self.send_command(Command.QUEUE_ACTIVE_PROCESSES)[&#39;payload&#39;]
         return x[&#39;transfer&#39;] + x[&#39;convert&#39;]
 
@@ -608,7 +618,7 @@ Currently the only practical payload is a Task.
     :param payload: Optional payload to send along with the command (usually a Task)
     :type None, Dict, Task    
     &#34;&#34;&#34;
-    def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task] = None) -&gt; Dict:
+    def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task, list] = None) -&gt; Dict:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect((self.ip, self.port))
             req = CommandMessage(command, payload=payload)
@@ -626,22 +636,36 @@ Currently the only practical payload is a Task.
 
             return res</code></pre>
 </details>
-<h3>Methods</h3>
+<h3>Instance variables</h3>
 <dl>
-<dt id="qop.daemon.QopClient.get_active_processes"><code class="name flex">
-<span>def <span class="ident">get_active_processes</span></span>(<span>self) ‑> int</span>
-</code></dt>
+<dt id="qop.daemon.QopClient.active_processes"><code class="name">var <span class="ident">active_processes</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_active_processes(self) -&gt; int:
+<pre><code class="python">@property
+def active_processes(self) -&gt; int:
     x = self.send_command(Command.QUEUE_ACTIVE_PROCESSES)[&#39;payload&#39;]
     return x[&#39;transfer&#39;] + x[&#39;convert&#39;]</code></pre>
 </details>
 </dd>
+<dt id="qop.daemon.QopClient.active_tasks"><code class="name">var <span class="ident">active_tasks</span> : list</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def active_tasks(self) -&gt; list:
+    return self.send_command(Command.QUEUE_SHOW)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
 <dt id="qop.daemon.QopClient.get_queue_progress"><code class="name flex">
 <span>def <span class="ident">get_queue_progress</span></span>(<span>self, max_tries=10) ‑> <a title="qop.tasks.QueueProgress" href="tasks.html#qop.tasks.QueueProgress">QueueProgress</a></span>
 </code></dt>
@@ -692,7 +716,7 @@ Currently the only practical payload is a Task.
 </details>
 </dd>
 <dt id="qop.daemon.QopClient.send_command"><code class="name flex">
-<span>def <span class="ident">send_command</span></span>(<span>self, command: <a title="qop.enums.Command" href="enums.html#qop.enums.Command">Command</a>, payload: Union[NoneType, Dict, <a title="qop.tasks.Task" href="tasks.html#qop.tasks.Task">Task</a>] = None) ‑> Dict</span>
+<span>def <span class="ident">send_command</span></span>(<span>self, command: <a title="qop.enums.Command" href="enums.html#qop.enums.Command">Command</a>, payload: Union[NoneType, Dict, <a title="qop.tasks.Task" href="tasks.html#qop.tasks.Task">Task</a>, list] = None) ‑> Dict</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -700,7 +724,7 @@ Currently the only practical payload is a Task.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task] = None) -&gt; Dict:
+<pre><code class="python">def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task, list] = None) -&gt; Dict:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.connect((self.ip, self.port))
         req = CommandMessage(command, payload=payload)
@@ -1329,8 +1353,9 @@ def header_len(self) -&gt; int:
 </li>
 <li>
 <h4><code><a title="qop.daemon.QopClient" href="#qop.daemon.QopClient">QopClient</a></code></h4>
-<ul class="">
-<li><code><a title="qop.daemon.QopClient.get_active_processes" href="#qop.daemon.QopClient.get_active_processes">get_active_processes</a></code></li>
+<ul class="two-column">
+<li><code><a title="qop.daemon.QopClient.active_processes" href="#qop.daemon.QopClient.active_processes">active_processes</a></code></li>
+<li><code><a title="qop.daemon.QopClient.active_tasks" href="#qop.daemon.QopClient.active_tasks">active_tasks</a></code></li>
 <li><code><a title="qop.daemon.QopClient.get_queue_progress" href="#qop.daemon.QopClient.get_queue_progress">get_queue_progress</a></code></li>
 <li><code><a title="qop.daemon.QopClient.is_daemon_active" href="#qop.daemon.QopClient.is_daemon_active">is_daemon_active</a></code></li>
 <li><code><a title="qop.daemon.QopClient.is_queue_active" href="#qop.daemon.QopClient.is_queue_active">is_queue_active</a></code></li>
