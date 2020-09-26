@@ -1,0 +1,287 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Queued file operation &mdash; qop  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="qop - Queued File Operations" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> qop
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">README</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-status">Development status</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="qop.html">qop</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">qop</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Queued file operation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/readme.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="queued-file-operation">
+<h1>Queued file operation<a class="headerlink" href="#queued-file-operation" title="Permalink to this headline">¶</a></h1>
+<p>qop (pronounced like “cop”) is a file transfer tool optimized for copying and transcoding audio files to mobile
+media players where connection speed, drive space, or audio format support are limited.</p>
+<p>qop manages a single transfer process in the background because large numbers of concurrent transfers can clog USB
+connections and provide no advantage for total transfer speed. If your device gets disconnected, qop retains transfer
+queues that can be resume whenever desired. qop can also smartly transcode files based on their format. For example,
+qop can transcode your 192khz 48bit audiophile flac files to mp3 before sending them to your media device<span class="raw-html-m2r"><br></span>
+while leaving files that are already in a lossy format untouched.</p>
+<div class="section" id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Conditional audio transcoding (e.g. transcode only lossless files)</p></li>
+<li><p>Tag cleanup (e.g. remove album covers) [planned]</p></li>
+<li><p>Multicore audio transcoding</p></li>
+<li><p>Persistent job-queues to resume aborted transfers</p></li>
+<li><p>Clean and powerful CLI</p></li>
+</ul>
+</div>
+<div class="section" id="development-status">
+<h2>Development status<a class="headerlink" href="#development-status" title="Permalink to this headline">¶</a></h2>
+<p>qop is in a beta stage and under active development. While the core functionality is stable, the user interface is still beeing refined. A public release fit for general usage is planned for early 2021.</p>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># basic usage</span>
+<span class="n">qop</span> <span class="n">copy</span> <span class="n">file1</span> <span class="n">file2</span> <span class="o">/</span><span class="n">media</span><span class="o">/</span><span class="n">mp3player</span>
+<span class="n">qop</span> <span class="n">move</span> <span class="n">file1</span> <span class="n">file2</span> <span class="o">/</span><span class="n">media</span><span class="o">/</span><span class="n">mp3player</span>
+<span class="n">qop</span> <span class="n">convert</span> <span class="n">file1</span> <span class="n">file2</span> <span class="o">/</span><span class="n">media</span><span class="o">/</span><span class="n">mp3player</span>
+
+<span class="c1"># repeat the last command with the same paramters and output directory on different inputs</span>
+<span class="n">qop</span> <span class="n">re</span> <span class="n">file3</span> <span class="n">file4</span>
+
+<span class="c1"># examples:</span>
+
+<span class="c1"># copy two songs to a portable media player</span>
+<span class="c1"># - inlcude only flac and mp3 files (ignore cover.jpg)</span>
+<span class="c1"># - transcoe flac files and leave mp3 files untouched</span>
+<span class="n">qop</span> <span class="n">convert</span> <span class="n">song</span><span class="o">.</span><span class="n">mp3</span> <span class="n">fugue</span><span class="o">.</span><span class="n">flac</span> <span class="n">cover</span><span class="o">.</span><span class="n">jpg</span> <span class="o">/</span><span class="n">media</span><span class="o">/</span><span class="n">mp3player</span> <span class="o">--</span><span class="n">include</span> <span class="n">mp3</span> <span class="n">flac</span> <span class="o">--</span><span class="n">convert</span><span class="o">-</span><span class="n">only</span> <span class="n">flac</span>
+
+<span class="c1"># repeat the last command for your whole music directory</span>
+<span class="n">qop</span> <span class="n">re</span> <span class="o">~/</span><span class="n">music</span>
+
+<span class="c1"># copy files to a media player and remove album art tags (without audio-transcoding)</span>
+<span class="n">qop</span> <span class="n">convert</span> <span class="o">*</span> <span class="o">/</span><span class="n">media</span><span class="o">/</span><span class="n">m3player</span> <span class="o">--</span><span class="n">convert</span><span class="o">-</span><span class="n">none</span> <span class="o">--</span><span class="n">remove</span><span class="o">-</span><span class="n">art</span>
+
+<span class="c1"># display a progress bar</span>
+<span class="n">qop</span> <span class="n">progress</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
+<p>qop consists of two programs:</p>
+<ul class="simple">
+<li><p><em>qopd</em>, a daemon which processes the transfer queue and executes the copy and transcode tasks, and</p></li>
+<li><dl class="simple">
+<dt><em>qop</em>, a command line client which can put tasks into the queue, tell the daemon to start or stop processing</dt><dd><p>the queue, monitor transfer progress, etc…</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Transfer queues are stored as json strings in sqlite3 databases. If you are familiar with these
+technologies you can easily create transfer queues from the scripting language of your choice without needing to
+go through the cli program. For more details please refer to the <a class="reference external" href="https://s-fleck.github.io/qop/">api documentation</a>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="qop - Queued File Operations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Stefan Fleck
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

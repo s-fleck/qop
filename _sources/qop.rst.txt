@@ -1,6 +1,11 @@
 qop package
 ===========
 
+.. automodule:: qop
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
@@ -64,14 +69,6 @@ qop.utils module
 ----------------
 
 .. automodule:: qop.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: qop
    :members:
    :undoc-members:
    :show-inheritance:
