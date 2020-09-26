@@ -7,10 +7,9 @@ qop - Queued File Operations
 ============================
 .. toctree::
    :maxdepth: 2
-   :caption: Table of Contents
 
    README <readme>
-   changelog
+   CHANGELOG <changelog>
 
 API Documentation
 -----------------
