@@ -1,3 +1,8 @@
+"""
+Converters are used by tasks.ConvertTask and tasks.SimpleConvertTask to transcode audiofiles
+"""
+
+
 import shutil
 import json
 from pathlib import Path

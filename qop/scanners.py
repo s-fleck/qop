@@ -1,3 +1,8 @@
+"""
+Used by qop.py to traverse the directory tree when looking for files to transfer
+"""
+
+
 from pathlib import Path
 import logging
 

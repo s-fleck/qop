@@ -1,9 +1,14 @@
+"""
+Global variables and constants
+"""
+
+
 from enum import IntEnum
 
 PREHEADER_LEN: int = 2
-
 CPL = "\033[A"  # ANSI move cursor previous line
 EL = "\033[K"   # ANSI erase line
+
 
 class Command(IntEnum):
     DAEMON_START = 101

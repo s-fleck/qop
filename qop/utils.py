@@ -1,3 +1,8 @@
+"""
+Internal utility functions
+"""
+
+
 from pathlib import Path
 import socket
 

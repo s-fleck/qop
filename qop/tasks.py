@@ -1,3 +1,8 @@
+"""
+Classes and functions for working with Tasks. Tasks represent atomic file operations - such as copy, move or convert.
+"""
+
+
 import shutil
 import os
 import json
@@ -104,7 +109,7 @@ class TaskQueue:
         Retrieves Task object and sets status of Task in database to "in progress" (1)
 
         :raises AlreadyUnderEvaluationError: If trying to pop a tasks that is already being processed  (i.e. if a race
-        condition occurs if the queue is processed in parallel)
+            condition occurs if the queue is processed in parallel)
         """
         cur = self.con.cursor()
 
@@ -264,7 +269,7 @@ class TaskQueue:
         self.convert_processes = [p for p in self.convert_processes if p.is_alive()]
 
         if self.n_pending < 1:
-            lg.warning("queue is empty")
+            lg.info("queue is empty")
             return None
 
         if len(self.transfer_processes) >= self.max_transfer_processes:
@@ -285,9 +290,33 @@ class TaskQueue:
             p.start()
             self.convert_processes.append(p)
 
-    def __start_run_process(self, ip=None, port=None, task_type_include=None, task_type_exclude=None) -> None:
-        """Launch a single process that executes the tasks stored in the queue. This function is called internally
-           by self.run() and should not be called directly
+    def __start_run_process(
+            self,
+            ip: Optional[str] = None,
+            port: Optional[int] = None,
+            task_type_include: Optional[TaskType] = None,
+            task_type_exclude: Optional[TaskType] = None
+    ) -> None:
+        """
+        Launch a single process that executes the tasks stored in the queue. This function is called internally
+        by self.run() and should not be called directly.
+
+        If a daemon is specified via *port* and *ip*, the queue will terminate once it can no longer affirm that the
+        daemon is running. This is relevant in case the daemon is not closed via `qop daemon stop` but killed
+        or simply crashes.
+
+        *task_type_include* and *task_type_exclude* are passed to `TaskQueue.pop()`
+
+        :param ip: (optional)ip of the daemon that runs this queue
+        :type ip: str
+        :param port: port of the daemon
+        :type port:
+        :param task_type_include: see .pop()
+        :type task_type_include: Optional[TaskType]
+        :param task_type_exclude: see .pop()
+        :type task_type_exclude: Optional[TaskType]
+        :return:
+        :rtype:
         """
         progress = self.progress()
         while progress.pending > 0 or progress.active > 0:

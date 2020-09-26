@@ -1,0 +1,8 @@
+pydub
+colorama
+appdirs
+mutagen
+tqdm
+sphinx
+sphinx_rtd_theme
+m2r2

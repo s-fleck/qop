@@ -12,16 +12,18 @@ jobs:
           python-version: 3.8
       - name: Install dependencies
         run: |
-          pip3 install pdoc3 appdirs pydub colorama mutagen tqdm
+          pip3 install -r requirements.txt
       - name: Build docs
         run: |
-          pdoc --html qop -o docs
+          sphinx-apidoc -o docs/source qop -T -f -M
+          cd docs
+          make html
       - name: Commit documentation changes
         run: |
           git clone https://github.com/s-fleck/qop.git --branch gh-pages --single-branch gh-pages
-          mv docs /tmp
+          mv docs/build/html /tmp
           rm -r *
-          mv /tmp/docs/qop/* .
+          mv /tmp/html/* .
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .

@@ -1,4 +1,4 @@
-# qop - Queued file operation
+# Queued file operation 
 
 qop (pronounced like "cop") is a file transfer tool optimized for copying and transcoding audio files to mobile 
 media players where connection speed, drive space, or audio format support are limited.
@@ -10,7 +10,7 @@ qop can transcode your 192khz 48bit audiophile flac files to mp3 before sending 
 while leaving files that are already in a lossy format untouched.
 
 
-## Features:
+## Features
 
 * Conditional audio transcoding (e.g. transcode only lossless files) 
 * Tag cleanup (e.g. remove album covers) [planned]
@@ -19,10 +19,9 @@ while leaving files that are already in a lossy format untouched.
 * Clean and powerful CLI
 
 
-## Development status:
+## Development status
 
 qop is in a beta stage and under active development. While the core functionality is stable, the user interface is still beeing refined. A public release fit for general usage is planned for early 2021.
-
 
 ## Usage 
 

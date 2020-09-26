@@ -1,3 +1,8 @@
+"""
+Helper functions for the qop.py CLI application
+"""
+
+
 import pickle
 import subprocess
 import logging
@@ -262,7 +267,7 @@ def handle_queue_progress(args, client):
         bars = [tqdm(bar_format="{desc}") for x in range(max_processes + 1)]
         while True:
             sleep(0.1)
-            active_tasks = client.active_tasks['payload']
+            active_tasks = client.active_tasks
 
             for i in range(len(bars) - 1):
                 # keep bar 0 empty so that we get a blank line between the real progress bar and the tasks

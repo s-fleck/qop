@@ -1,3 +1,8 @@
+"""
+The classes and functions that power the daemon application qopd.py
+"""
+
+
 import tempfile
 import socket
 import logging
@@ -257,7 +262,7 @@ class QopClient:
 
     @property
     def active_tasks(self) -> list:
-        return self.send_command(Command.QUEUE_SHOW)
+        return self.send_command(Command.QUEUE_SHOW)['payload']
 
     @property
     def active_processes(self) -> int:
