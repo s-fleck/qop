@@ -20,3 +20,8 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+Links
+-----
+
+* `Github <http://www.github.com/s-fleck>`_
