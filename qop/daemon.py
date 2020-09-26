@@ -44,7 +44,7 @@ class QopDaemon:
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.new_queue(path=Path(queue_path))
-        self.queue.reset_running_tasks()
+        self.queue.reset_active_tasks()
         self.persist_queue = persist_queue
 
     def __enter__(self):
@@ -106,6 +106,9 @@ class QopDaemon:
                 elif command == Command.DAEMON_IS_ACTIVE:
                     client.sendall(StatusMessage(Status.OK, payload={"value": True}, payload_class=PayloadClass.VALUE).encode())
 
+                elif command == Command.DAEMON_FACTS:
+                    client.sendall(StatusMessage(Status.OK, payload=self.facts(), payload_class=PayloadClass.DAEMON_FACTS).encode())
+
                 elif command == Command.QUEUE_START:
                     self.queue.run(ip="127.0.0.1", port=self.port)
                     lg.info("starting queue")
@@ -117,14 +120,14 @@ class QopDaemon:
                         lg.info("stopped queue")
                         client.sendall(StatusMessage(Status.OK, "pause processing queue").encode())
                     else:
-                        lg.info("cannot stop queue: no queues are running")
-                        client.sendall(StatusMessage(Status.SKIP, "no running queues found").encode())
+                        lg.info("cannot stop queue: no queues are active")
+                        client.sendall(StatusMessage(Status.SKIP, "no active queues found").encode())
 
                 elif command == Command.QUEUE_IS_ACTIVE:
                     if self.queue.active_processes() > 0:
-                        client.sendall(StatusMessage(Status.OK, "queue is running", payload={"value": True}, payload_class=PayloadClass.VALUE).encode())
+                        client.sendall(StatusMessage(Status.OK, "queue is active", payload={"value": True}, payload_class=PayloadClass.VALUE).encode())
                     else:
-                        client.sendall(StatusMessage(Status.OK, "queue not running", payload={"value": False}, payload_class=PayloadClass.VALUE).encode())
+                        client.sendall(StatusMessage(Status.OK, "queue not active", payload={"value": False}, payload_class=PayloadClass.VALUE).encode())
 
                 elif command == Command.QUEUE_PROGRESS:
                     client.sendall(StatusMessage(Status.OK, payload=self.queue.progress().to_dict(), payload_class=PayloadClass.QUEUE_PROGRESS).encode())
@@ -151,8 +154,8 @@ class QopDaemon:
                     client.sendall(StatusMessage(Status.OK, "flushed pending tasks from queue").encode())
 
                 elif command == Command.QUEUE_SHOW:
-                    res = self.queue.fetch(status=Status.RUNNING)
-                    client.sendall(StatusMessage(Status.OK, "retrieved running tasks", payload=res, payload_class=PayloadClass.TASK_LIST).encode())
+                    res = self.queue.fetch(status=Status.ACTIVE)
+                    client.sendall(StatusMessage(Status.OK, "retrieved active tasks", payload=res, payload_class=PayloadClass.TASK_LIST).encode())
 
                 elif dd.body['command'] == Command.QUEUE_PUT:
                     tsk = tasks.Task.from_dict(dd.body['payload'])
@@ -184,7 +187,6 @@ class QopDaemon:
                 lg.error(info, exc_info=info)
                 client.sendall(StatusMessage(Status.FAIL, msg=str(info[0]) + str(info[1])).encode())
 
-
     @property
     def is_listening(self) -> bool:
         return self.__is_listening
@@ -207,6 +209,14 @@ class QopDaemon:
     def new_queue(self, path: Path):
         self.queue = tasks.TaskQueue(path=path)
 
+    def facts(self) -> Dict:
+        dinfo = {
+            "port": self.port,
+            "queue.persist": self.persist_queue,
+        }
+        dinfo.update(self.queue.facts())
+        return dinfo
+
 
 class QopClient:
     def __init__(self, ip: str = "127.0.0.1", port: int = 9393):
@@ -214,7 +224,19 @@ class QopClient:
         self.port = port
         self.stats = {"ok": 0, "fail": 0, "skip": 0}
 
-    def get_queue_progress(self, max_tries=10) -> tasks.QueueProgress:
+    def gather_facts(self, max_tries=10) -> Dict:
+        if max_tries == 1:
+            res = self.send_command(Command.DAEMON_FACTS)
+        else:
+            try:
+                res = self.send_command(Command.DAEMON_FACTS)
+            except:
+                sleep(0.1)
+                return self.gather_facts(max_tries=max_tries - 1)
+
+        return res['payload']
+
+    def get_queue_progress(self, max_tries=10) -> tasks.QueueProgress:  # TODO: deprecated
         if max_tries == 1:
             res = self.send_command(Command.QUEUE_PROGRESS)
         else:
@@ -234,7 +256,7 @@ class QopClient:
         return self.send_command(Command.QUEUE_MAX_PROCESSES)['payload']['value']
 
     @property
-    def running_tasks(self) -> list:
+    def active_tasks(self) -> list:
         return self.send_command(Command.QUEUE_SHOW)
 
     @property

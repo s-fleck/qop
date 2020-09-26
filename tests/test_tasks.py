@@ -219,7 +219,7 @@ def test_TaskQueue_can_run_convert_tasks(tmp_path):
 
     assert src.exists()
     assert dst.exists()
-    assert q.n_running == 0
+    assert q.n_active == 0
     assert q.active_processes() == 0
 
 
@@ -243,7 +243,7 @@ def test_TaskQueue_sorts_by_priority(tmp_path):
     or2 = oq.pop()
     or3 = oq.pop()
     res = oq.con.cursor().execute("SELECT status from tasks").fetchall()
-    assert all([el[0] == Status.RUNNING for el in res])
+    assert all([el[0] == Status.ACTIVE for el in res])
 
     # marking an object as done changes its status
     oq.set_status(or1.oid, Status.OK)
@@ -322,6 +322,6 @@ def test_TaskQueue_runs_nonblocking(tmp_path):
     sleep(1)
 
     assert tick - tock < 1
-    assert q.n_running == 1
+    assert q.n_active == 1
     sleep(2)
-    assert q.n_running == 0
+    assert q.n_active == 0

@@ -4,7 +4,7 @@
 
 - `qop convert [...] --remove-art` removes album art from files. Use `qop convert ... --convert-none --remove-art` to 
   only remove album covers without transcoding any files.
-- `qop progress` now displays running tasks together with the progress bar
+- `qop progress` now displays active tasks together with the progress bar
 
 ## 0.0.1 (2020-09-23)
 

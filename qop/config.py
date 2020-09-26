@@ -9,6 +9,7 @@ class Command(IntEnum):
     DAEMON_START = 101
     DAEMON_STOP = 102
     DAEMON_IS_ACTIVE = 103
+    DAEMON_FACTS = 104
     QUEUE_START = 201
     QUEUE_STOP = 202
     QUEUE_IS_ACTIVE = 203
@@ -26,6 +27,7 @@ class PayloadClass(IntEnum):
     TASK = 2
     QUEUE_PROGRESS = 3
     TASK_LIST = 4
+    DAEMON_FACTS = 5
 
 
 class TaskType(IntEnum):
@@ -45,7 +47,7 @@ class Status(IntEnum):
     PENDING = 0
     OK = 1
     SKIP = 2
-    RUNNING = 3
+    ACTIVE = 3
 
 
 class ConverterType(IntEnum):

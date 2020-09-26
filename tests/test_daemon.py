@@ -50,7 +50,7 @@ def test_daemon_sends_status_updates():
     assert p.fail == 0
     assert p.skip == 0
     assert p.fail == 0
-    assert p.running == 0
+    assert p.active == 0
     assert p.total == 1
 
     client.send_command(Command.QUEUE_PUT, payload=tasks.EchoTask("test2"))
@@ -68,7 +68,7 @@ def test_daemon_sends_status_updates():
     client.send_command(Command.QUEUE_START)
     wait_for_queue()
     p = client.get_queue_progress()
-    assert p.running == 0
+    assert p.active == 0
     assert p.ok == 2
     assert p.fail == 1
     assert p.total == 3

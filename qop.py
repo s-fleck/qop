@@ -80,11 +80,12 @@ parser_daemon_sub.add_parser("restart", help="restart the daemon").set_defaults(
 parser_daemon_sub.add_parser("stop", help="stop the daemon").set_defaults(fun=cli.handle_daemon_stop)
 parser_daemon_sub.add_parser("is-active", help="check if daemon is alive").set_defaults(fun=cli.handle_daemon_is_active)
 parser_daemon_sub.add_parser("destroy", help="immediately terminate the daemon and empty the queue").set_defaults(fun=cli.handle_daemon_destroy, start_daemon=True)
+parser_daemon_sub.add_parser("facts", help="return information about the daemon").set_defaults(fun=cli.handle_simple_command, command = Command.DAEMON_FACTS, start_daemon=False)
 
 # global options
 parser.add_argument("--log-level", type=str, help="python-logging log level: DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50)", default="WARNING")
 parser.add_argument("--log-file", type=str, help="optional path to redirect logging to")
-parser.add_argument("-v", "--verbose", action="store_true", help="Enqueue only without starting the queue. Note that this does not stop the queue if it is already running.")
+parser.add_argument("-v", "--verbose", action="store_true", help="Enqueue only without starting the queue. Note that this does not stop the queue if it is already active.")
 
 args = parser.parse_args()
 

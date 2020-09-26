@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from typing import Dict, Union, Optional
 from time import sleep
+import json
 
 import appdirs
 from tqdm import tqdm, trange
@@ -50,7 +51,7 @@ def handle_re(args, client) -> Dict:
 def handle_copy_move(args, client) -> Dict:
     sources = args.paths[:-1]
     dst_dir = args.paths[-1]
-    is_queue_running = client.is_queue_active()
+    is_queue_active = client.is_queue_active()
 
     assert isinstance(dst_dir, str)
     assert len(sources) > 0
@@ -91,9 +92,9 @@ def handle_copy_move(args, client) -> Dict:
 
             rsp = client.send_command(Command.QUEUE_PUT, payload=tsk)
 
-            if not is_queue_running and not args.enqueue_only:
+            if not is_queue_active and not args.enqueue_only:
                 client.send_command(Command.QUEUE_START)
-                is_queue_running = True
+                is_queue_active = True
 
             if args.verbose:
                 print(format_response(rsp))
@@ -108,7 +109,7 @@ def handle_copy_move(args, client) -> Dict:
 def handle_convert(args, client) -> Dict:
     sources = args.paths[:-1]
     dst_dir = args.paths[-1]
-    is_queue_running = client.is_queue_active()
+    is_queue_active = client.is_queue_active()
 
     assert isinstance(dst_dir, str)
     assert len(sources) > 0
@@ -177,9 +178,9 @@ def handle_convert(args, client) -> Dict:
 
             rsp = client.send_command(Command.QUEUE_PUT, payload=tsk)
 
-            if not is_queue_running and not args.enqueue_only:
+            if not is_queue_active and not args.enqueue_only:
                 client.send_command(Command.QUEUE_START)
-                is_queue_running = True
+                is_queue_active = True
 
             if args.verbose:
                 print(format_response(rsp))
@@ -193,7 +194,7 @@ def handle_convert(args, client) -> Dict:
 
 def handle_daemon_stop(args, client) -> Dict:
     if not client.is_daemon_active():
-        return {"status": Status.SKIP, "msg": "daemon is not running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
+        return {"status": Status.SKIP, "msg": "daemon is not active", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
 
     return client.send_command(Command.DAEMON_STOP)
 
@@ -206,7 +207,7 @@ def handle_daemon_destroy(args, client) -> Dict:
 def handle_daemon_start(args, client) -> Dict:
     # launch daemon
     if client.is_daemon_active():
-        return {"status": Status.SKIP, "msg": "daemon is already running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
+        return {"status": Status.SKIP, "msg": "daemon is already active", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
     else:
         qop_exc = Path(__file__).resolve().parents[1].joinpath("qopd.py")
         assert qop_exc.exists()
@@ -216,23 +217,23 @@ def handle_daemon_start(args, client) -> Dict:
 
 
 def handle_daemon_restart(args, client) -> Dict:
-    was_running = client.is_daemon_active()
+    was_active = client.is_daemon_active()
     handle_daemon_stop(args, client)
     wait_for_daemon(client, status=0)
     was_stopped = not client.is_daemon_active()
     handle_daemon_start(args, client)
     wait_for_daemon(client)
-    is_running = client.is_daemon_active()
+    is_active = client.is_daemon_active()
 
-    if is_running:
-        if not was_running:
+    if is_active:
+        if not was_active:
             return {"status": Status.OK, "msg": "daemon started", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
         elif not was_stopped:
-            return {"status": Status.FAIL, "msg": "daemon is still running but was not restarted", "payload": {"value": True}, "payload_class":PayloadClass.VALUE}
+            return {"status": Status.FAIL, "msg": "daemon is still active but was not restarted", "payload": {"value": True}, "payload_class":PayloadClass.VALUE}
         else:
             return {"status": Status.OK, "msg": "daemon restarted", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
     else:
-        if was_running:
+        if was_active:
             return {"status": Status.FAIL, "msg": "could not restart daemon (daemon is offline)", "payload": {"value": False}, "payload_class": PayloadClass.VALUE}
         else:
             return {"status": Status.FAIL, "msg": "could not start daemon (daemon is offline)", "payload": {"value": False}, "payload_class": PayloadClass.VALUE}
@@ -240,7 +241,7 @@ def handle_daemon_restart(args, client) -> Dict:
 
 def handle_daemon_is_active(args, client):
     if client.is_daemon_active():
-        return {"status": Status.OK, "msg": "daemon is running", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
+        return {"status": Status.OK, "msg": "daemon is active", "payload": {"value": True}, "payload_class": PayloadClass.VALUE}
     else:
         return {"status": Status.OK, "msg": "no daemon found", "payload":  {"value": False}, "payload_class": PayloadClass.VALUE}
 
@@ -250,44 +251,39 @@ def handle_simple_command(args, client):
 
 
 def handle_queue_progress(args, client):
-    info = client.get_queue_progress()
+    facts = client.gather_facts()
 
-    if info.total == 0:
+    if facts['tasks.total'] == 0:
         return {"status": Status.OK, "msg": "queue is empty"}
 
-    max_processes = client.max_processes
+    max_processes = facts["processes.max"]
 
-    with tqdm(total=info.total, initial=info.total - info.pending) as pbar:
-
+    with tqdm(total=facts['tasks.total'], initial=facts['tasks.total'] - facts['tasks.pending']) as pbar:
         bars = [tqdm(bar_format="{desc}") for x in range(max_processes + 1)]
-
         while True:
             sleep(0.1)
-
-            is_daemon_active = client.is_daemon_active()
-            active_processes = client.active_processes
-            running_tasks = client.running_tasks['payload']
+            active_tasks = client.active_tasks['payload']
 
             for i in range(len(bars) - 1):
                 # keep bar 0 empty so that we get a blank line between the real progress bar and the tasks
-                if 0 < i <= len(running_tasks):
-                    t = tasks.Task.from_dict(running_tasks[i - 1]['task']).color_repr()
+                if 0 < i <= len(active_tasks):
+                    t = tasks.Task.from_dict(active_tasks[i - 1]['task']).color_repr()
                     bars[i].desc = t
                     bars[i].update()
-                elif i > len(running_tasks):
-                    bars[i].desc = config.EL + "..idle.."
-                    # bars[i].update()
+                elif i > len(active_tasks):
+                    bars[i].desc = config.EL
+                    bars[i].update()
             try:
-                info = client.get_queue_progress()
-                pbar.set_description(f"{active_processes} processes")
-                pbar.update(info.total - info.pending - pbar.n)
+                facts = client.gather_facts()
+                pbar.set_description(f"{facts['processes.active']} processes")
+                pbar.update(facts['tasks.total'] - facts['tasks.pending'] - pbar.n)
             except:
                 pass
 
-            if not is_daemon_active or active_processes < 1:
+            if not client.is_daemon_active() or facts['processes.active'] < 1:
                 break
 
-    if info.total == info.ok + info.skip:
+    if facts['tasks.total'] == facts['tasks.ok'] + facts['tasks.skip']:
         return {"status": Status.OK, "msg": "all files transferred successfully"}
     else:
         return {"status": Status.FAIL, "msg": "could not transfer all files"}
@@ -310,7 +306,7 @@ def format_response(rsp) -> str:
         elif plc == PayloadClass.TASK_LIST:
             res = "\n".join([tasks.Task.from_dict(x['task']).color_repr() for x in payload]) + "\n\n" + res
         else:
-            res = res + str(payload)
+            res = res + '\n' + json.dumps(payload, indent=4)
 
     if 'msg' in rsp.keys():
         res = res + f"{Fore.YELLOW}[{rsp['msg']}]{Fore.RESET}"
