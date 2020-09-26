@@ -37,6 +37,7 @@ class Command(IntEnum):
     DAEMON_START = 101
     DAEMON_STOP = 102
     DAEMON_IS_ACTIVE = 103
+    DAEMON_FACTS = 104
     QUEUE_START = 201
     QUEUE_STOP = 202
     QUEUE_IS_ACTIVE = 203
@@ -54,6 +55,7 @@ class PayloadClass(IntEnum):
     TASK = 2
     QUEUE_PROGRESS = 3
     TASK_LIST = 4
+    DAEMON_FACTS = 5
 
 
 class TaskType(IntEnum):
@@ -73,7 +75,7 @@ class Status(IntEnum):
     PENDING = 0
     OK = 1
     SKIP = 2
-    RUNNING = 3
+    ACTIVE = 3
 
 
 class ConverterType(IntEnum):
@@ -137,6 +139,7 @@ def is_enum_member(x: int, enum):
     DAEMON_START = 101
     DAEMON_STOP = 102
     DAEMON_IS_ACTIVE = 103
+    DAEMON_FACTS = 104
     QUEUE_START = 201
     QUEUE_STOP = 202
     QUEUE_IS_ACTIVE = 203
@@ -156,6 +159,10 @@ def is_enum_member(x: int, enum):
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="qop.config.Command.DAEMON_FACTS"><code class="name">var <span class="ident">DAEMON_FACTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="qop.config.Command.DAEMON_IS_ACTIVE"><code class="name">var <span class="ident">DAEMON_IS_ACTIVE</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -280,7 +287,8 @@ def is_enum_member(x: int, enum):
     VALUE = 1  # a single value {&#34;value&#34;: &lt;value&gt;}
     TASK = 2
     QUEUE_PROGRESS = 3
-    TASK_LIST = 4</code></pre>
+    TASK_LIST = 4
+    DAEMON_FACTS = 5</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -290,6 +298,10 @@ def is_enum_member(x: int, enum):
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="qop.config.PayloadClass.DAEMON_FACTS"><code class="name">var <span class="ident">DAEMON_FACTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="qop.config.PayloadClass.QUEUE_PROGRESS"><code class="name">var <span class="ident">QUEUE_PROGRESS</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -323,7 +335,7 @@ def is_enum_member(x: int, enum):
     PENDING = 0
     OK = 1
     SKIP = 2
-    RUNNING = 3</code></pre>
+    ACTIVE = 3</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -333,6 +345,10 @@ def is_enum_member(x: int, enum):
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="qop.config.Status.ACTIVE"><code class="name">var <span class="ident">ACTIVE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="qop.config.Status.FAIL"><code class="name">var <span class="ident">FAIL</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -342,10 +358,6 @@ def is_enum_member(x: int, enum):
 <div class="desc"></div>
 </dd>
 <dt id="qop.config.Status.PENDING"><code class="name">var <span class="ident">PENDING</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="qop.config.Status.RUNNING"><code class="name">var <span class="ident">RUNNING</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -446,6 +458,7 @@ def is_enum_member(x: int, enum):
 <li>
 <h4><code><a title="qop.config.Command" href="#qop.config.Command">Command</a></code></h4>
 <ul class="">
+<li><code><a title="qop.config.Command.DAEMON_FACTS" href="#qop.config.Command.DAEMON_FACTS">DAEMON_FACTS</a></code></li>
 <li><code><a title="qop.config.Command.DAEMON_IS_ACTIVE" href="#qop.config.Command.DAEMON_IS_ACTIVE">DAEMON_IS_ACTIVE</a></code></li>
 <li><code><a title="qop.config.Command.DAEMON_START" href="#qop.config.Command.DAEMON_START">DAEMON_START</a></code></li>
 <li><code><a title="qop.config.Command.DAEMON_STOP" href="#qop.config.Command.DAEMON_STOP">DAEMON_STOP</a></code></li>
@@ -475,6 +488,7 @@ def is_enum_member(x: int, enum):
 <li>
 <h4><code><a title="qop.config.PayloadClass" href="#qop.config.PayloadClass">PayloadClass</a></code></h4>
 <ul class="">
+<li><code><a title="qop.config.PayloadClass.DAEMON_FACTS" href="#qop.config.PayloadClass.DAEMON_FACTS">DAEMON_FACTS</a></code></li>
 <li><code><a title="qop.config.PayloadClass.QUEUE_PROGRESS" href="#qop.config.PayloadClass.QUEUE_PROGRESS">QUEUE_PROGRESS</a></code></li>
 <li><code><a title="qop.config.PayloadClass.TASK" href="#qop.config.PayloadClass.TASK">TASK</a></code></li>
 <li><code><a title="qop.config.PayloadClass.TASK_LIST" href="#qop.config.PayloadClass.TASK_LIST">TASK_LIST</a></code></li>
@@ -484,10 +498,10 @@ def is_enum_member(x: int, enum):
 <li>
 <h4><code><a title="qop.config.Status" href="#qop.config.Status">Status</a></code></h4>
 <ul class="">
+<li><code><a title="qop.config.Status.ACTIVE" href="#qop.config.Status.ACTIVE">ACTIVE</a></code></li>
 <li><code><a title="qop.config.Status.FAIL" href="#qop.config.Status.FAIL">FAIL</a></code></li>
 <li><code><a title="qop.config.Status.OK" href="#qop.config.Status.OK">OK</a></code></li>
 <li><code><a title="qop.config.Status.PENDING" href="#qop.config.Status.PENDING">PENDING</a></code></li>
-<li><code><a title="qop.config.Status.RUNNING" href="#qop.config.Status.RUNNING">RUNNING</a></code></li>
 <li><code><a title="qop.config.Status.SKIP" href="#qop.config.Status.SKIP">SKIP</a></code></li>
 </ul>
 </li>

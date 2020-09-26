@@ -69,8 +69,8 @@ class TaskQueue:
         A TaskQueue is a sqlite3 database with the following columns
         - priority: integer value, the lower the value the earlier the task will be processed
         - task: json representation of the task to execute
-        - status: status of the task (ok, running, fail,... see enums.Status)
-        - lock: str lock id. NULL except for currently running tasks. usually an uuid
+        - status: status of the task (ok, active, fail,... see enums.Status)
+        - lock: str lock id. NULL except for currently active tasks. usually an uuid
 
         :param path: Path to store the persistent queue
         :type path: Path or str
@@ -81,7 +81,7 @@ class TaskQueue:
             `number-of-cpu-cores - 1`.
         :type max_convert_processes: int
         &#34;&#34;&#34;
-
+        path = Path(path).resolve()
         if path.exists():
             lg.info(f&#34;using existing queue {path}&#34;)
         else:
@@ -104,65 +104,6 @@ class TaskQueue:
             )              
         &#34;&#34;&#34;)
         self.con.commit()
-
-    @property
-    def n_total(self) -&gt; int:
-        &#34;&#34;&#34;Count of all tasks in queue (including failed and completed)&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) from tasks&#34;).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_pending(self) -&gt; int:
-        &#34;&#34;&#34;Number of pending tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.PENDING),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_running(self) -&gt; int:
-        &#34;&#34;&#34;Count of currently running tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.RUNNING),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_ok(self) -&gt; int:
-        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.OK),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_fail(self) -&gt; int:
-        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.FAIL),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_skip(self) -&gt; int:
-        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.SKIP),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    def progress(self, include_children: bool = False) -&gt; &#34;QueueProgress&#34;:
-        cur = self.con.cursor()
-        if include_children:
-            cur.execute(&#34;SELECT status, COUNT(1) from tasks GROUP BY status&#34;)
-        else:
-            cur.execute(&#34;SELECT status, COUNT(1) FROM tasks WHERE parent is NULL GROUP BY status&#34;)
-        res = cur.fetchall()
-        cur.close()
-
-        return QueueProgress.from_list(res)
 
     def put(self, task: &#34;Task&#34;, priority: int = 10, parent: Optional[int] = None) -&gt; None:
         &#34;&#34;&#34;
@@ -213,7 +154,7 @@ class TaskQueue:
         # insert a lock UUID into the table so that we can ensure not second thread tries to execute the same
         # task
         lock = uuid.uuid4().hex
-        self.set_status(oid, Status.RUNNING, lock)
+        self.set_status(oid, Status.ACTIVE, lock)
         cur.execute(&#34;SELECT lock, task FROM tasks WHERE _ROWID_ = ?&#34;, (oid,))
         record = cur.fetchall()[0]
         cur.close()
@@ -305,16 +246,16 @@ class TaskQueue:
         res = [{&#34;priority&#34;:x[0], &#34;task&#34;:json.loads(x[1])} for x in res]
         return res
 
-    def reset_running_tasks(self) -&gt; None:
+    def reset_active_tasks(self) -&gt; None:
         &#34;&#34;&#34;
         Mark the operation with one status as another status
 
         :param oid: ID of the task to mark
         :type oid: int
         &#34;&#34;&#34;
-        lg.info(f&#34;set all running tasks to pending&#34;)
+        lg.info(f&#34;set all active tasks to pending&#34;)
         cur = self.con.cursor()
-        cur.execute(&#34;UPDATE tasks SET status = ?, lock = NULL where status = ?&#34;, (int(Status.PENDING), int(Status.RUNNING)))
+        cur.execute(&#34;UPDATE tasks SET status = ?, lock = NULL where status = ?&#34;, (int(Status.PENDING), int(Status.ACTIVE)))
         hammer_commit(self.con)
         cur.close()
 
@@ -327,13 +268,13 @@ class TaskQueue:
         :param status: Status see enums.Status
         :type status: Status
         :param lock: python object-id of the Task that executes the queued task. Must be `None` except for switching
-          tasks to *running*.
+          tasks to *active*.
         :type lock: int
         &#34;&#34;&#34;
         lg.info(f&#34;mark {oid} {status.name}&#34;)
         cur = self.con.cursor()
 
-        if status == Status.RUNNING:
+        if status == Status.ACTIVE:
             assert lock is not None
             cur.execute(&#34;UPDATE tasks SET status = ?, lock = ? where _ROWID_ = ?&#34;, (int(status), lock, oid))
         else:
@@ -355,10 +296,10 @@ class TaskQueue:
             return None
 
         if len(self.transfer_processes) &gt;= self.max_transfer_processes:
-            lg.debug(f&#34;already running {self.max_transfer_processes} queues&#34;)
+            lg.debug(f&#34;already active {self.max_transfer_processes} queues&#34;)
 
         if len(self.convert_processes) &gt;= self.max_convert_processes:
-            lg.debug(f&#34;already running {self.max_convert_processes} convert queues&#34;)
+            lg.debug(f&#34;already active {self.max_convert_processes} convert queues&#34;)
 
         while len(self.transfer_processes) &lt; self.max_transfer_processes:
             lg.info(&#34;starting new queue runner&#34;)
@@ -377,7 +318,7 @@ class TaskQueue:
            by self.run() and should not be called directly
         &#34;&#34;&#34;
         progress = self.progress()
-        while progress.pending &gt; 0 or progress.running &gt; 0:
+        while progress.pending &gt; 0 or progress.active &gt; 0:
             progress = self.progress()
 
             if ip is not None:
@@ -422,7 +363,41 @@ class TaskQueue:
     def stop(self) -&gt; None:
         for p in self.convert_processes + self.transfer_processes:
             p.terminate()
-        self.reset_running_tasks()
+        self.reset_active_tasks()
+
+    def flush(self, status: Union[Status, int, None] = None) -&gt; None:
+        &#34;&#34;&#34;empty the queue&#34;&#34;&#34;
+        cur = self.con.cursor()
+        if status is None:
+            cur.execute(&#34;DELETE FROM tasks&#34;)
+            lg.info(&#34;flushing queue&#34;)
+        else:
+            cur.execute(&#34;DELETE FROM tasks where status == ?&#34;, (int(status),))
+            lg.info(f&#34;flushing tasks with status &#39;{status.name}&#39; from queue&#34;)
+        hammer_commit(self.con)
+        cur.close()
+
+    def facts(self) -&gt; Dict:
+        ap_convert = self.active_processes(&#34;convert&#34;)
+        ap_transfer = self.active_processes(&#34;transfer&#34;)
+        pr = self.progress()
+
+        return {
+            &#34;queue.path&#34;: str(self.path),
+            &#34;queue.active&#34;: (ap_convert + ap_transfer) &gt; 0,
+            &#34;processes.max&#34;: self.max_transfer_processes + self.max_convert_processes,
+            &#34;processes.max.transfer&#34;: self.max_transfer_processes,
+            &#34;processes.max.convert&#34;: self.max_convert_processes,
+            &#34;processes.active&#34;: ap_convert + ap_transfer,
+            &#34;processes.active.transfer&#34;: ap_transfer,
+            &#34;processes.active.convert&#34;: ap_convert,
+            &#34;tasks.pending&#34;: pr.pending,
+            &#34;tasks.ok&#34;: pr.ok,
+            &#34;tasks.skip&#34;: pr.skip,
+            &#34;tasks.active&#34;: pr.active,
+            &#34;tasks.fail&#34;: pr.fail,
+            &#34;tasks.total&#34;: pr.total
+        }
 
     def is_active(self) -&gt; bool:
         return self.active_processes() &gt; 0
@@ -443,17 +418,65 @@ class TaskQueue:
                 res += 1
         return res
 
-    def flush(self, status: Union[Status, int, None] = None) -&gt; None:
-        &#34;&#34;&#34;empty the queue&#34;&#34;&#34;
+    @property
+    def n_total(self) -&gt; int:
+        &#34;&#34;&#34;Count of all tasks in queue (including failed and completed)&#34;&#34;&#34;
         cur = self.con.cursor()
-        if status is None:
-            cur.execute(&#34;DELETE FROM tasks&#34;)
-            lg.info(&#34;flushing queue&#34;)
-        else:
-            cur.execute(&#34;DELETE FROM tasks where status == ?&#34;, (int(status),))
-            lg.info(f&#34;flushing tasks with status &#39;{status.name}&#39; from queue&#34;)
-        hammer_commit(self.con)
+        res = cur.execute(&#34;SELECT COUNT(1) from tasks&#34;).fetchall()[0][0]
         cur.close()
+        return res
+
+    @property
+    def n_pending(self) -&gt; int:
+        &#34;&#34;&#34;Number of pending tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.PENDING),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    @property
+    def n_active(self) -&gt; int:
+        &#34;&#34;&#34;Count of currently active tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.ACTIVE),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    @property
+    def n_ok(self) -&gt; int:
+        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.OK),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    @property
+    def n_fail(self) -&gt; int:
+        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.FAIL),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    @property
+    def n_skip(self) -&gt; int:
+        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.SKIP),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    def progress(self, include_children: bool = False) -&gt; &#34;QueueProgress&#34;:
+        cur = self.con.cursor()
+        if include_children:
+            cur.execute(&#34;SELECT status, COUNT(1) from tasks GROUP BY status&#34;)
+        else:
+            cur.execute(&#34;SELECT status, COUNT(1) FROM tasks WHERE parent is NULL GROUP BY status&#34;)
+        res = cur.fetchall()
+        cur.close()
+
+        return QueueProgress.from_list(res)
+
 
 
 class Task:
@@ -794,16 +817,16 @@ class TaskQueueElement:
 class QueueProgress:
     &#34;&#34;&#34;Info on the current status of the Queue&#34;&#34;&#34;
 
-    def __init__(self,  pending: int, ok: int, skip: int, fail: int, running: int):
+    def __init__(self,  pending: int, ok: int, skip: int, fail: int, active: int):
         self.ok = ok
         self.pending = pending
         self.skip = skip
-        self.running = running
+        self.active = active
         self.fail = fail
 
     @property
     def total(self):
-        return self.ok + self.pending + self.skip + self.running + self.fail
+        return self.ok + self.pending + self.skip + self.active + self.fail
 
     @staticmethod
     def from_dict(x: Dict) -&gt; &#34;QueueProgress&#34;:
@@ -812,7 +835,7 @@ class QueueProgress:
             ok=x[&#39;ok&#39;],
             skip=x[&#39;skip&#39;],
             fail=x[&#39;fail&#39;],
-            running=x[&#39;running&#39;]
+            active=x[&#39;active&#39;]
         )
 
     @staticmethod
@@ -822,7 +845,7 @@ class QueueProgress:
             &#34;pending&#34;: 0,
             &#34;ok&#34;: 0,
             &#34;skip&#34;: 0,
-            &#34;running&#34;: 0,
+            &#34;active&#34;: 0,
             &#34;fail&#34;: 0
         }
 
@@ -833,8 +856,8 @@ class QueueProgress:
                 res.update({&#34;ok&#34;: el[1]})
             elif el[0] == Status.SKIP:
                 res.update({&#34;skip&#34;: el[1]})
-            elif el[0] == Status.RUNNING:
-                res.update({&#34;running&#34;: el[1]})
+            elif el[0] == Status.ACTIVE:
+                res.update({&#34;active&#34;: el[1]})
             elif el[0] == Status.FAIL:
                 res.update({&#34;fail&#34;: el[1]})
 
@@ -847,11 +870,11 @@ class QueueProgress:
             &#34;ok&#34;: self.ok,
             &#34;fail&#34;: self.fail,
             &#34;skip&#34;: self.skip,
-            &#34;running&#34;: self.running
+            &#34;active&#34;: self.active
          }
 
     def fmt_summary(self):
-        return f&#39;  [progress] total {self.total} | pending:  {self.pending} | ok: {self.ok} | fail: {self.fail} | running: {self.running}]&#39;
+        return f&#39;  [progress] total {self.total} | pending:  {self.pending} | ok: {self.ok} | fail: {self.fail} | active: {self.active}]&#39;
 
 
 def hammer_commit(con, max_tries=10):
@@ -1381,7 +1404,7 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
 </dd>
 <dt id="qop.tasks.QueueProgress"><code class="flex name class">
 <span>class <span class="ident">QueueProgress</span></span>
-<span>(</span><span>pending: int, ok: int, skip: int, fail: int, running: int)</span>
+<span>(</span><span>pending: int, ok: int, skip: int, fail: int, active: int)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Info on the current status of the Queue</p></div>
@@ -1392,16 +1415,16 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
 <pre><code class="python">class QueueProgress:
     &#34;&#34;&#34;Info on the current status of the Queue&#34;&#34;&#34;
 
-    def __init__(self,  pending: int, ok: int, skip: int, fail: int, running: int):
+    def __init__(self,  pending: int, ok: int, skip: int, fail: int, active: int):
         self.ok = ok
         self.pending = pending
         self.skip = skip
-        self.running = running
+        self.active = active
         self.fail = fail
 
     @property
     def total(self):
-        return self.ok + self.pending + self.skip + self.running + self.fail
+        return self.ok + self.pending + self.skip + self.active + self.fail
 
     @staticmethod
     def from_dict(x: Dict) -&gt; &#34;QueueProgress&#34;:
@@ -1410,7 +1433,7 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
             ok=x[&#39;ok&#39;],
             skip=x[&#39;skip&#39;],
             fail=x[&#39;fail&#39;],
-            running=x[&#39;running&#39;]
+            active=x[&#39;active&#39;]
         )
 
     @staticmethod
@@ -1420,7 +1443,7 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
             &#34;pending&#34;: 0,
             &#34;ok&#34;: 0,
             &#34;skip&#34;: 0,
-            &#34;running&#34;: 0,
+            &#34;active&#34;: 0,
             &#34;fail&#34;: 0
         }
 
@@ -1431,8 +1454,8 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
                 res.update({&#34;ok&#34;: el[1]})
             elif el[0] == Status.SKIP:
                 res.update({&#34;skip&#34;: el[1]})
-            elif el[0] == Status.RUNNING:
-                res.update({&#34;running&#34;: el[1]})
+            elif el[0] == Status.ACTIVE:
+                res.update({&#34;active&#34;: el[1]})
             elif el[0] == Status.FAIL:
                 res.update({&#34;fail&#34;: el[1]})
 
@@ -1445,11 +1468,11 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
             &#34;ok&#34;: self.ok,
             &#34;fail&#34;: self.fail,
             &#34;skip&#34;: self.skip,
-            &#34;running&#34;: self.running
+            &#34;active&#34;: self.active
          }
 
     def fmt_summary(self):
-        return f&#39;  [progress] total {self.total} | pending:  {self.pending} | ok: {self.ok} | fail: {self.fail} | running: {self.running}]&#39;</code></pre>
+        return f&#39;  [progress] total {self.total} | pending:  {self.pending} | ok: {self.ok} | fail: {self.fail} | active: {self.active}]&#39;</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -1469,7 +1492,7 @@ def from_dict(x: Dict) -&gt; &#34;QueueProgress&#34;:
         ok=x[&#39;ok&#39;],
         skip=x[&#39;skip&#39;],
         fail=x[&#39;fail&#39;],
-        running=x[&#39;running&#39;]
+        active=x[&#39;active&#39;]
     )</code></pre>
 </details>
 </dd>
@@ -1489,7 +1512,7 @@ def from_list(x: List) -&gt; &#34;QueueProgress&#34;:
         &#34;pending&#34;: 0,
         &#34;ok&#34;: 0,
         &#34;skip&#34;: 0,
-        &#34;running&#34;: 0,
+        &#34;active&#34;: 0,
         &#34;fail&#34;: 0
     }
 
@@ -1500,8 +1523,8 @@ def from_list(x: List) -&gt; &#34;QueueProgress&#34;:
             res.update({&#34;ok&#34;: el[1]})
         elif el[0] == Status.SKIP:
             res.update({&#34;skip&#34;: el[1]})
-        elif el[0] == Status.RUNNING:
-            res.update({&#34;running&#34;: el[1]})
+        elif el[0] == Status.ACTIVE:
+            res.update({&#34;active&#34;: el[1]})
         elif el[0] == Status.FAIL:
             res.update({&#34;fail&#34;: el[1]})
 
@@ -1520,7 +1543,7 @@ def from_list(x: List) -&gt; &#34;QueueProgress&#34;:
 </summary>
 <pre><code class="python">@property
 def total(self):
-    return self.ok + self.pending + self.skip + self.running + self.fail</code></pre>
+    return self.ok + self.pending + self.skip + self.active + self.fail</code></pre>
 </details>
 </dd>
 </dl>
@@ -1536,7 +1559,7 @@ def total(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def fmt_summary(self):
-    return f&#39;  [progress] total {self.total} | pending:  {self.pending} | ok: {self.ok} | fail: {self.fail} | running: {self.running}]&#39;</code></pre>
+    return f&#39;  [progress] total {self.total} | pending:  {self.pending} | ok: {self.ok} | fail: {self.fail} | active: {self.active}]&#39;</code></pre>
 </details>
 </dd>
 <dt id="qop.tasks.QueueProgress.to_dict"><code class="name flex">
@@ -1555,7 +1578,7 @@ def total(self):
         &#34;ok&#34;: self.ok,
         &#34;fail&#34;: self.fail,
         &#34;skip&#34;: self.skip,
-        &#34;running&#34;: self.running
+        &#34;active&#34;: self.active
      }</code></pre>
 </details>
 </dd>
@@ -1952,8 +1975,8 @@ def from_dict(x: Dict) -&gt; &#34;Task&#34;:
 <p>A TaskQueue is a sqlite3 database with the following columns
 - priority: integer value, the lower the value the earlier the task will be processed
 - task: json representation of the task to execute
-- status: status of the task (ok, running, fail,&hellip; see enums.Status)
-- lock: str lock id. NULL except for currently running tasks. usually an uuid</p>
+- status: status of the task (ok, active, fail,&hellip; see enums.Status)
+- lock: str lock id. NULL except for currently active tasks. usually an uuid</p>
 <p>:param path: Path to store the persistent queue
 :type path: Path or str
 :param max_transfer_processes: maximum number of processes spawned for file transfer operations. Should usually
@@ -1983,8 +2006,8 @@ be 1.
         A TaskQueue is a sqlite3 database with the following columns
         - priority: integer value, the lower the value the earlier the task will be processed
         - task: json representation of the task to execute
-        - status: status of the task (ok, running, fail,... see enums.Status)
-        - lock: str lock id. NULL except for currently running tasks. usually an uuid
+        - status: status of the task (ok, active, fail,... see enums.Status)
+        - lock: str lock id. NULL except for currently active tasks. usually an uuid
 
         :param path: Path to store the persistent queue
         :type path: Path or str
@@ -1995,7 +2018,7 @@ be 1.
             `number-of-cpu-cores - 1`.
         :type max_convert_processes: int
         &#34;&#34;&#34;
-
+        path = Path(path).resolve()
         if path.exists():
             lg.info(f&#34;using existing queue {path}&#34;)
         else:
@@ -2018,65 +2041,6 @@ be 1.
             )              
         &#34;&#34;&#34;)
         self.con.commit()
-
-    @property
-    def n_total(self) -&gt; int:
-        &#34;&#34;&#34;Count of all tasks in queue (including failed and completed)&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) from tasks&#34;).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_pending(self) -&gt; int:
-        &#34;&#34;&#34;Number of pending tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.PENDING),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_running(self) -&gt; int:
-        &#34;&#34;&#34;Count of currently running tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.RUNNING),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_ok(self) -&gt; int:
-        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.OK),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_fail(self) -&gt; int:
-        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.FAIL),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_skip(self) -&gt; int:
-        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
-        cur = self.con.cursor()
-        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.SKIP),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    def progress(self, include_children: bool = False) -&gt; &#34;QueueProgress&#34;:
-        cur = self.con.cursor()
-        if include_children:
-            cur.execute(&#34;SELECT status, COUNT(1) from tasks GROUP BY status&#34;)
-        else:
-            cur.execute(&#34;SELECT status, COUNT(1) FROM tasks WHERE parent is NULL GROUP BY status&#34;)
-        res = cur.fetchall()
-        cur.close()
-
-        return QueueProgress.from_list(res)
 
     def put(self, task: &#34;Task&#34;, priority: int = 10, parent: Optional[int] = None) -&gt; None:
         &#34;&#34;&#34;
@@ -2127,7 +2091,7 @@ be 1.
         # insert a lock UUID into the table so that we can ensure not second thread tries to execute the same
         # task
         lock = uuid.uuid4().hex
-        self.set_status(oid, Status.RUNNING, lock)
+        self.set_status(oid, Status.ACTIVE, lock)
         cur.execute(&#34;SELECT lock, task FROM tasks WHERE _ROWID_ = ?&#34;, (oid,))
         record = cur.fetchall()[0]
         cur.close()
@@ -2219,16 +2183,16 @@ be 1.
         res = [{&#34;priority&#34;:x[0], &#34;task&#34;:json.loads(x[1])} for x in res]
         return res
 
-    def reset_running_tasks(self) -&gt; None:
+    def reset_active_tasks(self) -&gt; None:
         &#34;&#34;&#34;
         Mark the operation with one status as another status
 
         :param oid: ID of the task to mark
         :type oid: int
         &#34;&#34;&#34;
-        lg.info(f&#34;set all running tasks to pending&#34;)
+        lg.info(f&#34;set all active tasks to pending&#34;)
         cur = self.con.cursor()
-        cur.execute(&#34;UPDATE tasks SET status = ?, lock = NULL where status = ?&#34;, (int(Status.PENDING), int(Status.RUNNING)))
+        cur.execute(&#34;UPDATE tasks SET status = ?, lock = NULL where status = ?&#34;, (int(Status.PENDING), int(Status.ACTIVE)))
         hammer_commit(self.con)
         cur.close()
 
@@ -2241,13 +2205,13 @@ be 1.
         :param status: Status see enums.Status
         :type status: Status
         :param lock: python object-id of the Task that executes the queued task. Must be `None` except for switching
-          tasks to *running*.
+          tasks to *active*.
         :type lock: int
         &#34;&#34;&#34;
         lg.info(f&#34;mark {oid} {status.name}&#34;)
         cur = self.con.cursor()
 
-        if status == Status.RUNNING:
+        if status == Status.ACTIVE:
             assert lock is not None
             cur.execute(&#34;UPDATE tasks SET status = ?, lock = ? where _ROWID_ = ?&#34;, (int(status), lock, oid))
         else:
@@ -2269,10 +2233,10 @@ be 1.
             return None
 
         if len(self.transfer_processes) &gt;= self.max_transfer_processes:
-            lg.debug(f&#34;already running {self.max_transfer_processes} queues&#34;)
+            lg.debug(f&#34;already active {self.max_transfer_processes} queues&#34;)
 
         if len(self.convert_processes) &gt;= self.max_convert_processes:
-            lg.debug(f&#34;already running {self.max_convert_processes} convert queues&#34;)
+            lg.debug(f&#34;already active {self.max_convert_processes} convert queues&#34;)
 
         while len(self.transfer_processes) &lt; self.max_transfer_processes:
             lg.info(&#34;starting new queue runner&#34;)
@@ -2291,7 +2255,7 @@ be 1.
            by self.run() and should not be called directly
         &#34;&#34;&#34;
         progress = self.progress()
-        while progress.pending &gt; 0 or progress.running &gt; 0:
+        while progress.pending &gt; 0 or progress.active &gt; 0:
             progress = self.progress()
 
             if ip is not None:
@@ -2336,7 +2300,41 @@ be 1.
     def stop(self) -&gt; None:
         for p in self.convert_processes + self.transfer_processes:
             p.terminate()
-        self.reset_running_tasks()
+        self.reset_active_tasks()
+
+    def flush(self, status: Union[Status, int, None] = None) -&gt; None:
+        &#34;&#34;&#34;empty the queue&#34;&#34;&#34;
+        cur = self.con.cursor()
+        if status is None:
+            cur.execute(&#34;DELETE FROM tasks&#34;)
+            lg.info(&#34;flushing queue&#34;)
+        else:
+            cur.execute(&#34;DELETE FROM tasks where status == ?&#34;, (int(status),))
+            lg.info(f&#34;flushing tasks with status &#39;{status.name}&#39; from queue&#34;)
+        hammer_commit(self.con)
+        cur.close()
+
+    def facts(self) -&gt; Dict:
+        ap_convert = self.active_processes(&#34;convert&#34;)
+        ap_transfer = self.active_processes(&#34;transfer&#34;)
+        pr = self.progress()
+
+        return {
+            &#34;queue.path&#34;: str(self.path),
+            &#34;queue.active&#34;: (ap_convert + ap_transfer) &gt; 0,
+            &#34;processes.max&#34;: self.max_transfer_processes + self.max_convert_processes,
+            &#34;processes.max.transfer&#34;: self.max_transfer_processes,
+            &#34;processes.max.convert&#34;: self.max_convert_processes,
+            &#34;processes.active&#34;: ap_convert + ap_transfer,
+            &#34;processes.active.transfer&#34;: ap_transfer,
+            &#34;processes.active.convert&#34;: ap_convert,
+            &#34;tasks.pending&#34;: pr.pending,
+            &#34;tasks.ok&#34;: pr.ok,
+            &#34;tasks.skip&#34;: pr.skip,
+            &#34;tasks.active&#34;: pr.active,
+            &#34;tasks.fail&#34;: pr.fail,
+            &#34;tasks.total&#34;: pr.total
+        }
 
     def is_active(self) -&gt; bool:
         return self.active_processes() &gt; 0
@@ -2357,17 +2355,64 @@ be 1.
                 res += 1
         return res
 
-    def flush(self, status: Union[Status, int, None] = None) -&gt; None:
-        &#34;&#34;&#34;empty the queue&#34;&#34;&#34;
+    @property
+    def n_total(self) -&gt; int:
+        &#34;&#34;&#34;Count of all tasks in queue (including failed and completed)&#34;&#34;&#34;
         cur = self.con.cursor()
-        if status is None:
-            cur.execute(&#34;DELETE FROM tasks&#34;)
-            lg.info(&#34;flushing queue&#34;)
+        res = cur.execute(&#34;SELECT COUNT(1) from tasks&#34;).fetchall()[0][0]
+        cur.close()
+        return res
+
+    @property
+    def n_pending(self) -&gt; int:
+        &#34;&#34;&#34;Number of pending tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.PENDING),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    @property
+    def n_active(self) -&gt; int:
+        &#34;&#34;&#34;Count of currently active tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.ACTIVE),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    @property
+    def n_ok(self) -&gt; int:
+        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.OK),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    @property
+    def n_fail(self) -&gt; int:
+        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.FAIL),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    @property
+    def n_skip(self) -&gt; int:
+        &#34;&#34;&#34;count of completed tasks&#34;&#34;&#34;
+        cur = self.con.cursor()
+        res = cur.execute(&#34;SELECT COUNT(1) from tasks WHERE status = ?&#34;, (int(Status.SKIP),)).fetchall()[0][0]
+        cur.close()
+        return res
+
+    def progress(self, include_children: bool = False) -&gt; &#34;QueueProgress&#34;:
+        cur = self.con.cursor()
+        if include_children:
+            cur.execute(&#34;SELECT status, COUNT(1) from tasks GROUP BY status&#34;)
         else:
-            cur.execute(&#34;DELETE FROM tasks where status == ?&#34;, (int(status),))
-            lg.info(f&#34;flushing tasks with status &#39;{status.name}&#39; from queue&#34;)
-        hammer_commit(self.con)
-        cur.close()</code></pre>
+            cur.execute(&#34;SELECT status, COUNT(1) FROM tasks WHERE parent is NULL GROUP BY status&#34;)
+        res = cur.fetchall()
+        cur.close()
+
+        return QueueProgress.from_list(res)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -2382,6 +2427,22 @@ be 1.
 </dl>
 <h3>Instance variables</h3>
 <dl>
+<dt id="qop.tasks.TaskQueue.n_active"><code class="name">var <span class="ident">n_active</span> : int</code></dt>
+<dd>
+<div class="desc"><p>Count of currently active tasks</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def n_active(self) -&gt; int:
+    &#34;&#34;&#34;Count of currently active tasks&#34;&#34;&#34;
+    cur = self.con.cursor()
+    res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.ACTIVE),)).fetchall()[0][0]
+    cur.close()
+    return res</code></pre>
+</details>
+</dd>
 <dt id="qop.tasks.TaskQueue.n_fail"><code class="name">var <span class="ident">n_fail</span> : int</code></dt>
 <dd>
 <div class="desc"><p>count of completed tasks</p></div>
@@ -2426,22 +2487,6 @@ def n_pending(self) -&gt; int:
     &#34;&#34;&#34;Number of pending tasks&#34;&#34;&#34;
     cur = self.con.cursor()
     res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.PENDING),)).fetchall()[0][0]
-    cur.close()
-    return res</code></pre>
-</details>
-</dd>
-<dt id="qop.tasks.TaskQueue.n_running"><code class="name">var <span class="ident">n_running</span> : int</code></dt>
-<dd>
-<div class="desc"><p>Count of currently running tasks</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def n_running(self) -&gt; int:
-    &#34;&#34;&#34;Count of currently running tasks&#34;&#34;&#34;
-    cur = self.con.cursor()
-    res = cur.execute(&#34;SELECT COUNT(1) FROM tasks WHERE status = ?&#34;, (int(Status.RUNNING),)).fetchall()[0][0]
     cur.close()
     return res</code></pre>
 </details>
@@ -2505,6 +2550,38 @@ def n_total(self) -&gt; int:
         if p.is_alive():
             res += 1
     return res</code></pre>
+</details>
+</dd>
+<dt id="qop.tasks.TaskQueue.facts"><code class="name flex">
+<span>def <span class="ident">facts</span></span>(<span>self) ‑> Dict</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def facts(self) -&gt; Dict:
+    ap_convert = self.active_processes(&#34;convert&#34;)
+    ap_transfer = self.active_processes(&#34;transfer&#34;)
+    pr = self.progress()
+
+    return {
+        &#34;queue.path&#34;: str(self.path),
+        &#34;queue.active&#34;: (ap_convert + ap_transfer) &gt; 0,
+        &#34;processes.max&#34;: self.max_transfer_processes + self.max_convert_processes,
+        &#34;processes.max.transfer&#34;: self.max_transfer_processes,
+        &#34;processes.max.convert&#34;: self.max_convert_processes,
+        &#34;processes.active&#34;: ap_convert + ap_transfer,
+        &#34;processes.active.transfer&#34;: ap_transfer,
+        &#34;processes.active.convert&#34;: ap_convert,
+        &#34;tasks.pending&#34;: pr.pending,
+        &#34;tasks.ok&#34;: pr.ok,
+        &#34;tasks.skip&#34;: pr.skip,
+        &#34;tasks.active&#34;: pr.active,
+        &#34;tasks.fail&#34;: pr.fail,
+        &#34;tasks.total&#34;: pr.total
+    }</code></pre>
 </details>
 </dd>
 <dt id="qop.tasks.TaskQueue.fetch"><code class="name flex">
@@ -2671,7 +2748,7 @@ condition occurs if the queue is processed in parallel)</p></div>
     # insert a lock UUID into the table so that we can ensure not second thread tries to execute the same
     # task
     lock = uuid.uuid4().hex
-    self.set_status(oid, Status.RUNNING, lock)
+    self.set_status(oid, Status.ACTIVE, lock)
     cur.execute(&#34;SELECT lock, task FROM tasks WHERE _ROWID_ = ?&#34;, (oid,))
     record = cur.fetchall()[0]
     cur.close()
@@ -2772,8 +2849,8 @@ condition occurs if the queue is processed in parallel)</p></div>
     lg.debug(f&#34;inserted task {task.to_dict()}&#34;)</code></pre>
 </details>
 </dd>
-<dt id="qop.tasks.TaskQueue.reset_running_tasks"><code class="name flex">
-<span>def <span class="ident">reset_running_tasks</span></span>(<span>self) ‑> NoneType</span>
+<dt id="qop.tasks.TaskQueue.reset_active_tasks"><code class="name flex">
+<span>def <span class="ident">reset_active_tasks</span></span>(<span>self) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Mark the operation with one status as another status</p>
@@ -2783,16 +2860,16 @@ condition occurs if the queue is processed in parallel)</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def reset_running_tasks(self) -&gt; None:
+<pre><code class="python">def reset_active_tasks(self) -&gt; None:
     &#34;&#34;&#34;
     Mark the operation with one status as another status
 
     :param oid: ID of the task to mark
     :type oid: int
     &#34;&#34;&#34;
-    lg.info(f&#34;set all running tasks to pending&#34;)
+    lg.info(f&#34;set all active tasks to pending&#34;)
     cur = self.con.cursor()
-    cur.execute(&#34;UPDATE tasks SET status = ?, lock = NULL where status = ?&#34;, (int(Status.PENDING), int(Status.RUNNING)))
+    cur.execute(&#34;UPDATE tasks SET status = ?, lock = NULL where status = ?&#34;, (int(Status.PENDING), int(Status.ACTIVE)))
     hammer_commit(self.con)
     cur.close()</code></pre>
 </details>
@@ -2818,10 +2895,10 @@ condition occurs if the queue is processed in parallel)</p></div>
         return None
 
     if len(self.transfer_processes) &gt;= self.max_transfer_processes:
-        lg.debug(f&#34;already running {self.max_transfer_processes} queues&#34;)
+        lg.debug(f&#34;already active {self.max_transfer_processes} queues&#34;)
 
     if len(self.convert_processes) &gt;= self.max_convert_processes:
-        lg.debug(f&#34;already running {self.max_convert_processes} convert queues&#34;)
+        lg.debug(f&#34;already active {self.max_convert_processes} convert queues&#34;)
 
     while len(self.transfer_processes) &lt; self.max_transfer_processes:
         lg.info(&#34;starting new queue runner&#34;)
@@ -2846,7 +2923,7 @@ condition occurs if the queue is processed in parallel)</p></div>
 :param status: Status see enums.Status
 :type status: Status
 :param lock: python object-id of the Task that executes the queued task. Must be <code>None</code> except for switching
-tasks to <em>running</em>.
+tasks to <em>active</em>.
 :type lock: int</p></div>
 <details class="source">
 <summary>
@@ -2861,13 +2938,13 @@ tasks to <em>running</em>.
     :param status: Status see enums.Status
     :type status: Status
     :param lock: python object-id of the Task that executes the queued task. Must be `None` except for switching
-      tasks to *running*.
+      tasks to *active*.
     :type lock: int
     &#34;&#34;&#34;
     lg.info(f&#34;mark {oid} {status.name}&#34;)
     cur = self.con.cursor()
 
-    if status == Status.RUNNING:
+    if status == Status.ACTIVE:
         assert lock is not None
         cur.execute(&#34;UPDATE tasks SET status = ?, lock = ? where _ROWID_ = ?&#34;, (int(status), lock, oid))
     else:
@@ -2890,7 +2967,7 @@ tasks to <em>running</em>.
 <pre><code class="python">def stop(self) -&gt; None:
     for p in self.convert_processes + self.transfer_processes:
         p.terminate()
-    self.reset_running_tasks()</code></pre>
+    self.reset_active_tasks()</code></pre>
 </details>
 </dd>
 </dl>
@@ -3060,13 +3137,14 @@ tasks to <em>running</em>.
 <ul class="two-column">
 <li><code><a title="qop.tasks.TaskQueue.active_processes" href="#qop.tasks.TaskQueue.active_processes">active_processes</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.convert_processes" href="#qop.tasks.TaskQueue.convert_processes">convert_processes</a></code></li>
+<li><code><a title="qop.tasks.TaskQueue.facts" href="#qop.tasks.TaskQueue.facts">facts</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.fetch" href="#qop.tasks.TaskQueue.fetch">fetch</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.flush" href="#qop.tasks.TaskQueue.flush">flush</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.is_active" href="#qop.tasks.TaskQueue.is_active">is_active</a></code></li>
+<li><code><a title="qop.tasks.TaskQueue.n_active" href="#qop.tasks.TaskQueue.n_active">n_active</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.n_fail" href="#qop.tasks.TaskQueue.n_fail">n_fail</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.n_ok" href="#qop.tasks.TaskQueue.n_ok">n_ok</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.n_pending" href="#qop.tasks.TaskQueue.n_pending">n_pending</a></code></li>
-<li><code><a title="qop.tasks.TaskQueue.n_running" href="#qop.tasks.TaskQueue.n_running">n_running</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.n_skip" href="#qop.tasks.TaskQueue.n_skip">n_skip</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.n_total" href="#qop.tasks.TaskQueue.n_total">n_total</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.peek" href="#qop.tasks.TaskQueue.peek">peek</a></code></li>
@@ -3074,7 +3152,7 @@ tasks to <em>running</em>.
 <li><code><a title="qop.tasks.TaskQueue.print" href="#qop.tasks.TaskQueue.print">print</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.progress" href="#qop.tasks.TaskQueue.progress">progress</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.put" href="#qop.tasks.TaskQueue.put">put</a></code></li>
-<li><code><a title="qop.tasks.TaskQueue.reset_running_tasks" href="#qop.tasks.TaskQueue.reset_running_tasks">reset_running_tasks</a></code></li>
+<li><code><a title="qop.tasks.TaskQueue.reset_active_tasks" href="#qop.tasks.TaskQueue.reset_active_tasks">reset_active_tasks</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.run" href="#qop.tasks.TaskQueue.run">run</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.set_status" href="#qop.tasks.TaskQueue.set_status">set_status</a></code></li>
 <li><code><a title="qop.tasks.TaskQueue.stop" href="#qop.tasks.TaskQueue.stop">stop</a></code></li>
