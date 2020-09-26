@@ -5,9 +5,6 @@
 
 qop - Queued File Operations
 ============================
-.. autosummary::
-   :toctree: modules
-
 .. toctree::
    :maxdepth: 2
    :caption: Table of Contents
