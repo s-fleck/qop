@@ -38,11 +38,11 @@ from time import sleep
 
 from qop import tasks, utils
 from qop.exceptions import FileExistsAndShouldBeSkippedError
-from qop.enums import TaskType, Status, Command, PREHEADER_LEN, PayloadClass
+from qop.config import TaskType, Status, Command, PREHEADER_LEN, PayloadClass
 
 
 Pathish = Union[Path, str]
-lg = logging.getLogger(&#34;qop.daemon&#34;)
+lg = logging.getLogger(__name__)
 
 
 class QopDaemon:
@@ -163,6 +163,13 @@ class QopDaemon:
                         &#34;convert&#34;: self.queue.active_processes(type=&#34;convert&#34;)
                     }).encode())
 
+                elif command == Command.QUEUE_MAX_PROCESSES:
+                    client.sendall(StatusMessage(
+                        Status.OK,
+                        payload={&#34;value&#34;: self.queue.max_transfer_processes + self.queue.max_convert_processes},
+                        payload_class=PayloadClass.VALUE
+                    ).encode())
+
                 elif command == Command.QUEUE_FLUSH_ALL:
                     self.queue.flush()
                     client.sendall(StatusMessage(Status.OK, &#34;flushed queue&#34;).encode())
@@ -251,7 +258,11 @@ class QopClient:
         return utils.is_daemon_active(self.ip, self.port)
 
     @property
-    def active_tasks(self) -&gt; list:
+    def max_processes(self) -&gt; list:
+        return self.send_command(Command.QUEUE_MAX_PROCESSES)[&#39;payload&#39;][&#39;value&#39;]
+
+    @property
+    def running_tasks(self) -&gt; list:
         return self.send_command(Command.QUEUE_SHOW)
 
     @property
@@ -443,7 +454,7 @@ class CommandMessage(Message):
 <dl>
 <dt id="qop.daemon.CommandMessage"><code class="flex name class">
 <span>class <span class="ident">CommandMessage</span></span>
-<span>(</span><span>command: <a title="qop.enums.Command" href="enums.html#qop.enums.Command">Command</a>, payload=None, payload_class=None)</span>
+<span>(</span><span>command: <a title="qop.config.Command" href="config.html#qop.config.Command">Command</a>, payload=None, payload_class=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Messages to send commands from the client to the server</p>
@@ -598,7 +609,11 @@ Currently the only practical payload is a Task.
         return utils.is_daemon_active(self.ip, self.port)
 
     @property
-    def active_tasks(self) -&gt; list:
+    def max_processes(self) -&gt; list:
+        return self.send_command(Command.QUEUE_MAX_PROCESSES)[&#39;payload&#39;][&#39;value&#39;]
+
+    @property
+    def running_tasks(self) -&gt; list:
         return self.send_command(Command.QUEUE_SHOW)
 
     @property
@@ -651,7 +666,7 @@ def active_processes(self) -&gt; int:
     return x[&#39;transfer&#39;] + x[&#39;convert&#39;]</code></pre>
 </details>
 </dd>
-<dt id="qop.daemon.QopClient.active_tasks"><code class="name">var <span class="ident">active_tasks</span> : list</code></dt>
+<dt id="qop.daemon.QopClient.max_processes"><code class="name">var <span class="ident">max_processes</span> : list</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -659,7 +674,19 @@ def active_processes(self) -&gt; int:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def active_tasks(self) -&gt; list:
+def max_processes(self) -&gt; list:
+    return self.send_command(Command.QUEUE_MAX_PROCESSES)[&#39;payload&#39;][&#39;value&#39;]</code></pre>
+</details>
+</dd>
+<dt id="qop.daemon.QopClient.running_tasks"><code class="name">var <span class="ident">running_tasks</span> : list</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def running_tasks(self) -&gt; list:
     return self.send_command(Command.QUEUE_SHOW)</code></pre>
 </details>
 </dd>
@@ -716,7 +743,7 @@ def active_tasks(self) -&gt; list:
 </details>
 </dd>
 <dt id="qop.daemon.QopClient.send_command"><code class="name flex">
-<span>def <span class="ident">send_command</span></span>(<span>self, command: <a title="qop.enums.Command" href="enums.html#qop.enums.Command">Command</a>, payload: Union[NoneType, Dict, <a title="qop.tasks.Task" href="tasks.html#qop.tasks.Task">Task</a>, list] = None) ‑> Dict</span>
+<span>def <span class="ident">send_command</span></span>(<span>self, command: <a title="qop.config.Command" href="config.html#qop.config.Command">Command</a>, payload: Union[NoneType, Dict, <a title="qop.tasks.Task" href="tasks.html#qop.tasks.Task">Task</a>, list] = None) ‑> Dict</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -879,6 +906,13 @@ It accepts Commands sent by QopClient.</p>
                         &#34;transfer&#34;:  self.queue.active_processes(type=&#34;transfer&#34;),
                         &#34;convert&#34;: self.queue.active_processes(type=&#34;convert&#34;)
                     }).encode())
+
+                elif command == Command.QUEUE_MAX_PROCESSES:
+                    client.sendall(StatusMessage(
+                        Status.OK,
+                        payload={&#34;value&#34;: self.queue.max_transfer_processes + self.queue.max_convert_processes},
+                        payload_class=PayloadClass.VALUE
+                    ).encode())
 
                 elif command == Command.QUEUE_FLUSH_ALL:
                     self.queue.flush()
@@ -1089,6 +1123,13 @@ def is_listening(self) -&gt; bool:
                     &#34;transfer&#34;:  self.queue.active_processes(type=&#34;transfer&#34;),
                     &#34;convert&#34;: self.queue.active_processes(type=&#34;convert&#34;)
                 }).encode())
+
+            elif command == Command.QUEUE_MAX_PROCESSES:
+                client.sendall(StatusMessage(
+                    Status.OK,
+                    payload={&#34;value&#34;: self.queue.max_transfer_processes + self.queue.max_convert_processes},
+                    payload_class=PayloadClass.VALUE
+                ).encode())
 
             elif command == Command.QUEUE_FLUSH_ALL:
                 self.queue.flush()
@@ -1355,10 +1396,11 @@ def header_len(self) -&gt; int:
 <h4><code><a title="qop.daemon.QopClient" href="#qop.daemon.QopClient">QopClient</a></code></h4>
 <ul class="two-column">
 <li><code><a title="qop.daemon.QopClient.active_processes" href="#qop.daemon.QopClient.active_processes">active_processes</a></code></li>
-<li><code><a title="qop.daemon.QopClient.active_tasks" href="#qop.daemon.QopClient.active_tasks">active_tasks</a></code></li>
 <li><code><a title="qop.daemon.QopClient.get_queue_progress" href="#qop.daemon.QopClient.get_queue_progress">get_queue_progress</a></code></li>
 <li><code><a title="qop.daemon.QopClient.is_daemon_active" href="#qop.daemon.QopClient.is_daemon_active">is_daemon_active</a></code></li>
 <li><code><a title="qop.daemon.QopClient.is_queue_active" href="#qop.daemon.QopClient.is_queue_active">is_queue_active</a></code></li>
+<li><code><a title="qop.daemon.QopClient.max_processes" href="#qop.daemon.QopClient.max_processes">max_processes</a></code></li>
+<li><code><a title="qop.daemon.QopClient.running_tasks" href="#qop.daemon.QopClient.running_tasks">running_tasks</a></code></li>
 <li><code><a title="qop.daemon.QopClient.send_command" href="#qop.daemon.QopClient.send_command">send_command</a></code></li>
 </ul>
 </li>

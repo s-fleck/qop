@@ -41,14 +41,14 @@ from time import sleep
 import appdirs
 from colorama import init, Fore
 
-from qop.enums import TaskType, Status, Command
+from qop.config import TaskType, Status, Command
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
 from qop import converters, utils
 
 
 init()
 Pathish = Union[Path, str]
-lg = logging.getLogger(&#34;qop.tasks&#34;)
+lg = logging.getLogger(__name__)
 CONVERT_CACHE_DIR = Path(appdirs.user_cache_dir(&#34;qop&#34;)).joinpath(&#34;convert_temp&#34;)
 
 
@@ -406,7 +406,7 @@ class TaskQueue:
                     lg.info(f&#34;parent task finished: {op.parent_oid}&#34;)
 
             except:
-                lg.error(f&#34;task failed: {op}&#34;)
+                lg.error(f&#34;task failed: {op}&#34;, exc_info=True)
                 self.set_status(op.oid, Status.FAIL)
                 if op.parent_oid is not None:
                     self.set_status(op.parent_oid, Status.FAIL)
@@ -667,10 +667,7 @@ class MoveTask(CopyTask):
         if not self.dst.parent.exists():
             self.dst.parent.mkdir(parents=True)
 
-        if self.src.is_dir():
-            shutil.move(self.src, self.dst)
-        else:
-            shutil.move(self.src, self.dst)
+        shutil.move(self.src, self.dst)
 
     def color_repr(self, color=True) -&gt; str:
         if color:
@@ -1328,10 +1325,7 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
         if not self.dst.parent.exists():
             self.dst.parent.mkdir(parents=True)
 
-        if self.src.is_dir():
-            shutil.move(self.src, self.dst)
-        else:
-            shutil.move(self.src, self.dst)
+        shutil.move(self.src, self.dst)
 
     def color_repr(self, color=True) -&gt; str:
         if color:
@@ -2326,7 +2320,7 @@ be 1.
                     lg.info(f&#34;parent task finished: {op.parent_oid}&#34;)
 
             except:
-                lg.error(f&#34;task failed: {op}&#34;)
+                lg.error(f&#34;task failed: {op}&#34;, exc_info=True)
                 self.set_status(op.oid, Status.FAIL)
                 if op.parent_oid is not None:
                     self.set_status(op.parent_oid, Status.FAIL)
@@ -2514,7 +2508,7 @@ def n_total(self) -&gt; int:
 </details>
 </dd>
 <dt id="qop.tasks.TaskQueue.fetch"><code class="name flex">
-<span>def <span class="ident">fetch</span></span>(<span>self, status: Union[Tuple, int, <a title="qop.enums.Status" href="enums.html#qop.enums.Status">Status</a>, NoneType] = None, n: Union[int, NoneType] = None) ‑> List</span>
+<span>def <span class="ident">fetch</span></span>(<span>self, status: Union[Tuple, int, <a title="qop.config.Status" href="config.html#qop.config.Status">Status</a>, NoneType] = None, n: Union[int, NoneType] = None) ‑> List</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Retrieve the queue</p>
@@ -2578,7 +2572,7 @@ def n_total(self) -&gt; int:
 </details>
 </dd>
 <dt id="qop.tasks.TaskQueue.flush"><code class="name flex">
-<span>def <span class="ident">flush</span></span>(<span>self, status: Union[<a title="qop.enums.Status" href="enums.html#qop.enums.Status">Status</a>, int, NoneType] = None) ‑> NoneType</span>
+<span>def <span class="ident">flush</span></span>(<span>self, status: Union[<a title="qop.config.Status" href="config.html#qop.config.Status">Status</a>, int, NoneType] = None) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>empty the queue</p></div>
@@ -2639,7 +2633,7 @@ def n_total(self) -&gt; int:
 </details>
 </dd>
 <dt id="qop.tasks.TaskQueue.pop"><code class="name flex">
-<span>def <span class="ident">pop</span></span>(<span>self, task_type_include: Union[<a title="qop.enums.TaskType" href="enums.html#qop.enums.TaskType">TaskType</a>, NoneType] = None, task_type_exclude: Union[<a title="qop.enums.TaskType" href="enums.html#qop.enums.TaskType">TaskType</a>, NoneType] = None) ‑> <a title="qop.tasks.Task" href="#qop.tasks.Task">Task</a></span>
+<span>def <span class="ident">pop</span></span>(<span>self, task_type_include: Union[<a title="qop.config.TaskType" href="config.html#qop.config.TaskType">TaskType</a>, NoneType] = None, task_type_exclude: Union[<a title="qop.config.TaskType" href="config.html#qop.config.TaskType">TaskType</a>, NoneType] = None) ‑> <a title="qop.tasks.Task" href="#qop.tasks.Task">Task</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Retrieves Task object and sets status of Task in database to "in progress" (1)</p>
@@ -2843,7 +2837,7 @@ condition occurs if the queue is processed in parallel)</p></div>
 </details>
 </dd>
 <dt id="qop.tasks.TaskQueue.set_status"><code class="name flex">
-<span>def <span class="ident">set_status</span></span>(<span>self, oid: int, status: <a title="qop.enums.Status" href="enums.html#qop.enums.Status">Status</a>, lock: str = None) ‑> NoneType</span>
+<span>def <span class="ident">set_status</span></span>(<span>self, oid: int, status: <a title="qop.config.Status" href="config.html#qop.config.Status">Status</a>, lock: str = None) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Mark the operation with the <em>ROWID</em> <code>oid</code> as "pending" (0)</p>

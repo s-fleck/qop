@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>qop.enums API documentation</title>
+<title>qop.config API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>qop.enums</code></h1>
+<h1 class="title">Module <code>qop.config</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -30,6 +30,8 @@
 
 PREHEADER_LEN: int = 2
 
+CPL = &#34;\033[A&#34;  # ANSI move cursor previous line
+EL = &#34;\033[K&#34;   # ANSI erase line
 
 class Command(IntEnum):
     DAEMON_START = 101
@@ -44,6 +46,7 @@ class Command(IntEnum):
     QUEUE_PROGRESS = 207
     QUEUE_ACTIVE_PROCESSES = 208
     QUEUE_SHOW = 209
+    QUEUE_MAX_PROCESSES = 210
 
 
 class PayloadClass(IntEnum):
@@ -98,7 +101,7 @@ def is_enum_member(x: int, enum):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="qop.enums.is_enum_member"><code class="name flex">
+<dt id="qop.config.is_enum_member"><code class="name flex">
 <span>def <span class="ident">is_enum_member</span></span>(<span>x: int, enum)</span>
 </code></dt>
 <dd>
@@ -120,7 +123,7 @@ def is_enum_member(x: int, enum):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="qop.enums.Command"><code class="flex name class">
+<dt id="qop.config.Command"><code class="flex name class">
 <span>class <span class="ident">Command</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
@@ -142,7 +145,8 @@ def is_enum_member(x: int, enum):
     QUEUE_FLUSH_ALL = 206
     QUEUE_PROGRESS = 207
     QUEUE_ACTIVE_PROCESSES = 208
-    QUEUE_SHOW = 209</code></pre>
+    QUEUE_SHOW = 209
+    QUEUE_MAX_PROCESSES = 210</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -152,57 +156,61 @@ def is_enum_member(x: int, enum):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="qop.enums.Command.DAEMON_IS_ACTIVE"><code class="name">var <span class="ident">DAEMON_IS_ACTIVE</span></code></dt>
+<dt id="qop.config.Command.DAEMON_IS_ACTIVE"><code class="name">var <span class="ident">DAEMON_IS_ACTIVE</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.DAEMON_START"><code class="name">var <span class="ident">DAEMON_START</span></code></dt>
+<dt id="qop.config.Command.DAEMON_START"><code class="name">var <span class="ident">DAEMON_START</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.DAEMON_STOP"><code class="name">var <span class="ident">DAEMON_STOP</span></code></dt>
+<dt id="qop.config.Command.DAEMON_STOP"><code class="name">var <span class="ident">DAEMON_STOP</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.QUEUE_ACTIVE_PROCESSES"><code class="name">var <span class="ident">QUEUE_ACTIVE_PROCESSES</span></code></dt>
+<dt id="qop.config.Command.QUEUE_ACTIVE_PROCESSES"><code class="name">var <span class="ident">QUEUE_ACTIVE_PROCESSES</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.QUEUE_FLUSH_ALL"><code class="name">var <span class="ident">QUEUE_FLUSH_ALL</span></code></dt>
+<dt id="qop.config.Command.QUEUE_FLUSH_ALL"><code class="name">var <span class="ident">QUEUE_FLUSH_ALL</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.QUEUE_FLUSH_PENDING"><code class="name">var <span class="ident">QUEUE_FLUSH_PENDING</span></code></dt>
+<dt id="qop.config.Command.QUEUE_FLUSH_PENDING"><code class="name">var <span class="ident">QUEUE_FLUSH_PENDING</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.QUEUE_IS_ACTIVE"><code class="name">var <span class="ident">QUEUE_IS_ACTIVE</span></code></dt>
+<dt id="qop.config.Command.QUEUE_IS_ACTIVE"><code class="name">var <span class="ident">QUEUE_IS_ACTIVE</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.QUEUE_PROGRESS"><code class="name">var <span class="ident">QUEUE_PROGRESS</span></code></dt>
+<dt id="qop.config.Command.QUEUE_MAX_PROCESSES"><code class="name">var <span class="ident">QUEUE_MAX_PROCESSES</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.QUEUE_PUT"><code class="name">var <span class="ident">QUEUE_PUT</span></code></dt>
+<dt id="qop.config.Command.QUEUE_PROGRESS"><code class="name">var <span class="ident">QUEUE_PROGRESS</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.QUEUE_SHOW"><code class="name">var <span class="ident">QUEUE_SHOW</span></code></dt>
+<dt id="qop.config.Command.QUEUE_PUT"><code class="name">var <span class="ident">QUEUE_PUT</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.QUEUE_START"><code class="name">var <span class="ident">QUEUE_START</span></code></dt>
+<dt id="qop.config.Command.QUEUE_SHOW"><code class="name">var <span class="ident">QUEUE_SHOW</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Command.QUEUE_STOP"><code class="name">var <span class="ident">QUEUE_STOP</span></code></dt>
+<dt id="qop.config.Command.QUEUE_START"><code class="name">var <span class="ident">QUEUE_START</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="qop.config.Command.QUEUE_STOP"><code class="name">var <span class="ident">QUEUE_STOP</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="qop.enums.ConverterType"><code class="flex name class">
+<dt id="qop.config.ConverterType"><code class="flex name class">
 <span>class <span class="ident">ConverterType</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
@@ -225,21 +233,21 @@ def is_enum_member(x: int, enum):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="qop.enums.ConverterType.COPY"><code class="name">var <span class="ident">COPY</span></code></dt>
+<dt id="qop.config.ConverterType.COPY"><code class="name">var <span class="ident">COPY</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.ConverterType.MP3"><code class="name">var <span class="ident">MP3</span></code></dt>
+<dt id="qop.config.ConverterType.MP3"><code class="name">var <span class="ident">MP3</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.ConverterType.OGG"><code class="name">var <span class="ident">OGG</span></code></dt>
+<dt id="qop.config.ConverterType.OGG"><code class="name">var <span class="ident">OGG</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="qop.enums.FileExistsAndIsIdenticalError"><code class="flex name class">
+<dt id="qop.config.FileExistsAndIsIdenticalError"><code class="flex name class">
 <span>class <span class="ident">FileExistsAndIsIdenticalError</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
@@ -258,7 +266,7 @@ def is_enum_member(x: int, enum):
 <li>builtins.BaseException</li>
 </ul>
 </dd>
-<dt id="qop.enums.PayloadClass"><code class="flex name class">
+<dt id="qop.config.PayloadClass"><code class="flex name class">
 <span>class <span class="ident">PayloadClass</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
@@ -282,25 +290,25 @@ def is_enum_member(x: int, enum):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="qop.enums.PayloadClass.QUEUE_PROGRESS"><code class="name">var <span class="ident">QUEUE_PROGRESS</span></code></dt>
+<dt id="qop.config.PayloadClass.QUEUE_PROGRESS"><code class="name">var <span class="ident">QUEUE_PROGRESS</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.PayloadClass.TASK"><code class="name">var <span class="ident">TASK</span></code></dt>
+<dt id="qop.config.PayloadClass.TASK"><code class="name">var <span class="ident">TASK</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.PayloadClass.TASK_LIST"><code class="name">var <span class="ident">TASK_LIST</span></code></dt>
+<dt id="qop.config.PayloadClass.TASK_LIST"><code class="name">var <span class="ident">TASK_LIST</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.PayloadClass.VALUE"><code class="name">var <span class="ident">VALUE</span></code></dt>
+<dt id="qop.config.PayloadClass.VALUE"><code class="name">var <span class="ident">VALUE</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="qop.enums.Status"><code class="flex name class">
+<dt id="qop.config.Status"><code class="flex name class">
 <span>class <span class="ident">Status</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
@@ -325,29 +333,29 @@ def is_enum_member(x: int, enum):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="qop.enums.Status.FAIL"><code class="name">var <span class="ident">FAIL</span></code></dt>
+<dt id="qop.config.Status.FAIL"><code class="name">var <span class="ident">FAIL</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Status.OK"><code class="name">var <span class="ident">OK</span></code></dt>
+<dt id="qop.config.Status.OK"><code class="name">var <span class="ident">OK</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Status.PENDING"><code class="name">var <span class="ident">PENDING</span></code></dt>
+<dt id="qop.config.Status.PENDING"><code class="name">var <span class="ident">PENDING</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Status.RUNNING"><code class="name">var <span class="ident">RUNNING</span></code></dt>
+<dt id="qop.config.Status.RUNNING"><code class="name">var <span class="ident">RUNNING</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.Status.SKIP"><code class="name">var <span class="ident">SKIP</span></code></dt>
+<dt id="qop.config.Status.SKIP"><code class="name">var <span class="ident">SKIP</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="qop.enums.TaskType"><code class="flex name class">
+<dt id="qop.config.TaskType"><code class="flex name class">
 <span>class <span class="ident">TaskType</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
@@ -376,39 +384,39 @@ def is_enum_member(x: int, enum):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="qop.enums.TaskType.CONVERT"><code class="name">var <span class="ident">CONVERT</span></code></dt>
+<dt id="qop.config.TaskType.CONVERT"><code class="name">var <span class="ident">CONVERT</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.TaskType.CONVERT_SIMPLE"><code class="name">var <span class="ident">CONVERT_SIMPLE</span></code></dt>
+<dt id="qop.config.TaskType.CONVERT_SIMPLE"><code class="name">var <span class="ident">CONVERT_SIMPLE</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.TaskType.COPY"><code class="name">var <span class="ident">COPY</span></code></dt>
+<dt id="qop.config.TaskType.COPY"><code class="name">var <span class="ident">COPY</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.TaskType.DELETE"><code class="name">var <span class="ident">DELETE</span></code></dt>
+<dt id="qop.config.TaskType.DELETE"><code class="name">var <span class="ident">DELETE</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.TaskType.ECHO"><code class="name">var <span class="ident">ECHO</span></code></dt>
+<dt id="qop.config.TaskType.ECHO"><code class="name">var <span class="ident">ECHO</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.TaskType.FAIL"><code class="name">var <span class="ident">FAIL</span></code></dt>
+<dt id="qop.config.TaskType.FAIL"><code class="name">var <span class="ident">FAIL</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.TaskType.FILE"><code class="name">var <span class="ident">FILE</span></code></dt>
+<dt id="qop.config.TaskType.FILE"><code class="name">var <span class="ident">FILE</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.TaskType.MOVE"><code class="name">var <span class="ident">MOVE</span></code></dt>
+<dt id="qop.config.TaskType.MOVE"><code class="name">var <span class="ident">MOVE</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="qop.enums.TaskType.SLEEP"><code class="name">var <span class="ident">SLEEP</span></code></dt>
+<dt id="qop.config.TaskType.SLEEP"><code class="name">var <span class="ident">SLEEP</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -430,70 +438,71 @@ def is_enum_member(x: int, enum):
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="qop.enums.is_enum_member" href="#qop.enums.is_enum_member">is_enum_member</a></code></li>
+<li><code><a title="qop.config.is_enum_member" href="#qop.config.is_enum_member">is_enum_member</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="qop.enums.Command" href="#qop.enums.Command">Command</a></code></h4>
+<h4><code><a title="qop.config.Command" href="#qop.config.Command">Command</a></code></h4>
 <ul class="">
-<li><code><a title="qop.enums.Command.DAEMON_IS_ACTIVE" href="#qop.enums.Command.DAEMON_IS_ACTIVE">DAEMON_IS_ACTIVE</a></code></li>
-<li><code><a title="qop.enums.Command.DAEMON_START" href="#qop.enums.Command.DAEMON_START">DAEMON_START</a></code></li>
-<li><code><a title="qop.enums.Command.DAEMON_STOP" href="#qop.enums.Command.DAEMON_STOP">DAEMON_STOP</a></code></li>
-<li><code><a title="qop.enums.Command.QUEUE_ACTIVE_PROCESSES" href="#qop.enums.Command.QUEUE_ACTIVE_PROCESSES">QUEUE_ACTIVE_PROCESSES</a></code></li>
-<li><code><a title="qop.enums.Command.QUEUE_FLUSH_ALL" href="#qop.enums.Command.QUEUE_FLUSH_ALL">QUEUE_FLUSH_ALL</a></code></li>
-<li><code><a title="qop.enums.Command.QUEUE_FLUSH_PENDING" href="#qop.enums.Command.QUEUE_FLUSH_PENDING">QUEUE_FLUSH_PENDING</a></code></li>
-<li><code><a title="qop.enums.Command.QUEUE_IS_ACTIVE" href="#qop.enums.Command.QUEUE_IS_ACTIVE">QUEUE_IS_ACTIVE</a></code></li>
-<li><code><a title="qop.enums.Command.QUEUE_PROGRESS" href="#qop.enums.Command.QUEUE_PROGRESS">QUEUE_PROGRESS</a></code></li>
-<li><code><a title="qop.enums.Command.QUEUE_PUT" href="#qop.enums.Command.QUEUE_PUT">QUEUE_PUT</a></code></li>
-<li><code><a title="qop.enums.Command.QUEUE_SHOW" href="#qop.enums.Command.QUEUE_SHOW">QUEUE_SHOW</a></code></li>
-<li><code><a title="qop.enums.Command.QUEUE_START" href="#qop.enums.Command.QUEUE_START">QUEUE_START</a></code></li>
-<li><code><a title="qop.enums.Command.QUEUE_STOP" href="#qop.enums.Command.QUEUE_STOP">QUEUE_STOP</a></code></li>
+<li><code><a title="qop.config.Command.DAEMON_IS_ACTIVE" href="#qop.config.Command.DAEMON_IS_ACTIVE">DAEMON_IS_ACTIVE</a></code></li>
+<li><code><a title="qop.config.Command.DAEMON_START" href="#qop.config.Command.DAEMON_START">DAEMON_START</a></code></li>
+<li><code><a title="qop.config.Command.DAEMON_STOP" href="#qop.config.Command.DAEMON_STOP">DAEMON_STOP</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_ACTIVE_PROCESSES" href="#qop.config.Command.QUEUE_ACTIVE_PROCESSES">QUEUE_ACTIVE_PROCESSES</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_FLUSH_ALL" href="#qop.config.Command.QUEUE_FLUSH_ALL">QUEUE_FLUSH_ALL</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_FLUSH_PENDING" href="#qop.config.Command.QUEUE_FLUSH_PENDING">QUEUE_FLUSH_PENDING</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_IS_ACTIVE" href="#qop.config.Command.QUEUE_IS_ACTIVE">QUEUE_IS_ACTIVE</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_MAX_PROCESSES" href="#qop.config.Command.QUEUE_MAX_PROCESSES">QUEUE_MAX_PROCESSES</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_PROGRESS" href="#qop.config.Command.QUEUE_PROGRESS">QUEUE_PROGRESS</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_PUT" href="#qop.config.Command.QUEUE_PUT">QUEUE_PUT</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_SHOW" href="#qop.config.Command.QUEUE_SHOW">QUEUE_SHOW</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_START" href="#qop.config.Command.QUEUE_START">QUEUE_START</a></code></li>
+<li><code><a title="qop.config.Command.QUEUE_STOP" href="#qop.config.Command.QUEUE_STOP">QUEUE_STOP</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="qop.enums.ConverterType" href="#qop.enums.ConverterType">ConverterType</a></code></h4>
+<h4><code><a title="qop.config.ConverterType" href="#qop.config.ConverterType">ConverterType</a></code></h4>
 <ul class="">
-<li><code><a title="qop.enums.ConverterType.COPY" href="#qop.enums.ConverterType.COPY">COPY</a></code></li>
-<li><code><a title="qop.enums.ConverterType.MP3" href="#qop.enums.ConverterType.MP3">MP3</a></code></li>
-<li><code><a title="qop.enums.ConverterType.OGG" href="#qop.enums.ConverterType.OGG">OGG</a></code></li>
+<li><code><a title="qop.config.ConverterType.COPY" href="#qop.config.ConverterType.COPY">COPY</a></code></li>
+<li><code><a title="qop.config.ConverterType.MP3" href="#qop.config.ConverterType.MP3">MP3</a></code></li>
+<li><code><a title="qop.config.ConverterType.OGG" href="#qop.config.ConverterType.OGG">OGG</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="qop.enums.FileExistsAndIsIdenticalError" href="#qop.enums.FileExistsAndIsIdenticalError">FileExistsAndIsIdenticalError</a></code></h4>
+<h4><code><a title="qop.config.FileExistsAndIsIdenticalError" href="#qop.config.FileExistsAndIsIdenticalError">FileExistsAndIsIdenticalError</a></code></h4>
 </li>
 <li>
-<h4><code><a title="qop.enums.PayloadClass" href="#qop.enums.PayloadClass">PayloadClass</a></code></h4>
+<h4><code><a title="qop.config.PayloadClass" href="#qop.config.PayloadClass">PayloadClass</a></code></h4>
 <ul class="">
-<li><code><a title="qop.enums.PayloadClass.QUEUE_PROGRESS" href="#qop.enums.PayloadClass.QUEUE_PROGRESS">QUEUE_PROGRESS</a></code></li>
-<li><code><a title="qop.enums.PayloadClass.TASK" href="#qop.enums.PayloadClass.TASK">TASK</a></code></li>
-<li><code><a title="qop.enums.PayloadClass.TASK_LIST" href="#qop.enums.PayloadClass.TASK_LIST">TASK_LIST</a></code></li>
-<li><code><a title="qop.enums.PayloadClass.VALUE" href="#qop.enums.PayloadClass.VALUE">VALUE</a></code></li>
+<li><code><a title="qop.config.PayloadClass.QUEUE_PROGRESS" href="#qop.config.PayloadClass.QUEUE_PROGRESS">QUEUE_PROGRESS</a></code></li>
+<li><code><a title="qop.config.PayloadClass.TASK" href="#qop.config.PayloadClass.TASK">TASK</a></code></li>
+<li><code><a title="qop.config.PayloadClass.TASK_LIST" href="#qop.config.PayloadClass.TASK_LIST">TASK_LIST</a></code></li>
+<li><code><a title="qop.config.PayloadClass.VALUE" href="#qop.config.PayloadClass.VALUE">VALUE</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="qop.enums.Status" href="#qop.enums.Status">Status</a></code></h4>
+<h4><code><a title="qop.config.Status" href="#qop.config.Status">Status</a></code></h4>
 <ul class="">
-<li><code><a title="qop.enums.Status.FAIL" href="#qop.enums.Status.FAIL">FAIL</a></code></li>
-<li><code><a title="qop.enums.Status.OK" href="#qop.enums.Status.OK">OK</a></code></li>
-<li><code><a title="qop.enums.Status.PENDING" href="#qop.enums.Status.PENDING">PENDING</a></code></li>
-<li><code><a title="qop.enums.Status.RUNNING" href="#qop.enums.Status.RUNNING">RUNNING</a></code></li>
-<li><code><a title="qop.enums.Status.SKIP" href="#qop.enums.Status.SKIP">SKIP</a></code></li>
+<li><code><a title="qop.config.Status.FAIL" href="#qop.config.Status.FAIL">FAIL</a></code></li>
+<li><code><a title="qop.config.Status.OK" href="#qop.config.Status.OK">OK</a></code></li>
+<li><code><a title="qop.config.Status.PENDING" href="#qop.config.Status.PENDING">PENDING</a></code></li>
+<li><code><a title="qop.config.Status.RUNNING" href="#qop.config.Status.RUNNING">RUNNING</a></code></li>
+<li><code><a title="qop.config.Status.SKIP" href="#qop.config.Status.SKIP">SKIP</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="qop.enums.TaskType" href="#qop.enums.TaskType">TaskType</a></code></h4>
+<h4><code><a title="qop.config.TaskType" href="#qop.config.TaskType">TaskType</a></code></h4>
 <ul class="two-column">
-<li><code><a title="qop.enums.TaskType.CONVERT" href="#qop.enums.TaskType.CONVERT">CONVERT</a></code></li>
-<li><code><a title="qop.enums.TaskType.CONVERT_SIMPLE" href="#qop.enums.TaskType.CONVERT_SIMPLE">CONVERT_SIMPLE</a></code></li>
-<li><code><a title="qop.enums.TaskType.COPY" href="#qop.enums.TaskType.COPY">COPY</a></code></li>
-<li><code><a title="qop.enums.TaskType.DELETE" href="#qop.enums.TaskType.DELETE">DELETE</a></code></li>
-<li><code><a title="qop.enums.TaskType.ECHO" href="#qop.enums.TaskType.ECHO">ECHO</a></code></li>
-<li><code><a title="qop.enums.TaskType.FAIL" href="#qop.enums.TaskType.FAIL">FAIL</a></code></li>
-<li><code><a title="qop.enums.TaskType.FILE" href="#qop.enums.TaskType.FILE">FILE</a></code></li>
-<li><code><a title="qop.enums.TaskType.MOVE" href="#qop.enums.TaskType.MOVE">MOVE</a></code></li>
-<li><code><a title="qop.enums.TaskType.SLEEP" href="#qop.enums.TaskType.SLEEP">SLEEP</a></code></li>
+<li><code><a title="qop.config.TaskType.CONVERT" href="#qop.config.TaskType.CONVERT">CONVERT</a></code></li>
+<li><code><a title="qop.config.TaskType.CONVERT_SIMPLE" href="#qop.config.TaskType.CONVERT_SIMPLE">CONVERT_SIMPLE</a></code></li>
+<li><code><a title="qop.config.TaskType.COPY" href="#qop.config.TaskType.COPY">COPY</a></code></li>
+<li><code><a title="qop.config.TaskType.DELETE" href="#qop.config.TaskType.DELETE">DELETE</a></code></li>
+<li><code><a title="qop.config.TaskType.ECHO" href="#qop.config.TaskType.ECHO">ECHO</a></code></li>
+<li><code><a title="qop.config.TaskType.FAIL" href="#qop.config.TaskType.FAIL">FAIL</a></code></li>
+<li><code><a title="qop.config.TaskType.FILE" href="#qop.config.TaskType.FILE">FILE</a></code></li>
+<li><code><a title="qop.config.TaskType.MOVE" href="#qop.config.TaskType.MOVE">MOVE</a></code></li>
+<li><code><a title="qop.config.TaskType.SLEEP" href="#qop.config.TaskType.SLEEP">SLEEP</a></code></li>
 </ul>
 </li>
 </ul>

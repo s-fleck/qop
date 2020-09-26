@@ -3,3 +3,4 @@
 .idea**
 venv**
 docs/_build**
+.run**
