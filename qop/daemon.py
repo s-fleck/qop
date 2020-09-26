@@ -10,7 +10,7 @@ from time import sleep
 
 from qop import tasks, utils
 from qop.exceptions import FileExistsAndShouldBeSkippedError
-from qop.enums import TaskType, Status, Command, PREHEADER_LEN, PayloadClass
+from qop.config import TaskType, Status, Command, PREHEADER_LEN, PayloadClass
 
 
 Pathish = Union[Path, str]
@@ -135,6 +135,13 @@ class QopDaemon:
                         "convert": self.queue.active_processes(type="convert")
                     }).encode())
 
+                elif command == Command.QUEUE_MAX_PROCESSES:
+                    client.sendall(StatusMessage(
+                        Status.OK,
+                        payload={"value": self.queue.max_transfer_processes + self.queue.max_convert_processes},
+                        payload_class=PayloadClass.VALUE
+                    ).encode())
+
                 elif command == Command.QUEUE_FLUSH_ALL:
                     self.queue.flush()
                     client.sendall(StatusMessage(Status.OK, "flushed queue").encode())
@@ -223,7 +230,11 @@ class QopClient:
         return utils.is_daemon_active(self.ip, self.port)
 
     @property
-    def active_tasks(self) -> list:
+    def max_processes(self) -> list:
+        return self.send_command(Command.QUEUE_MAX_PROCESSES)['payload']['value']
+
+    @property
+    def running_tasks(self) -> list:
         return self.send_command(Command.QUEUE_SHOW)
 
     @property

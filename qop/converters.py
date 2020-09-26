@@ -7,7 +7,7 @@ import pydub
 import mutagen
 from mutagen import id3
 
-from qop.enums import ConverterType
+from qop.config import ConverterType
 
 Pathish = Union[Path, str]
 

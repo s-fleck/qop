@@ -5,7 +5,7 @@ import logging
 import shutil
 
 from qop import daemon, tasks, cli
-from qop.enums import Command
+from qop.config import Command
 
 
 # globals

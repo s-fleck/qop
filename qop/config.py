@@ -2,6 +2,8 @@ from enum import IntEnum
 
 PREHEADER_LEN: int = 2
 
+CPL = "\033[A"  # ANSI move cursor previous line
+EL = "\033[K"   # ANSI erase line
 
 class Command(IntEnum):
     DAEMON_START = 101
@@ -16,6 +18,7 @@ class Command(IntEnum):
     QUEUE_PROGRESS = 207
     QUEUE_ACTIVE_PROCESSES = 208
     QUEUE_SHOW = 209
+    QUEUE_MAX_PROCESSES = 210
 
 
 class PayloadClass(IntEnum):

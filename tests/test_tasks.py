@@ -1,6 +1,6 @@
 from qop import tasks, converters
 from qop.exceptions import FileExistsAndIsIdenticalError
-from qop.enums import Status
+from qop.config import Status
 from pathlib import Path
 import pytest
 from time import sleep

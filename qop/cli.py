@@ -6,11 +6,11 @@ from typing import Dict, Union, Optional
 from time import sleep
 
 import appdirs
-from tqdm import tqdm
+from tqdm import tqdm, trange
 from colorama import init, Fore
 
-from qop import daemon, tasks, scanners, converters
-from qop.enums import Status, Command, PayloadClass
+from qop import config, tasks, scanners, converters
+from qop.config import Status, Command, PayloadClass
 
 
 init()  # init terminal colors
@@ -255,37 +255,36 @@ def handle_queue_progress(args, client):
     if info.total == 0:
         return {"status": Status.OK, "msg": "queue is empty"}
 
-    CPL = "\033[A"  # ANSI move cursor previous line
-    EL  = "\033[K"  # ANSI erase line
-
-    max_lines = client.active_processes + 1
-
-    print("\n" * max_lines)
-    last_nrows = max_lines
+    max_processes = client.max_processes
 
     with tqdm(total=info.total, initial=info.total - info.pending) as pbar:
+
+        bars = [tqdm(bar_format="{desc}") for x in range(max_processes + 1)]
+
         while True:
             sleep(0.1)
 
+            is_daemon_active = client.is_daemon_active()
+            active_processes = client.active_processes
+            running_tasks = client.running_tasks['payload']
+
+            for i in range(len(bars) - 1):
+                # keep bar 0 empty so that we get a blank line between the real progress bar and the tasks
+                if 0 < i <= len(running_tasks):
+                    t = tasks.Task.from_dict(running_tasks[i - 1]['task']).color_repr()
+                    bars[i].desc = t
+                    bars[i].update()
+                elif i > len(running_tasks):
+                    bars[i].desc = config.EL + "..idle.."
+                    # bars[i].update()
             try:
                 info = client.get_queue_progress()
-                is_daemon_active = client.is_daemon_active()
-                active_processes = client.active_processes
-                transfers = client.active_tasks['payload']
-                transfers_str = "\n".join([tasks.Task.from_dict(x['task']).color_repr() for x in transfers])
+                pbar.set_description(f"{active_processes} processes")
+                pbar.update(info.total - info.pending - pbar.n)
             except:
-                continue
-
-            clr = (CPL + EL) * (last_nrows + 1)
-            pbar.write(clr, end="")
-            pbar.write(transfers_str, end="")
-            last_nrows = transfers_str.count("\n")
-
-            pbar.update(info.total - info.pending - pbar.n)
-            pbar.set_description(f"{active_processes} processes")
+                pass
 
             if not is_daemon_active or active_processes < 1:
-                pbar.write(clr)
                 break
 
     if info.total == info.ok + info.skip:

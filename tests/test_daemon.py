@@ -1,6 +1,6 @@
 import pytest
 from qop import tasks, daemon, utils
-from qop.enums import Command
+from qop.config import Command
 from time import sleep
 import subprocess
 

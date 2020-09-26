@@ -13,7 +13,7 @@ from time import sleep
 import appdirs
 from colorama import init, Fore
 
-from qop.enums import TaskType, Status, Command
+from qop.config import TaskType, Status, Command
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
 from qop import converters, utils
 
