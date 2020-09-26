@@ -86,6 +86,7 @@ class OggConverter(CopyConverter):
         super().__init__(remove_art=remove_art)
         self.bitrate = bitrate
         self.remove_art = remove_art
+        self.ext = "ogg"
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         src = Path(src).resolve()
@@ -107,6 +108,7 @@ class Mp3Converter(CopyConverter):
 
     def __init__(self, remove_art: bool = False) -> None:
         super().__init__(remove_art=remove_art)
+        self.ext = "mp3"
 
     def run(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         src = Path(src).resolve()

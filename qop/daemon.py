@@ -14,7 +14,7 @@ from qop.enums import TaskType, Status, Command, PREHEADER_LEN, PayloadClass
 
 
 Pathish = Union[Path, str]
-lg = logging.getLogger("qop.daemon")
+lg = logging.getLogger(__name__)
 
 
 class QopDaemon:

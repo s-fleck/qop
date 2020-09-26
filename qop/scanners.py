@@ -50,7 +50,6 @@ class ScannerBlacklist:
 
 
 class ScannerWhitelist:
-
     def __init__(self, extensions: list) -> None:
         self.extensions = extensions
 

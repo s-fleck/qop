@@ -118,7 +118,7 @@ def test_manage_the_queue(testfile_tree):
 
 
 def test_manage_the_daemon(testfile_tree):
-    """qop can copy a file"""
+    """daemon can be started and stopped"""
     root, src, dst = testfile_tree
 
     subprocess.run(["python3", QOP, "-v", "--log-level", "CRITICAL", "daemon", "stop"])
