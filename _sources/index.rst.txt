@@ -3,21 +3,30 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to qop's documentation!
-===============================
+qop - Queued File Operations
+============================
+.. autosummary::
+   :toctree: modules
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Table of Contents
 
+   README <readme>
+   changelog
 
-TeacherAPI main
-===================
-.. automodule:: qop
-   :members:
+API Documentation
+-----------------
+
+the API documentation is very much work in progress right now, please check back early 2021
+
+.. toctree::
+   :maxdepth: 2
+
+   qop <qop>
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
