@@ -81,12 +81,10 @@
               
             
             
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="readme.html">README</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">CHANGELOG</a></li>
-</ul>
-<ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">qop</a><ul>
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-qop.cli">qop.cli module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-qop.config">qop.config module</a></li>
@@ -170,6 +168,7 @@
 </div>
 <div class="section" id="module-qop.cli">
 <span id="qop-cli-module"></span><h2>qop.cli module<a class="headerlink" href="#module-qop.cli" title="Permalink to this headline">¶</a></h2>
+<p>Helper functions for the qop.py CLI application</p>
 <dl class="py function">
 <dt id="qop.cli.color_status">
 <code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">color_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.cli.color_status" title="Permalink to this definition">¶</a></dt>
@@ -268,6 +267,7 @@
 </div>
 <div class="section" id="module-qop.config">
 <span id="qop-config-module"></span><h2>qop.config module<a class="headerlink" href="#module-qop.config" title="Permalink to this headline">¶</a></h2>
+<p>Global variables and constants</p>
 <dl class="py class">
 <dt id="qop.config.Command">
 <em class="property">class </em><code class="sig-prename descclassname">qop.config.</code><code class="sig-name descname">Command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.config.Command" title="Permalink to this definition">¶</a></dt>
@@ -497,6 +497,7 @@
 </div>
 <div class="section" id="module-qop.converters">
 <span id="qop-converters-module"></span><h2>qop.converters module<a class="headerlink" href="#module-qop.converters" title="Permalink to this headline">¶</a></h2>
+<p>Converters are used by tasks.ConvertTask and tasks.SimpleConvertTask to transcode audiofiles</p>
 <dl class="py class">
 <dt id="qop.converters.Converter">
 <em class="property">class </em><code class="sig-prename descclassname">qop.converters.</code><code class="sig-name descname">Converter</code><a class="headerlink" href="#qop.converters.Converter" title="Permalink to this definition">¶</a></dt>
@@ -592,6 +593,7 @@
 </div>
 <div class="section" id="module-qop.daemon">
 <span id="qop-daemon-module"></span><h2>qop.daemon module<a class="headerlink" href="#module-qop.daemon" title="Permalink to this headline">¶</a></h2>
+<p>The classes and functions that power the daemon application qopd.py</p>
 <dl class="py class">
 <dt id="qop.daemon.CommandMessage">
 <em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">CommandMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.config.Command" title="qop.config.Command">qop.config.Command</a></span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload_class</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.CommandMessage" title="Permalink to this definition">¶</a></dt>
@@ -750,6 +752,7 @@
 </div>
 <div class="section" id="module-qop.exceptions">
 <span id="qop-exceptions-module"></span><h2>qop.exceptions module<a class="headerlink" href="#module-qop.exceptions" title="Permalink to this headline">¶</a></h2>
+<p>Exceptions</p>
 <dl class="py exception">
 <dt id="qop.exceptions.AlreadyUnderEvaluationError">
 <em class="property">exception </em><code class="sig-prename descclassname">qop.exceptions.</code><code class="sig-name descname">AlreadyUnderEvaluationError</code><a class="headerlink" href="#qop.exceptions.AlreadyUnderEvaluationError" title="Permalink to this definition">¶</a></dt>
@@ -778,6 +781,7 @@
 </div>
 <div class="section" id="module-qop.scanners">
 <span id="qop-scanners-module"></span><h2>qop.scanners module<a class="headerlink" href="#module-qop.scanners" title="Permalink to this headline">¶</a></h2>
+<p>Used by qop.py to traverse the directory tree when looking for files to transfer</p>
 <dl class="py class">
 <dt id="qop.scanners.Scanner">
 <em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">Scanner</code><a class="headerlink" href="#qop.scanners.Scanner" title="Permalink to this definition">¶</a></dt>
@@ -814,6 +818,7 @@
 </div>
 <div class="section" id="module-qop.tasks">
 <span id="qop-tasks-module"></span><h2>qop.tasks module<a class="headerlink" href="#module-qop.tasks" title="Permalink to this headline">¶</a></h2>
+<p>Classes and functions for working with Tasks. Tasks represent atomic file operations - such as copy, move or convert.</p>
 <dl class="py class">
 <dt id="qop.tasks.ConvertTask">
 <em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">ConvertTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">converter</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter">qop.converters.Converter</a></span></em>, <em class="sig-param"><span class="n">tempdir</span><span class="o">=</span><span class="default_value">PosixPath('/home/runner/.cache/qop/convert_temp')</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.ConvertTask" title="Permalink to this definition">¶</a></dt>
@@ -1156,10 +1161,10 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
 <dd><p>Retrieves Task object and sets status of Task in database to “in progress” (1)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#qop.exceptions.AlreadyUnderEvaluationError" title="qop.exceptions.AlreadyUnderEvaluationError"><strong>AlreadyUnderEvaluationError</strong></a> – If trying to pop a tasks that is already being processed  (i.e. if a race</p>
+<dd class="field-odd"><p><a class="reference internal" href="#qop.exceptions.AlreadyUnderEvaluationError" title="qop.exceptions.AlreadyUnderEvaluationError"><strong>AlreadyUnderEvaluationError</strong></a> – If trying to pop a tasks that is already being processed  (i.e. if a race
+condition occurs if the queue is processed in parallel)</p>
 </dd>
 </dl>
-<p>condition occurs if the queue is processed in parallel)</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1280,6 +1285,7 @@ tasks to <em>active</em>.</p></li>
 </div>
 <div class="section" id="module-qop.utils">
 <span id="qop-utils-module"></span><h2>qop.utils module<a class="headerlink" href="#module-qop.utils" title="Permalink to this headline">¶</a></h2>
+<p>Internal utility functions</p>
 <dl class="py function">
 <dt id="qop.utils.get_project_root">
 <code class="sig-prename descclassname">qop.utils.</code><code class="sig-name descname">get_project_root</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span> &#x2192; pathlib.Path<a class="headerlink" href="#qop.utils.get_project_root" title="Permalink to this definition">¶</a></dt>

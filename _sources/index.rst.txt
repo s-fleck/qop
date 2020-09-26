@@ -8,18 +8,9 @@ qop - Queued File Operations
 .. toctree::
    :maxdepth: 2
 
-   README <readme>
-   CHANGELOG <changelog>
-
-API Documentation
------------------
-
-the API documentation is very much work in progress right now, please check back early 2021
-
-.. toctree::
-   :maxdepth: 2
-
-   qop <qop>
+   Readme <readme>
+   Changelog <changelog>
+   API <qop>
 
 Indices and tables
 ------------------
