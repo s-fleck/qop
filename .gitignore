@@ -2,5 +2,5 @@
 .**pycache**
 .idea**
 venv**
-docs/_build**
+docs/build**
 .run**
