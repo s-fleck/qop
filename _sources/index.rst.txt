@@ -5,6 +5,8 @@
 
 qop - Queued File Operations
 ============================
+At the moment the API documentation of *qop* is very much work in progress. Please check back early 2021.
+
 .. toctree::
    :maxdepth: 2
 
