@@ -9,6 +9,6 @@ setup(
     author_email='stefan.b.fleck@gmail.com',
     license='MIT',
     packages=['qop'],
-    install_requires=['pydub', 'colorama', 'appdirs', 'mutagen'],
+    install_requires=['pydub', 'colorama', 'appdirs', 'mutagen', 'tqdm'],
     zip_safe=False
 )
