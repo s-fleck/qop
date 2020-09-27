@@ -581,16 +581,14 @@
 </div>
 <div class="section" id="module-qop.daemon">
 <span id="qop-daemon-module"></span><h2>qop.daemon module<a class="headerlink" href="#module-qop.daemon" title="Permalink to this headline">¶</a></h2>
-<p>This module contains the classes for the daemon, client and the message protocol for facilitating the communication
-between the two.</p>
+<p>This module defines classes for the daemon and the client that the command line programs provided by qop are based on.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>The client sends <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessage</span></code></a> objects via TCP to the daemon to enqueue new tasks, start/stop
-processing the queue, query information, etc… .</p></li>
-<li><p>The daemon manages a single <a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a> that stores and processes Tasks (such as copy a file,
-convert audio, etc…). For every command it receives, it responds with a single
-<a class="reference internal" href="#qop.daemon.StatusMessage" title="qop.daemon.StatusMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusMessage</span></code></a> that contains the status of the operation (ok, fail, skip) as well as an
-optional JSON payload.</p></li>
+<li><p>The client sends <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessages</span></code></a> via TCP to the daemon to enqueue new tasks,
+tell it to start/stop processing the queue, query information, etc… .</p></li>
+<li><p>The daemon manages a single <a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a> that stores and processes Tasks. For every command it
+receives, it responds with a single <a class="reference internal" href="#qop.daemon.StatusMessage" title="qop.daemon.StatusMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusMessage</span></code></a> that contains the status of the operation
+(ok, fail, skip) as well as an optional JSON payload.</p></li>
 </ul>
 </div></blockquote>
 <p>Communication diagram:</p>
@@ -825,7 +823,11 @@ optional JSON payload.</p></li>
 </div>
 <div class="section" id="module-qop.tasks">
 <span id="qop-tasks-module"></span><h2>qop.tasks module<a class="headerlink" href="#module-qop.tasks" title="Permalink to this headline">¶</a></h2>
-<p>Classes and functions for working with Tasks. Tasks represent atomic file operations - such as copy, move or convert.</p>
+<p>This module defines classes for working with <code class="xref py py-class docutils literal notranslate"><span class="pre">Tasks</span></code>. A task is an atomic operation - such as copying,
+moving or transcoding a file - that can be stored and executed at a later date (and usually only once).</p>
+<p><a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a> is a persistent (via <a class="reference external" href="https://docs.python.org/3.8/library/sqlite3.html">sqlite3</a>),
+prioritized queue with <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html">multiprocessing</a> support that can
+store and execute an arbitrary number of tasks.</p>
 <dl class="py class">
 <dt id="qop.tasks.ConvertTask">
 <em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">ConvertTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">converter</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter">qop.converters.Converter</a></span></em>, <em class="sig-param"><span class="n">tempdir</span><span class="o">=</span><span class="default_value">PosixPath('/home/runner/.cache/qop/convert_temp')</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.ConvertTask" title="Permalink to this definition">¶</a></dt>
