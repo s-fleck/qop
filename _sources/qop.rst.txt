@@ -17,14 +17,6 @@ qop.cli module
    :undoc-members:
    :show-inheritance:
 
-qop.config module
------------------
-
-.. automodule:: qop.config
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 qop.converters module
 ---------------------
 
