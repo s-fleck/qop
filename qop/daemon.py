@@ -1,13 +1,11 @@
 """
-This module contains the classes for the daemon, client and the message protocol for facilitating the communication
-between the two.
+This module defines classes for the daemon and the client that the command line programs provided by qop are based on.
 
-  - The client sends :class:`~qop.daemon.CommandMessage` objects via TCP to the daemon to enqueue new tasks, start/stop
-    processing the queue, query information, etc... .
-  - The daemon manages a single :class:`~qop.tasks.TaskQueue` that stores and processes Tasks (such as copy a file,
-    convert audio, etc...). For every command it receives, it responds with a single
-    :class:`~qop.daemon.StatusMessage` that contains the status of the operation (ok, fail, skip) as well as an
-    optional JSON payload.
+  - The client sends :class:`CommandMessages <qop.daemon.CommandMessage>` via TCP to the daemon to enqueue new tasks,
+    tell it to start/stop processing the queue, query information, etc... .
+  - The daemon manages a single :class:`~qop.tasks.TaskQueue` that stores and processes Tasks. For every command it
+    receives, it responds with a single :class:`~qop.daemon.StatusMessage` that contains the status of the operation
+    (ok, fail, skip) as well as an optional JSON payload.
 
 Communication diagram::
 

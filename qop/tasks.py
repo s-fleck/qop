@@ -1,5 +1,11 @@
 """
-Classes and functions for working with Tasks. Tasks represent atomic file operations - such as copy, move or convert.
+This module defines classes for working with :class:`Tasks <qop.task.Task>`. A task is an atomic operation - such as copying,
+moving or transcoding a file - that can be stored and executed at a later date (and usually only once).
+
+:class:`~qop.tasks.TaskQueue` is a persistent (via `sqlite3 <https://docs.python.org/3.8/library/sqlite3.html>`_),
+prioritized queue with `multiprocessing <https://docs.python.org/3/library/multiprocessing.html>`_ support that can
+store and execute an arbitrary number of tasks.
+
 """
 
 
@@ -477,7 +483,6 @@ class TaskQueue:
         cur.close()
 
         return QueueProgress.from_list(res)
-
 
 
 class Task:
