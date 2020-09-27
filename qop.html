@@ -86,14 +86,12 @@
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-qop.cli">qop.cli module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-qop.constants">qop.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-qop.converters">qop.converters module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-qop.daemon">qop.daemon module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-qop.exceptions">qop.exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-qop.scanners">qop.scanners module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-qop.tasks">qop.tasks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-qop.utils">qop.utils module</a></li>
 </ul>
 </li>
 </ul>
@@ -165,105 +163,6 @@
 <span id="qop-package"></span><h1>qop package<a class="headerlink" href="#module-qop" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-qop.cli">
-<span id="qop-cli-module"></span><h2>qop.cli module<a class="headerlink" href="#module-qop.cli" title="Permalink to this headline">¶</a></h2>
-<p>Helper functions for the qop.py CLI application</p>
-<dl class="py function">
-<dt id="qop.cli.color_status">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">color_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.cli.color_status" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.format_response">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">format_response</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rsp</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.cli.format_response" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.format_response_summary">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">format_response_summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.cli.format_response_summary" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_convert">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_convert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.cli.handle_convert" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_copy_move">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_copy_move</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.cli.handle_copy_move" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_daemon_destroy">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_daemon_destroy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.cli.handle_daemon_destroy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_daemon_is_active">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_daemon_is_active</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.cli.handle_daemon_is_active" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_daemon_restart">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_daemon_restart</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.cli.handle_daemon_restart" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_daemon_start">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_daemon_start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.cli.handle_daemon_start" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_daemon_stop">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_daemon_stop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.cli.handle_daemon_stop" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_echo">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_echo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.cli.handle_echo" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_missing_args">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_missing_args</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.cli.handle_missing_args" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_queue_progress">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_queue_progress</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.cli.handle_queue_progress" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_re">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_re</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.cli.handle_re" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.handle_simple_command">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">handle_simple_command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">client</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.cli.handle_simple_command" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="qop.cli.wait_for_daemon">
-<code class="sig-prename descclassname">qop.cli.</code><code class="sig-name descname">wait_for_daemon</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">client</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.cli.wait_for_daemon" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>client</strong> (<a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><em>QopClient</em></a>) – QopClient</p></li>
-<li><p><strong>timeout</strong> (<em>int</em>) – Maximum time to wait for the daemon to respond. defaults to 10 seconds.</p></li>
-<li><p><strong>status</strong> (<em>int</em>) – <cite>1</cite>: wait for the daemon to start, <cite>0</cite> wait for the daemon to stop</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None</p>
-</dd>
-</dl>
-</dd></dl>
-
 </div>
 <div class="section" id="module-qop.constants">
 <span id="qop-constants-module"></span><h2>qop.constants module<a class="headerlink" href="#module-qop.constants" title="Permalink to this headline">¶</a></h2>
@@ -1289,21 +1188,6 @@ tasks to <em>active</em>.</p></li>
 <dl class="py function">
 <dt id="qop.tasks.hammer_commit">
 <code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">hammer_commit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">con</span></em>, <em class="sig-param"><span class="n">max_tries</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.hammer_commit" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-qop.utils">
-<span id="qop-utils-module"></span><h2>qop.utils module<a class="headerlink" href="#module-qop.utils" title="Permalink to this headline">¶</a></h2>
-<p>Internal utility functions</p>
-<dl class="py function">
-<dt id="qop.utils.get_project_root">
-<code class="sig-prename descclassname">qop.utils.</code><code class="sig-name descname">get_project_root</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span> &#x2192; pathlib.Path<a class="headerlink" href="#qop.utils.get_project_root" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns project root folder.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="qop.utils.is_daemon_active">
-<code class="sig-prename descclassname">qop.utils.</code><code class="sig-name descname">is_daemon_active</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ip</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">port</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.utils.is_daemon_active" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

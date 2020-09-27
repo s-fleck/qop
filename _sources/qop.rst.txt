@@ -9,14 +9,6 @@ qop package
 Submodules
 ----------
 
-qop.cli module
---------------
-
-.. automodule:: qop.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 qop.constants module
 --------------------
 
@@ -61,14 +53,6 @@ qop.tasks module
 ----------------
 
 .. automodule:: qop.tasks
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-qop.utils module
-----------------
-
-.. automodule:: qop.utils
    :members:
    :undoc-members:
    :show-inheritance:
