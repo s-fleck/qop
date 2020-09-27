@@ -594,10 +594,11 @@ optional JSON payload.</p></li>
 </ul>
 </div></blockquote>
 <p>Communication diagram:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">________________</span>                          <span class="n">________________</span>    <span class="n">________________</span>
-<span class="o">|</span>              <span class="o">|</span>  <span class="o">---</span><span class="p">[</span><span class="n">CommandMessage</span><span class="p">]</span><span class="o">--&gt;</span>  <span class="o">|</span>              <span class="o">|</span>    <span class="o">|</span>              <span class="o">|</span>
-<span class="o">|</span>  <span class="n">QopClient</span>   <span class="o">|</span>                          <span class="o">|</span>  <span class="n">QopDaemon</span>   <span class="o">|----|</span>  <span class="n">TaskQueue</span>   <span class="o">|</span>
-<span class="o">|</span><span class="n">______________</span><span class="o">|</span>  <span class="o">&lt;--</span><span class="p">[</span><span class="n">StatusMessage</span><span class="p">]</span><span class="o">----</span>  <span class="o">|</span><span class="n">______________</span><span class="o">|</span>    <span class="o">|</span><span class="n">______________</span><span class="o">|</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">+-------------+</span>                        <span class="o">+-------------+</span>   <span class="o">+-------------+</span>
+<span class="o">|</span>             <span class="o">|</span> <span class="o">---</span><span class="p">[</span><span class="n">CommandMessage</span><span class="p">]</span><span class="o">--&gt;</span> <span class="o">|</span>             <span class="o">|</span>   <span class="o">|</span>             <span class="o">|</span>
+<span class="o">|</span>  <span class="n">QopClient</span>  <span class="o">|</span>                        <span class="o">|</span>  <span class="n">QopDaemon</span>  <span class="o">|---|</span>  <span class="n">TaskQueue</span>  <span class="o">|</span>
+<span class="o">|</span>             <span class="o">|</span> <span class="o">&lt;--</span><span class="p">[</span><span class="n">StatusMessage</span><span class="p">]</span><span class="o">----</span> <span class="o">|</span>             <span class="o">|</span>   <span class="o">|</span>             <span class="o">|</span>
+<span class="o">+-------------+</span>                        <span class="o">+-------------+</span>   <span class="o">+-------------+</span>
 </pre></div>
 </div>
 <dl class="py class">
