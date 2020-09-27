@@ -12,15 +12,18 @@ from time import sleep
 import json
 
 import appdirs
-from tqdm import tqdm, trange
+from tqdm import tqdm
 from colorama import init, Fore
 
-from qop import config, tasks, scanners, converters
-from qop.config import Status, Command, PayloadClass
-
+from qop import tasks, scanners, converters
+from qop.constants import Status, Command, PayloadClass
 
 init()  # init terminal colors
 lg = logging.getLogger(__name__)
+
+# ANSI Escapes
+CPL = "\033[A"  # ANSI move cursor previous line
+EL = "\033[K"   # ANSI erase line
 
 
 def handle_missing_args(args, client):
@@ -276,7 +279,7 @@ def handle_queue_progress(args, client):
                     bars[i].desc = t
                     bars[i].update()
                 elif i > len(active_tasks):
-                    bars[i].desc = config.EL
+                    bars[i].desc = EL
                     bars[i].update()
             try:
                 facts = client.gather_facts()

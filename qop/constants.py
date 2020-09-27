@@ -1,13 +1,18 @@
-"""
-Global variables and constants
-"""
-
-
 from enum import IntEnum
 
-PREHEADER_LEN: int = 2
-CPL = "\033[A"  # ANSI move cursor previous line
-EL = "\033[K"   # ANSI erase line
+
+class Status(IntEnum):
+    FAIL = -1
+    PENDING = 0
+    OK = 1
+    SKIP = 2
+    ACTIVE = 3
+
+
+class ConverterType(IntEnum):
+    COPY = 0
+    MP3 = 1
+    OGG = 2
 
 
 class Command(IntEnum):
@@ -45,29 +50,3 @@ class TaskType(IntEnum):
     FAIL = 7
     SLEEP = 8
     CONVERT = 9
-
-
-class Status(IntEnum):
-    FAIL = -1
-    PENDING = 0
-    OK = 1
-    SKIP = 2
-    ACTIVE = 3
-
-
-class ConverterType(IntEnum):
-    COPY = 0
-    MP3 = 1
-    OGG = 2
-
-
-class FileExistsAndIsIdenticalError(Exception):
-    pass
-
-
-def is_enum_member(x: int, enum):
-    try:
-        enum(x)
-        return True
-    except ValueError:
-        return False

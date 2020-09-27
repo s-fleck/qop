@@ -6,15 +6,16 @@ Converters are used by tasks.ConvertTask and tasks.SimpleConvertTask to transcod
 import shutil
 import json
 from pathlib import Path
-from typing import Union, Optional, Dict
+from typing import Union, Dict
 
 import pydub
 import mutagen
 from mutagen import id3
 
-from qop.config import ConverterType
+from qop.constants import ConverterType
 
 Pathish = Union[Path, str]
+
 
 class Converter:
     def to_dict(self) -> Dict:
@@ -136,3 +137,5 @@ class Mp3Converter(CopyConverter):
 
 
 Converter_ = Union[Converter, OggConverter, Mp3Converter]
+
+

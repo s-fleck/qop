@@ -5,8 +5,7 @@ import logging
 import shutil
 
 from qop import daemon, tasks, cli
-from qop.config import Command
-
+from qop.constants import Command
 
 # globals
 LOSSY_AUDIO = ("mp3", "ogg")

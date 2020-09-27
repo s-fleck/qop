@@ -1,5 +1,21 @@
 """
-The classes and functions that power the daemon application qopd.py
+This module contains the classes for the daemon, client and the message protocol for facilitating the communication
+between the two.
+
+  - The client sends :class:`~qop.daemon.CommandMessage` objects via TCP to the daemon to enqueue new tasks, start/stop
+    processing the queue, query information, etc... .
+  - The daemon manages a single :class:`~qop.tasks.TaskQueue` that stores and processes Tasks (such as copy a file,
+    convert audio, etc...). For every command it receives, it responds with a single
+    :class:`~qop.daemon.StatusMessage` that contains the status of the operation (ok, fail, skip) as well as an
+    optional JSON payload.
+
+Communication diagram::
+
+    +-------------+                        +-------------+   +-------------+
+    |             | ---[CommandMessage]--> |             |   |             |
+    |  QopClient  |                        |  QopDaemon  |---|  TaskQueue  |
+    |             | <--[StatusMessage]---- |             |   |             |
+    +-------------+                        +-------------+   +-------------+
 """
 
 
@@ -15,9 +31,9 @@ from time import sleep
 
 from qop import tasks, utils
 from qop.exceptions import FileExistsAndShouldBeSkippedError
-from qop.config import TaskType, Status, Command, PREHEADER_LEN, PayloadClass
+from qop.constants import Status, Command, PayloadClass
 
-
+PREHEADER_LEN: int = 2
 Pathish = Union[Path, str]
 lg = logging.getLogger(__name__)
 
@@ -42,7 +58,7 @@ class QopDaemon:
         :type port: integer
         :param queue_path: Path for storing the transfer queue
         :type queue_path: Path or str
-        :param persist_queue: Whether or not to delete the queue when the daemon is stoped
+        :param persist_queue: Whether or not to delete the queue when the daemon is stopped
         :type persist_queue: bool
         """
         self.port = port

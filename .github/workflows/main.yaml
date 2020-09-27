@@ -1,4 +1,4 @@
-name: build docs
+name: Update package website
 on: push
 jobs:
   build-and-delpoy:
@@ -13,12 +13,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r requirements.txt
-      - name: Build docs
+      - name: Build documentation
         run: |
           sphinx-apidoc -o docs/source qop -T -f -M
           cd docs
           make html
-      - name: Commit documentation changes
+      - name: Commit changes
         run: |
           git clone https://github.com/s-fleck/qop.git --branch gh-pages --single-branch gh-pages
           mv docs/build/html /tmp
