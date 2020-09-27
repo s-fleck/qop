@@ -4,12 +4,12 @@ import re
 
 from pathlib import Path
 from time import sleep
-from qop import utils
+from qop import _utils
 import pydub
 from pydub import generators
 
-QOP = utils.get_project_root("qop.py")
-QOPD = utils.get_project_root("qopd.py")
+QOP = _utils.get_project_root("qop.py")
+QOPD = _utils.get_project_root("qopd.py")
 
 
 def match_true(x) -> bool:

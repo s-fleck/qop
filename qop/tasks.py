@@ -26,7 +26,7 @@ from colorama import init, Fore
 
 from qop.constants import Status, TaskType
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
-from qop import converters, utils
+from qop import converters, _utils
 
 
 init()
@@ -329,7 +329,7 @@ class TaskQueue:
             progress = self.progress()
 
             if ip is not None:
-                if utils.is_daemon_active(ip=ip, port=port) is False:
+                if _utils.is_daemon_active(ip=ip, port=port) is False:
                     lg.fatal("cannot find daemon thread. stopping queue.")
                     break
             try:

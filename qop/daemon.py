@@ -27,7 +27,7 @@ from typing import Dict, Union, Optional
 from pathlib import Path
 from time import sleep
 
-from qop import tasks, utils
+from qop import tasks, _utils
 from qop.exceptions import FileExistsAndShouldBeSkippedError
 from qop.constants import Status, Command, PayloadClass
 
@@ -268,7 +268,7 @@ class QopClient:
         return tasks.QueueProgress.from_dict(res['payload'])
 
     def is_daemon_active(self) -> bool:
-        return utils.is_daemon_active(self.ip, self.port)
+        return _utils.is_daemon_active(self.ip, self.port)
 
     @property
     def max_processes(self) -> list:

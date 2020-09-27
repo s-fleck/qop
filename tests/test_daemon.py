@@ -1,11 +1,11 @@
 import pytest
-from qop import tasks, daemon, utils
+from qop import tasks, daemon, _utils
 from qop.constants import Command
 from time import sleep
 import subprocess
 
 
-QOPD = utils.get_project_root("qopd.py")
+QOPD = _utils.get_project_root("qopd.py")
 
 
 def wait_for_queue(timeout=30):
