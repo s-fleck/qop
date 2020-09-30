@@ -4,76 +4,60 @@ Used by qop.py to traverse the directory tree when looking for files to transfer
 
 
 from pathlib import Path
+from qop.constants import Pathish
 import logging
+from typing import Generator
 
 
 class Scanner:
     def __init__(self) -> None:
         pass
 
-    def run(self, paths):
-        paths = [Path(el).resolve() for el in paths]
-        res = []
-        logging.getLogger("qop.scanners").debug(f"collecting files")
-
-        for path in paths:
-            r = {"root": path.resolve().parent, "paths": set()}
-            if not path.is_dir():
-                r['paths'].add(path)
-            else:
-                for p in path.rglob("*"):
-                    r['paths'].add(p.resolve())
-
-            res.append(r)
-
-        return res
+    def run(self, root: Pathish) -> Path:
+        root = Path(root).resolve()
+        if not root.is_dir():
+            yield root
+        else:
+            for p in root.rglob("*"):
+                yield p.resolve()
 
 
-class ScannerBlacklist:
+class PassScanner:
+    def run(self, root: Pathish) -> Generator[Path, None, None]:
+        yield Path(root).resolve()
+
+
+class BlacklistScanner:
     def __init__(self, extensions: list) -> None:
         self.extensions = extensions
 
-    def run(self, paths):
-        paths = [Path(el).resolve() for el in paths]
-        res = []
+    def run(self, root: Pathish) -> Generator[Path, None, None]:
+        root = Path(root).resolve()
         logging.getLogger("qop.scanners").debug(f"collecting files without extensions {','.join(self.extensions)}")
         exts = ["." + e for e in self.extensions]
 
-        for path in paths:
-            r = {"root": path.resolve().parent, "paths": set()}
-            if not path.is_dir():
-                if path.suffix not in exts:
-                    r['paths'].add(path)
-            else:
-                for p in path.rglob("*"):
-                    if p.suffix not in exts:
-                        r['paths'].add(p.resolve())
-
-            res.append(r)
-
-        return res
+        if not root.is_dir():
+            if root.suffix not in exts:
+                yield root
+        else:
+            for p in root.rglob("*"):
+                if p.suffix not in exts:
+                    yield p.resolve()
 
 
-class ScannerWhitelist:
+class WhitelistScanner:
     def __init__(self, extensions: list) -> None:
         self.extensions = extensions
 
-    def run(self, paths):
-        paths = [Path(el).resolve() for el in paths]
-        res = []
+    def run(self, root: Pathish) -> Generator[Path, None, None]:
+        root = Path(root).resolve()
         logging.getLogger("qop.scanners").debug(f"collecting files with extensions {','.join(self.extensions)}")
         exts = ["." + e for e in self.extensions]
 
-        for path in paths:
-            r = {"root": path.parent, "paths": set()}
-            if not path.is_dir():
-                if path.suffix in exts:
-                    r['paths'].add(path)
+        if not root.is_dir():
+            if root.suffix in exts:
+                yield root
             else:
-                for p in path.rglob("*"):
+                for p in root.rglob("*"):
                     if p.suffix in exts:
-                        r['paths'].add(p.resolve())
-
-            res.append(r)
-
-        return res
+                        yield p.resolve()
