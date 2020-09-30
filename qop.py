@@ -19,15 +19,15 @@ subparsers = parser.add_subparsers()
 
 # copy
 parser_copy = subparsers.add_parser("copy", help="copy a file")
-parser_copy.set_defaults(fun=_cli.handle_copy_move, mode="copy", start_daemon=True)
+parser_copy.set_defaults(fun=_cli.handle_copy_convert_move, mode="copy", start_daemon=True)
 
 # move
 parser_move = subparsers.add_parser("move", help="move a file")
-parser_move.set_defaults(fun=_cli.handle_copy_move, mode="move", start_daemon=True)
+parser_move.set_defaults(fun=_cli.handle_copy_convert_move, mode="move", start_daemon=True)
 
 # convert
 parser_convert = subparsers.add_parser("convert", help="convert an audio file")
-parser_convert.set_defaults(fun=_cli.handle_convert, start_daemon=True, mode="convert")
+parser_convert.set_defaults(fun=_cli.handle_copy_convert_move, start_daemon=True, mode="convert")
 parser_convert.add_argument("-a", "--remove-art", action="store_true", help="remove album art from file tags", default=False)
 g = parser_convert.add_mutually_exclusive_group()
 g.add_argument("-c", "--convert-only", nargs="+", type=str, help="extensions of files to convert")

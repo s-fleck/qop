@@ -56,12 +56,12 @@ def handle_re(args, client) -> Dict:
         return handle_copy_move(last_args, client)
 
 
-def handle_copy_move(args, client) -> Dict:
+def handle_copy_convert_move(args, client) -> Dict:
     sources = args.paths[:-1]
-    dst_dir = args.paths[-1]
+    dst_dir = Path(args.paths[-1]).resolve()
     is_queue_active = client.is_queue_active()
 
-    assert isinstance(dst_dir, str)
+    assert isinstance(dst_dir, Path)
     assert len(sources) > 0
     assert sources != dst_dir
 
@@ -73,116 +73,69 @@ def handle_copy_move(args, client) -> Dict:
         args.parser = None
         pickle.dump(args, f, pickle.HIGHEST_PROTOCOL)
 
+    # setup scanner
     if args.include is not None:
-        scanner = scanners.ScannerWhitelist(args.include)
-        sources = scanner.run(sources)
+        scanner = scanners.WhitelistScanner(args.include)
     elif args.exclude is not None:
-        scanner = scanners.ScannerBlacklist(args.exclude)
-        sources = scanner.run(sources)
+        scanner = scanners.BlacklistScanner(args.exclude)
+    elif args.mode == "convert":
+        scanner = scanners.Scanner()
+    else:
+        scanner = scanners.PassScanner()
+
+    # setup converter (if necessary)
+    if args.mode == "convert":
+        conv = converters.Mp3Converter(remove_art=args.remove_art)  # TODO
+        conv_copy = converters.CopyConverter(remove_art=args.remove_art)
+
+        if args.convert_only is not None:
+            conv_mode = "include"
+            conv_exts = ["." + e for e in args.convert_only]
+        elif args.convert_not is not None:
+            conv_mode = "exclude"
+            conv_exts = ["." + e for e in args.convert_not]
+        elif args.convert_none:
+            conv_mode = "none"
+            conv_exts = None
+        else:
+            conv_mode = "all"
+            conv_exts = None
+    else:
+        conv_mode = None
+        conv_exts = None
+        conv = None
+        conv_copy = None
 
     for source in sources:
-        if not isinstance(source, Dict):
-            source = {
-                "root": Path(source).resolve().parent,
-                "paths": [Path(source).resolve()]
-            }
+        root = Path(source).resolve().parent
+        children = scanner.run(source)
 
-        for src in source['paths']:
+        for src in children:
             lg.debug(f"inserting {src}")
             src = Path(src).resolve()
-            dst = Path(dst_dir).resolve().joinpath(src.relative_to(source['root']))
-            if args.mode == "move":
+            dst = Path(dst_dir).resolve().joinpath(src.relative_to(root))
+
+            # setup convert task
+            if args.mode == "convert":
+                if conv_mode == "all":
+                    dst = dst.with_suffix("." + conv.ext)
+                    tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
+                elif conv_mode == "include" and src.suffix in conv_exts:
+                    dst = dst.with_suffix("." + conv.ext)
+                    tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
+                elif conv_mode == "exclude" and src.suffix not in conv_exts:
+                    dst = dst.with_suffix("." + conv.ext)
+                    tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
+                elif args.remove_art:
+                    tsk = tasks.SimpleConvertTask(src=src, dst=dst, converter=conv_copy)
+                else:
+                    tsk = tasks.CopyTask(src=src, dst=dst)
+            elif args.mode == "move":
                 tsk = tasks.MoveTask(src=src, dst=dst)
             elif args.mode == "copy":
                 tsk = tasks.CopyTask(src=src, dst=dst)
             else:
                 raise ValueError
-
-            rsp = client.send_command(Command.QUEUE_PUT, payload=tsk)
-
-            if not is_queue_active and not args.enqueue_only:
-                client.send_command(Command.QUEUE_START)
-                is_queue_active = True
-
-            if args.verbose:
-                print(format_response(rsp))
-
-            print(format_response_summary(client.stats), end="\r")
-
-    if not args.enqueue_only:
-        client.send_command(Command.QUEUE_START)
-    return {"status": Status.OK, "msg": "enqueue finished"}
-
-
-def handle_convert(args, client) -> Dict:
-    sources = args.paths[:-1]
-    dst_dir = args.paths[-1]
-    is_queue_active = client.is_queue_active()
-
-    assert isinstance(dst_dir, str)
-    assert len(sources) > 0
-    assert sources != dst_dir
-
-    # cache arguments for use by `qop re`
-    args_cache = Path(appdirs.user_cache_dir('qop')).joinpath('last_args.pickle')
-    if args_cache.exists():
-        args_cache.unlink()
-    with open(args_cache, 'wb') as f:
-        args.parser = None
-        pickle.dump(args, f, pickle.HIGHEST_PROTOCOL)
-
-    # set up scanner
-    if args.include is not None:
-        scanner = scanners.ScannerWhitelist(args.include)
-    elif args.exclude is not None:
-        scanner = scanners.ScannerBlacklist(args.exclude)
-    else:
-        scanner = scanners.Scanner()
-
-    # setup filetypes to convert
-    if args.convert_only is not None:
-        conv_mode = "include"
-        conv_exts = ["." + e for e in args.convert_only]
-    elif args.convert_not is not None:
-        conv_mode = "exclude"
-        conv_exts = ["." + e for e in args.convert_not]
-    elif args.convert_none:
-        conv_mode = "none"
-        conv_exts = None
-    else:
-        conv_mode = "all"
-        conv_exts = None
-
-    conv = converters.Mp3Converter(remove_art=args.remove_art)  # TODO
-    conv_copy = converters.CopyConverter(remove_art=args.remove_art)
-    sources = scanner.run(sources)
-
-    for source in sources:
-        if not isinstance(source, Dict):
-            source = {
-                "root": Path(source).resolve().parent,
-                "paths": [Path(source).resolve()]
-            }
-
-        for src in source['paths']:
-            lg.debug(f"inserting {src}")
-            src = Path(src).resolve()
-            dst = Path(dst_dir).resolve().joinpath(src.relative_to(source['root']))
-
-            # setup convert task
-            if conv_mode == "all":
-                dst = Path(dst).resolve().with_suffix("." + conv.ext)
-                tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
-            elif conv_mode == "include" and src.suffix in conv_exts:
-                dst = Path(dst).resolve().with_suffix("." + conv.ext)
-                tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
-            elif conv_mode == "exclude" and src.suffix not in conv_exts:
-                dst = Path(dst).resolve().with_suffix("." + conv.ext)
-                tsk = tasks.ConvertTask(src=src, dst=dst, converter=conv)
-            elif args.remove_art:
-                tsk = tasks.SimpleConvertTask(src=src, dst=dst, converter=conv_copy)
-            else:
-                tsk = tasks.CopyTask(src=src, dst=dst)
 
             rsp = client.send_command(Command.QUEUE_PUT, payload=tsk)
 
@@ -345,13 +298,9 @@ def color_status(x: int):
 def wait_for_daemon(client, timeout: int = 10, status: int = 1) -> None:
     """
     :param client: QopClient
-    :type client: QopClient
     :param timeout: Maximum time to wait for the daemon to respond. defaults to 10 seconds.
-    :type timeout: int
     :param status: `1`: wait for the daemon to start, `0` wait for the daemon to stop
-    :type status: int
     :return: None
-    :rtype: None
     """
     for i in range(timeout * 10):
         sleep(0.1)
