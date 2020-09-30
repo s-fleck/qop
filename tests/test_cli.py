@@ -7,6 +7,7 @@ from time import sleep
 from qop import _utils
 import pydub
 from pydub import generators
+from mediafile import MediaFile
 
 QOP = _utils.get_project_root("qop.py")
 QOPD = _utils.get_project_root("qopd.py")
@@ -89,16 +90,23 @@ def test_copy_a_directory(testfile_tree):
 
 def test_convert_an_audio_file(testfile_tree):
     """qop can copy a file"""
-    root, src, dst = testfile_tree
+    root, src_dir, dst_dir = testfile_tree
+
+    src = src_dir.joinpath("sine.flac")
+    dst = dst_dir.joinpath("sine.mp3")  # expected destination name
 
     sound = pydub.generators.Sine(10).to_audio_segment()
-    sound.export(src.joinpath("sine.flac"), format="flac")
+    sound.export(src, format="flac")
+    f = MediaFile(src)
+    f.artist = "foobar"
+    f.save()
 
-    subprocess.run(["python3", QOP, "-v", "--log-file", "/dev/null", "convert", src.joinpath("sine.flac"), dst], cwd=root)
+    subprocess.run(["python3", QOP, "-v", "--log-file", "/dev/null", "convert", src, dst_dir], cwd=root)
     wait_for_queue()
 
-    assert src.joinpath("sine.flac").exists()
-    assert dst.joinpath("sine.mp3").exists()
+    assert src.exists()
+    assert dst.exists()
+    assert MediaFile(dst).artist == f.artist
 
 
 def test_manage_the_queue(testfile_tree):

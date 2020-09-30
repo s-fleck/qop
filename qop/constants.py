@@ -1,4 +1,8 @@
 from enum import IntEnum
+from typing import Union
+from pathlib import Path
+
+Pathish = Union[Path, str]
 
 
 class Status(IntEnum):

@@ -29,10 +29,9 @@ from time import sleep
 
 from qop import tasks, _utils
 from qop.exceptions import FileExistsAndShouldBeSkippedError
-from qop.constants import Status, Command, PayloadClass
+from qop.constants import Status, Command, PayloadClass, Pathish
 
 PREHEADER_LEN: int = 2
-Pathish = Union[Path, str]
 lg = logging.getLogger(__name__)
 
 

@@ -24,13 +24,13 @@ from time import sleep
 import appdirs
 from colorama import init, Fore
 
-from qop.constants import Status, TaskType
+from qop.constants import Status, TaskType, Pathish
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
 from qop import converters, _utils
 
 
 init()
-Pathish = Union[Path, str]
+
 lg = logging.getLogger(__name__)
 CONVERT_CACHE_DIR = Path(appdirs.user_cache_dir("qop")).joinpath("convert_temp")
 

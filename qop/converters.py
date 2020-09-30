@@ -12,9 +12,8 @@ import pydub
 import mutagen
 from mutagen import id3
 
-from qop.constants import ConverterType
-
-Pathish = Union[Path, str]
+from qop.constants import ConverterType, Pathish
+from qop import _utils
 
 
 class Converter:
@@ -50,6 +49,9 @@ class Converter:
 
     def __ne__(self, other) -> bool:
         return self.__dict__ != other.__dict__
+
+    def transfer_tags(self, src: Pathish, dst: Pathish) -> None:
+        _utils.transfer_tags(src, dst)
 
     def do_remove_art(self, file: Path):
         f = mutagen.File(file)
@@ -102,6 +104,7 @@ class OggConverter(CopyConverter):
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="ogg")
+        self.transfer_tags(src, dst)
         if self.remove_art:
             self.do_remove_art(dst)
 
@@ -124,6 +127,7 @@ class Mp3Converter(CopyConverter):
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="mp3", parameters=["-q:a", "0"])
+        self.transfer_tags(src, dst)
         if self.remove_art:
             self.do_remove_art(dst)
 
@@ -137,5 +141,3 @@ class Mp3Converter(CopyConverter):
 
 
 Converter_ = Union[Converter, OggConverter, Mp3Converter]
-
-
