@@ -57,7 +57,7 @@ class WhitelistScanner:
         if not root.is_dir():
             if root.suffix in exts:
                 yield root
-            else:
-                for p in root.rglob("*"):
-                    if p.suffix in exts:
-                        yield p.resolve()
+        else:
+            for p in root.rglob("*"):
+                if p.suffix in exts:
+                    yield p.resolve()
