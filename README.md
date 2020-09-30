@@ -56,8 +56,7 @@ qop progress
 qop consists of two programs: 
 
 - *qopd*, a daemon which processes the transfer queue and executes the copy and transcode tasks, and 
-- *qop*, a command line client which can put tasks into the queue, tell the daemon to start or stop processing
-  the queue, monitor transfer progress, etc...
+- *qop*, a command line client which can put tasks into the queue, tell the daemon to start or stop processing the queue, monitor transfer progress, etc...
     
 Transfer queues are stored as json strings in sqlite3 databases. If you are familiar with these 
 technologies you can easily create transfer queues from the scripting language of your choice without needing to
