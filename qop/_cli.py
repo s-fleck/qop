@@ -43,17 +43,14 @@ def handle_re(args, client) -> Dict:
     if args.destination is not None:
         last_args.paths = args.paths + args.destination
     else:
-        last_args.paths = args.sources + [last_args.paths[-1]]
+        last_args.paths = args.paths + [last_args.paths[-1]]
 
     # global args that should not be overriden
     last_args.verbose = args.verbose
     last_args.log_file = args.log_file
     last_args.log_level = args.log_level
 
-    if last_args.mode == "convert":
-        return handle_convert(last_args, client)
-    else:
-        return handle_copy_move(last_args, client)
+    return handle_copy_convert_move(last_args, client)
 
 
 def handle_copy_convert_move(args, client) -> Dict:
