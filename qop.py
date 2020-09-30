@@ -46,7 +46,7 @@ for p in [parser_copy, parser_convert, parser_move]:
 # re
 parser_re = subparsers.add_parser("re", help="repeat the last copy/convert/move operation on different source paths")
 parser_re.set_defaults(fun=_cli.handle_re, start_daemon=True)
-parser_re.add_argument("sources", type=str, nargs="+", help="source files to be copied/moved/converted")
+parser_re.add_argument("paths", type=str, nargs="+", help="source files to be copied/moved/converted")
 parser_re.add_argument("-d", "--destination", type=str, nargs=1, help="an optional destination (otherwise the last destination will be used)")
 
 # echo
