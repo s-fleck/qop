@@ -419,6 +419,11 @@
 <code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.converters.Converter.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt id="qop.converters.Converter.transfer_tags">
+<code class="sig-name descname">transfer_tags</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.converters.Converter.transfer_tags" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -687,34 +692,45 @@ receives, it responds with a single <a class="reference internal" href="#qop.dae
 <span id="qop-scanners-module"></span><h2>qop.scanners module<a class="headerlink" href="#module-qop.scanners" title="Permalink to this headline">¶</a></h2>
 <p>Used by qop.py to traverse the directory tree when looking for files to transfer</p>
 <dl class="py class">
+<dt id="qop.scanners.BlacklistScanner">
+<em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">BlacklistScanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">extensions</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.BlacklistScanner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="qop.scanners.BlacklistScanner.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Generator<span class="p">[</span>pathlib.Path<span class="p">, </span>None<span class="p">, </span>None<span class="p">]</span><a class="headerlink" href="#qop.scanners.BlacklistScanner.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.scanners.PassScanner">
+<em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">PassScanner</code><a class="headerlink" href="#qop.scanners.PassScanner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="qop.scanners.PassScanner.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Generator<span class="p">[</span>pathlib.Path<span class="p">, </span>None<span class="p">, </span>None<span class="p">]</span><a class="headerlink" href="#qop.scanners.PassScanner.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="qop.scanners.Scanner">
 <em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">Scanner</code><a class="headerlink" href="#qop.scanners.Scanner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt id="qop.scanners.Scanner.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">paths</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.Scanner.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; pathlib.Path<a class="headerlink" href="#qop.scanners.Scanner.run" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="qop.scanners.ScannerBlacklist">
-<em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">ScannerBlacklist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">extensions</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.ScannerBlacklist" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.scanners.WhitelistScanner">
+<em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">WhitelistScanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">extensions</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.WhitelistScanner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt id="qop.scanners.ScannerBlacklist.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">paths</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.ScannerBlacklist.run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.scanners.ScannerWhitelist">
-<em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">ScannerWhitelist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">extensions</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.ScannerWhitelist" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt id="qop.scanners.ScannerWhitelist.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">paths</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.ScannerWhitelist.run" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.scanners.WhitelistScanner.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Generator<span class="p">[</span>pathlib.Path<span class="p">, </span>None<span class="p">, </span>None<span class="p">]</span><a class="headerlink" href="#qop.scanners.WhitelistScanner.run" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
