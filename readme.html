@@ -213,11 +213,8 @@ while leaving files that are already in a lossy format untouched.</p>
 <p>qop consists of two programs:</p>
 <ul class="simple">
 <li><p><em>qopd</em>, a daemon which processes the transfer queue and executes the copy and transcode tasks, and</p></li>
-<li><dl class="simple">
-<dt><em>qop</em>, a command line client which can put tasks into the queue, tell the daemon to start or stop processing</dt><dd><p>the queue, monitor transfer progress, etc…</p>
-</dd>
-</dl>
-</li>
+<li><p><em>qop</em>, a command line client which can put tasks into the queue, tell the daemon to start or stop processing
+the queue, monitor transfer progress, etc…</p></li>
 </ul>
 <p>Transfer queues are stored as json strings in sqlite3 databases. If you are familiar with these
 technologies you can easily create transfer queues from the scripting language of your choice without needing to
