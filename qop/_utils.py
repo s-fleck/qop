@@ -22,13 +22,15 @@ def is_daemon_active(ip: str, port: int):
         return False
 
 
-def transfer_tags(src: Pathish, dst: Pathish) -> None:
+def transfer_tags(src: Pathish, dst: Pathish, remove_art: bool = False) -> None:
     src = Path(src).resolve()
     dst = Path(dst).resolve()
     f = MediaFile(src)
     g = MediaFile(dst)
 
     for field in f.fields():
+        if remove_art and field in ("art", "images"):
+            continue
         try:
             setattr(g, field, getattr(f, field))
         except:

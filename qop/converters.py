@@ -9,14 +9,15 @@ from pathlib import Path
 from typing import Union, Dict
 
 import pydub
-import mutagen
-from mutagen import id3
+from mediafile import MediaFile
 
 from qop.constants import ConverterType, Pathish
 from qop import _utils
 
 
 class Converter:
+    remove_art = False
+
     def to_dict(self) -> Dict:
         return {}
 
@@ -50,19 +51,18 @@ class Converter:
     def __ne__(self, other) -> bool:
         return self.__dict__ != other.__dict__
 
-    def transfer_tags(self, src: Pathish, dst: Pathish) -> None:
-        _utils.transfer_tags(src, dst)
-
     def do_remove_art(self, file: Path):
-        f = mutagen.File(file)
+        f = MediaFile(file)
 
         try:
-            f.delall("APIC")
+            delattr(f, "art")
         except:
-            try:
-                f.clear_pictures()
-            except:
-                pass
+            pass
+
+        try:
+            delattr(f, "iamges")
+        except:
+            pass
 
         f.save()
 
@@ -104,7 +104,7 @@ class OggConverter(CopyConverter):
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="ogg")
-        self.transfer_tags(src, dst)
+        _utils.transfer_tags(src, dst, remove_art=self.remove_art)
         if self.remove_art:
             self.do_remove_art(dst)
 
@@ -127,17 +127,12 @@ class Mp3Converter(CopyConverter):
 
         x = pydub.AudioSegment.from_file(src)
         x.export(dst, format="mp3", parameters=["-q:a", "0"])
-        self.transfer_tags(src, dst)
+        _utils.transfer_tags(src, dst, remove_art=self.remove_art)
         if self.remove_art:
             self.do_remove_art(dst)
 
     def to_dict(self) -> Dict:
         return {"type": ConverterType.MP3, "remove_art": self.remove_art}
-
-    def do_remove_art(self, file: Path):
-        f = id3.ID3(file)
-        f.delall("APIC")
-        f.save()
 
 
 Converter_ = Union[Converter, OggConverter, Mp3Converter]
