@@ -12,16 +12,16 @@ while leaving files that are already in a lossy format untouched.
 
 ## Features
 
-* Conditional audio transcoding (e.g. transcode only lossless files) 
-* Tag cleanup (e.g. remove album covers) [planned]
-* Multicore audio transcoding
+* Conditional audio transcoding; e.g. transcode only lossless files. 
+* Multicore support to speed up audio transcoding.
+* Remove cover art tags on-the-fly. Useful because some mobile phones display art from audio tags in their gallery, which can be annoying.  
 * Persistent job-queues to resume aborted transfers 
 * Clean and powerful CLI
 
 
 ## Development status
 
-qop is in a beta stage and under active development. While the core functionality is stable, the user interface is still beeing refined. A public release fit for general usage is planned for early 2021.
+qop is in a beta stage and under active development. While the core functionality is stable, the user interface is still being refined. A public release fit for general usage is planned for early 2021.
 
 ## Usage 
 
