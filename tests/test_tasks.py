@@ -1,4 +1,4 @@
-from qop import tasks, converters
+from qop import tasks, converters, _utils
 from qop.exceptions import FileExistsAndIsIdenticalError
 from qop.constants import Status
 from pathlib import Path
@@ -6,6 +6,8 @@ import pytest
 from time import sleep
 from pydub import generators
 import datetime
+import mediafile
+from mediafile import MediaFile
 
 
 def wait_for_queue(queue: tasks.TaskQueue, timeout=30):
@@ -144,6 +146,56 @@ def test_SimpleConvertTask(tmp_path):
 
     assert src.exists()
     assert dst.exists()
+
+
+def test_SimpleConvertTask_can_keep_or_remove_album_art(tmp_path):
+    """SimpleConvertTask can convert an audio file"""
+    src = tmp_path.joinpath("sine.flac")
+    mp3_art = tmp_path.joinpath("sine_art.mp3")
+    mp3_noart = tmp_path.joinpath("sine_noart.mp3")
+    ogg_art = tmp_path.joinpath("sine_art.ogg")
+    ogg_noart = tmp_path.joinpath("sine_noart.ogg")
+
+    sound = generators.Sine(440).to_audio_segment()
+    sound.export(src, format="flac")
+
+    # setup a source flac file with a cover image
+    image_file = _utils.get_project_root().joinpath("tests/data/cover.jpg")
+    with open(image_file, 'rb') as f:
+        cover = f.read()
+        cover = mediafile.Image(data=cover, desc=u'album cover', type=mediafile.ImageType.front)
+    f = MediaFile(src)
+    f.images = [cover]
+    f.save()
+
+    # by default, the converters preserve the album art
+    # .. for Mp3Converter
+    tasks.SimpleConvertTask(src, mp3_art, converter=converters.Mp3Converter()).run()
+    g = MediaFile(mp3_art)
+    assert f.images[0].data == cover.data
+    assert f.images[0].mime_type == 'image/jpeg'
+    assert f.images[0].data == g.images[0].data
+
+    # ... for OggConverter
+    tasks.SimpleConvertTask(src, ogg_art, converter=converters.OggConverter()).run()
+    g = MediaFile(ogg_art)
+    assert f.images[0].data == cover.data
+    assert f.images[0].mime_type == 'image/jpeg'
+    assert f.images[0].data == g.images[0].data
+
+    # remove_art=True removes art
+    # ... for Mp3Converter
+    tasks.SimpleConvertTask(src, mp3_noart, converter=converters.Mp3Converter(remove_art=True)).run()
+    g = MediaFile(mp3_noart)
+    assert f.images[0].data == cover.data
+    assert g.images == []
+
+    # remove_art=True removes art
+    # ... for OggConverter
+    tasks.SimpleConvertTask(src, ogg_noart, converter=converters.OggConverter(remove_art=True)).run()
+    g = MediaFile(ogg_noart)
+    assert f.images[0].data == cover.data
+    assert g.images == []
 
 
 def test_ConvertTask(tmp_path):
@@ -325,3 +377,4 @@ def test_TaskQueue_runs_nonblocking(tmp_path):
     assert q.n_active == 1
     sleep(2)
     assert q.n_active == 0
+
