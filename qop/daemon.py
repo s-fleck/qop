@@ -237,6 +237,16 @@ class QopDaemon:
 
 
 class QopClient:
+    """    
+    A simple client for interacting with QopDaemon   
+    
+    ..code:: python
+    
+        tsk = tasks.EchoTask("foo")
+        client = daemon.QopClient()
+        client.send_command(Command.QUEUE_PUT, payload=tsk)
+        client.send_command(Command.QUEUE_START) 
+    """
     def __init__(self, ip: str = "127.0.0.1", port: int = 9393):
         self.ip = ip
         self.port = port
