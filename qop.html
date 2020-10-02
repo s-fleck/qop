@@ -166,11 +166,14 @@
 </div>
 <div class="section" id="module-qop.constants">
 <span id="qop-constants-module"></span><h2>qop.constants module<a class="headerlink" href="#module-qop.constants" title="Permalink to this headline">¶</a></h2>
+<p>This module defines global constants and enums. The numeric values of the integer enums 
+are used to represent the respective value when serializing qop objects into a TaskQueue
+sqlite3 database.</p>
 <dl class="py class">
 <dt id="qop.constants.Command">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">Command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.Command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>An enumeration.</p>
+<p>Commands codes that can be sent to the daemon via a CommandMessage</p>
 <dl class="py attribute">
 <dt id="qop.constants.Command.DAEMON_FACTS">
 <code class="sig-name descname">DAEMON_FACTS</code><em class="property"> = 104</em><a class="headerlink" href="#qop.constants.Command.DAEMON_FACTS" title="Permalink to this definition">¶</a></dt>
@@ -247,7 +250,7 @@
 <dt id="qop.constants.ConverterType">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">ConverterType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.ConverterType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>An enumeration.</p>
+<p>Types of converters; used when serializing converters to json</p>
 <dl class="py attribute">
 <dt id="qop.constants.ConverterType.COPY">
 <code class="sig-name descname">COPY</code><em class="property"> = 0</em><a class="headerlink" href="#qop.constants.ConverterType.COPY" title="Permalink to this definition">¶</a></dt>
@@ -269,7 +272,7 @@
 <dt id="qop.constants.PayloadClass">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">PayloadClass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.PayloadClass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>An enumeration.</p>
+<p>Types of Payloads that can be part of CommandMessage or StatusMessage</p>
 <dl class="py attribute">
 <dt id="qop.constants.PayloadClass.DAEMON_FACTS">
 <code class="sig-name descname">DAEMON_FACTS</code><em class="property"> = 5</em><a class="headerlink" href="#qop.constants.PayloadClass.DAEMON_FACTS" title="Permalink to this definition">¶</a></dt>
@@ -301,7 +304,13 @@
 <dt id="qop.constants.Status">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">Status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.Status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>An enumeration.</p>
+<dl class="simple">
+<dt>Status codes are used by</dt><dd><ul class="simple">
+<li><p>TaskQueue to represent the status of a task in the queue, and</p></li>
+<li><p>StatusMessage to indicate whether a command sent to the server was successful or not</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py attribute">
 <dt id="qop.constants.Status.ACTIVE">
 <code class="sig-name descname">ACTIVE</code><em class="property"> = 3</em><a class="headerlink" href="#qop.constants.Status.ACTIVE" title="Permalink to this definition">¶</a></dt>
@@ -333,7 +342,7 @@
 <dt id="qop.constants.TaskType">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">TaskType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.TaskType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>An enumeration.</p>
+<p>Types of Tasks. Corresponds to the subclasses of tasks.Task</p>
 <dl class="py attribute">
 <dt id="qop.constants.TaskType.CONVERT">
 <code class="sig-name descname">CONVERT</code><em class="property"> = 9</em><a class="headerlink" href="#qop.constants.TaskType.CONVERT" title="Permalink to this definition">¶</a></dt>
