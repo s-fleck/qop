@@ -1,6 +1,6 @@
 """
 This module defines global constants and enums. The numeric values of the integer enums 
-are used to represent the respective value when serializing qop objects into a TaskQueue
+are used to represent the respective value when serializing qop objects into a :class:`~qop.tasks.TaskQueue`
 sqlite3 database.
 """
 
@@ -15,8 +15,8 @@ class Status(IntEnum):
     """
     Status codes are used by
     
-      - :class: `~qop.tasks.TaskQueue` to represent the status of a task in the queue, and
-      - :class: `~qop.tasks.StatusMessage` to indicate whether a command sent to the server was successful or not
+      - :class:`~qop.tasks.TaskQueue` to represent the status of a task in the queue, and
+      - :class:`~qop.tasks.StatusMessage` to indicate whether a command sent to the server was successful or not
     """
     FAIL = -1
     PENDING = 0
