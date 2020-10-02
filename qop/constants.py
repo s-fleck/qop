@@ -15,8 +15,8 @@ class Status(IntEnum):
     """
     Status codes are used by
     
-      - TaskQueue to represent the status of a task in the queue, and
-      - StatusMessage to indicate whether a command sent to the server was successful or not
+      - :class: `~qop.tasks.TaskQueue` to represent the status of a task in the queue, and
+      - :class: `~qop.tasks.StatusMessage` to indicate whether a command sent to the server was successful or not
     """
     FAIL = -1
     PENDING = 0
@@ -26,14 +26,14 @@ class Status(IntEnum):
 
 
 class ConverterType(IntEnum):
-    """Types of converters; used when serializing converters to json"""
+    """Types of converters. Corresponds to the subclasses of :class:`~qop.converters.Converter`."""
     COPY = 0
     MP3 = 1
     OGG = 2
 
 
 class Command(IntEnum):
-    """Commands codes that can be sent to the daemon via a CommandMessage. See :class:`~qop.daemon.QopClient` for usage examples."""
+    """Commands codes that can be sent to the :class:`~qop.daemon.QopDaemon` via a :class:`~qop.daemon.CommandMessage`. See :class:`~qop.daemon.QopClient` for usage examples."""
     DAEMON_START = 101
     DAEMON_STOP = 102
     DAEMON_IS_ACTIVE = 103
@@ -51,7 +51,7 @@ class Command(IntEnum):
 
 
 class PayloadClass(IntEnum):
-    """Types of Payloads that can be part of CommandMessage or StatusMessage"""
+    """Types of Payloads that can be part of :class:`~qop.daemon.CommandMessage` or :class:`~qop.daemon.StatusMessage`."""
     VALUE = 1  # a single value {"value": <value>}
     TASK = 2
     QUEUE_PROGRESS = 3
@@ -60,7 +60,7 @@ class PayloadClass(IntEnum):
 
 
 class TaskType(IntEnum):
-    """Types of Tasks. Corresponds to the subclasses of tasks.Task"""
+    """Types of Tasks. Corresponds to the subclasses of :class:`~qop.tasks.Task`."""
     ECHO = 1
     FILE = 2
     DELETE = 3
