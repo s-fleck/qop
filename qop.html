@@ -272,7 +272,7 @@ sqlite3 database.</p>
 <dt id="qop.constants.PayloadClass">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">PayloadClass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.PayloadClass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>Types of Payloads that can be part of <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessage</span></code></a> or <a class="reference internal" href="#qop.daemon.StatusMessage" title="qop.daemon.StatusMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusMessage</span></code></a>.</p>
+<p>Types of payloads that can be part of a <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessage</span></code></a> or a <a class="reference internal" href="#qop.daemon.StatusMessage" title="qop.daemon.StatusMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusMessage</span></code></a>.</p>
 <dl class="py attribute">
 <dt id="qop.constants.PayloadClass.DAEMON_FACTS">
 <code class="sig-name descname">DAEMON_FACTS</code><em class="property"> = 5</em><a class="headerlink" href="#qop.constants.PayloadClass.DAEMON_FACTS" title="Permalink to this definition">¶</a></dt>
@@ -342,7 +342,7 @@ sqlite3 database.</p>
 <dt id="qop.constants.TaskType">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">TaskType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.TaskType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>Types of Tasks. Corresponds to the subclasses of <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a>.</p>
+<p>Types of tasks. Corresponds to the subclasses of <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a>.</p>
 <dl class="py attribute">
 <dt id="qop.constants.TaskType.CONVERT">
 <code class="sig-name descname">CONVERT</code><em class="property"> = 9</em><a class="headerlink" href="#qop.constants.TaskType.CONVERT" title="Permalink to this definition">¶</a></dt>
@@ -393,7 +393,7 @@ sqlite3 database.</p>
 </div>
 <div class="section" id="module-qop.converters">
 <span id="qop-converters-module"></span><h2>qop.converters module<a class="headerlink" href="#module-qop.converters" title="Permalink to this headline">¶</a></h2>
-<p>Converters are used by tasks.ConvertTask and tasks.SimpleConvertTask to transcode audiofiles</p>
+<p>Converters are used by <a class="reference internal" href="#qop.tasks.ConvertTask" title="qop.tasks.ConvertTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConvertTask</span></code></a> and <a class="reference internal" href="#qop.tasks.SimpleConvertTask" title="qop.tasks.SimpleConvertTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleConvertTask</span></code></a> to transcode audiofiles</p>
 <dl class="py class">
 <dt id="qop.converters.Converter">
 <em class="property">class </em><code class="sig-prename descclassname">qop.converters.</code><code class="sig-name descname">Converter</code><a class="headerlink" href="#qop.converters.Converter" title="Permalink to this definition">¶</a></dt>
@@ -439,7 +439,7 @@ sqlite3 database.</p>
 <dt id="qop.converters.CopyConverter">
 <em class="property">class </em><code class="sig-prename descclassname">qop.converters.</code><code class="sig-name descname">CopyConverter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">remove_art</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.CopyConverter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.converters.Converter</span></code></a></p>
-<p>Dummy converter that only copies a file without any processing</p>
+<p>Converter that copies a file without transcoding (but may modify the files tags!)</p>
 <dl class="py method">
 <dt id="qop.converters.CopyConverter.run">
 <code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.CopyConverter.run" title="Permalink to this definition">¶</a></dt>
@@ -489,14 +489,18 @@ sqlite3 database.</p>
 </div>
 <div class="section" id="module-qop.daemon">
 <span id="qop-daemon-module"></span><h2>qop.daemon module<a class="headerlink" href="#module-qop.daemon" title="Permalink to this headline">¶</a></h2>
-<p>This module defines classes for the daemon and the client that the command line programs provided by qop are based on.</p>
+<p>This module defines classes for the daemon and the client that the command 
+line programs provided by qop are based on.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>The client sends <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessages</span></code></a> via TCP to the daemon to enqueue new tasks,
+<li><p>The client sends <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessages</span></code></a> via 
+TCP to the daemon to enqueue new tasks,
 tell it to start/stop processing the queue, query information, etc… .</p></li>
-<li><p>The daemon manages a single <a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a> that stores and processes Tasks. For every command it
-receives, it responds with a single <a class="reference internal" href="#qop.daemon.StatusMessage" title="qop.daemon.StatusMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusMessage</span></code></a> that contains the status of the operation
-(ok, fail, skip) as well as an optional JSON payload.</p></li>
+<li><p>The daemon manages a single <a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a> that stores and 
+processes <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tasks</span></code></a>. For every command it receives, 
+it responds with a <a class="reference internal" href="#qop.daemon.StatusMessage" title="qop.daemon.StatusMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusMessage</span></code></a> that contains 
+the status of the operation (ok, fail, skip) as well as an optional JSON 
+payload.</p></li>
 </ul>
 </div></blockquote>
 <p>Communication diagram:</p>
@@ -511,14 +515,15 @@ receives, it responds with a single <a class="reference internal" href="#qop.dae
 <dt id="qop.daemon.CommandMessage">
 <em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">CommandMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.constants.Command" title="qop.constants.Command">qop.constants.Command</a></span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload_class</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.CommandMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.daemon.Message</span></code></a></p>
-<p>Messages to send commands from the client to the server</p>
+<p>Class for commands sent by <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a> to 
+<a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="qop.daemon.Message">
 <em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">Message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">body</span><span class="p">:</span> <span class="n">Dict</span></em>, <em class="sig-param"><span class="n">extra_headers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.Message" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Container for requests sent to the qop daemon</p>
+<p>Container for messages sent between <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> and <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a>.</p>
 <dl class="py method">
 <dt id="qop.daemon.Message.encode">
 <code class="sig-name descname">encode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bytes<a class="headerlink" href="#qop.daemon.Message.encode" title="Permalink to this definition">¶</a></dt>
@@ -634,7 +639,8 @@ receives, it responds with a single <a class="reference internal" href="#qop.dae
 <dt id="qop.daemon.RawMessage">
 <em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">RawMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.RawMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Container for responses from the qop daemon</p>
+<p>Class for parsing messages sent between <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> and 
+<a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a>.</p>
 <dl class="py method">
 <dt id="qop.daemon.RawMessage.body">
 <em class="property">property </em><code class="sig-name descname">body</code><a class="headerlink" href="#qop.daemon.RawMessage.body" title="Permalink to this definition">¶</a></dt>
@@ -666,7 +672,8 @@ receives, it responds with a single <a class="reference internal" href="#qop.dae
 <dt id="qop.daemon.StatusMessage">
 <em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">StatusMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload_class</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.StatusMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.daemon.Message</span></code></a></p>
-<p>Messages sent from the daemon to the client to inform it on the status of an operation</p>
+<p>Class responses sent by <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> to 
+<a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a>.</p>
 </dd></dl>
 
 </div>
