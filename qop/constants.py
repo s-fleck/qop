@@ -32,7 +32,7 @@ class ConverterType(IntEnum):
 
 
 class Command(IntEnum):
-    """Commands codes that can be sent to the daemon via a CommandMessage"""
+    """Commands codes that can be sent to the daemon via a CommandMessage. See :class:`~qop.daemon.QopClient` for usage examples."""
     DAEMON_START = 101
     DAEMON_STOP = 102
     DAEMON_IS_ACTIVE = 103
