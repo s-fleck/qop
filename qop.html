@@ -1158,14 +1158,16 @@ condition occurs if the queue is processed in parallel)</p>
 <dl class="py method">
 <dt id="qop.tasks.TaskQueue.set_status">
 <code class="sig-name descname">set_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">oid</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status">qop.constants.Status</a></span></em>, <em class="sig-param"><span class="n">lock</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.set_status" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the <code class="xref py py-class docutils literal notranslate"><span class="pre">&lt;~qop.constants.Status&gt;</span></code> of the queued task with _ROWID_ <cite>oid</cite></p>
+<dd><p>Set the <a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status"><code class="xref py py-class docutils literal notranslate"><span class="pre">Status</span></code></a> of the queued task with _ROWID_ <cite>oid</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>oid</strong> – ID of the task to mark</p></li>
-<li><p><strong>status</strong> – Status see enums.Status</p></li>
-<li><p><strong>lock</strong> – python object-id of the Task that executes the queued task. Must be <cite>None</cite> except for switching
-tasks to <em>active</em>.</p></li>
+<li><p><strong>oid</strong> – _ROWID_ of the task to mark</p></li>
+<li><p><strong>status</strong> – <a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status"><code class="xref py py-class docutils literal notranslate"><span class="pre">Status</span></code></a> to set</p></li>
+<li><p><strong>lock</strong> – Unique ID for locking queued tasks. The lock value
+can be querried by the executing task to verify that it is the
+only tasks that attempts to run this specific task.
+Must be <cite>None</cite> except for switching tasks to <em>active</em>.</p></li>
 </ul>
 </dd>
 </dl>
