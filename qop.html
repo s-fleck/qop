@@ -749,7 +749,7 @@ receives, it responds with a single <a class="reference internal" href="#qop.dae
 </div>
 <div class="section" id="module-qop.tasks">
 <span id="qop-tasks-module"></span><h2>qop.tasks module<a class="headerlink" href="#module-qop.tasks" title="Permalink to this headline">¶</a></h2>
-<p>This module defines classes for working with <code class="xref py py-class docutils literal notranslate"><span class="pre">Tasks</span></code>. A task is an atomic operation - such as copying,
+<p>This module defines classes for working with <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tasks</span></code></a>. A task is an atomic operation - such as copying,
 moving or transcoding a file - that can be stored and executed at a later date (and usually only once).</p>
 <p><a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a> is a persistent (via <a class="reference external" href="https://docs.python.org/3.8/library/sqlite3.html">sqlite3</a>),
 prioritized queue with <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html">multiprocessing</a> support that can
@@ -1029,8 +1029,8 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>n</strong> (<em>int</em>) – number of tasks to fetch</p></li>
-<li><p><strong>status</strong> (<cite>int</cite>, <cite>None</cite> or a <cite>tuple</cite> of <cite>int</cite>) – If not None, only fetch Tasks of the given status(es)</p></li>
+<li><p><strong>n</strong> – number of tasks to fetch</p></li>
+<li><p><strong>status</strong> – If not None, only fetch Tasks of the given status(es)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1087,13 +1087,13 @@ This makes it possible to cleanly separate transcode and transfer processes.</p>
 <dl class="py method">
 <dt id="qop.tasks.TaskQueue.peek">
 <code class="sig-name descname">peek</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a><a class="headerlink" href="#qop.tasks.TaskQueue.peek" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves Task object without changing its status in the queue</p>
+<dd><p>Retrieves a <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> without changing its status in the queue</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="qop.tasks.TaskQueue.pop">
 <code class="sig-name descname">pop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_type_include</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="#qop.constants.TaskType" title="qop.constants.TaskType">qop.constants.TaskType</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">task_type_exclude</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="#qop.constants.TaskType" title="qop.constants.TaskType">qop.constants.TaskType</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a><a class="headerlink" href="#qop.tasks.TaskQueue.pop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves Task object and sets status of Task in database to “in progress” (1)</p>
+<dd><p>Retrieves a <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> and sets its status in the queue to <a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status"><code class="xref py py-class docutils literal notranslate"><span class="pre">Status.ACTIVE</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises</dt>
 <dd class="field-odd"><p><a class="reference internal" href="#qop.exceptions.AlreadyUnderEvaluationError" title="qop.exceptions.AlreadyUnderEvaluationError"><strong>AlreadyUnderEvaluationError</strong></a> – If trying to pop a tasks that is already being processed  (i.e. if a race
@@ -1109,8 +1109,8 @@ condition occurs if the queue is processed in parallel)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>n</strong> (<em>int</em>) – number of tasks to fetch</p></li>
-<li><p><strong>status</strong> (<cite>int</cite>, <cite>None</cite> or a <cite>tuple</cite> of <cite>int</cite>) – If not None, only fetch Tasks of the given status(es)</p></li>
+<li><p><strong>n</strong> – number of tasks to fetch</p></li>
+<li><p><strong>status</strong> – If not None, only fetch Tasks of the given status(es)</p></li>
 </ul>
 </dd>
 </dl>
@@ -1124,13 +1124,13 @@ condition occurs if the queue is processed in parallel)</p>
 <dl class="py method">
 <dt id="qop.tasks.TaskQueue.put">
 <code class="sig-name descname">put</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a></span></em>, <em class="sig-param"><span class="n">priority</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">parent</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.put" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enqueue a task</p>
+<dd><p>Enqueue a Task</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>task</strong> (<a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><em>Task</em></a>) – Task to be added to the queue</p></li>
-<li><p><strong>priority</strong> (<em>int</em>) – (optional) priority for executing <cite>task</cite> (tasks with lower priority will be executed earlier)</p></li>
-<li><p><strong>parent</strong> (<em>int</em>) – (optional) only for child tasks, oid/_ROWID_ of the task that spawned this task</p></li>
+<li><p><strong>task</strong> – Task to be added to the queue</p></li>
+<li><p><strong>priority</strong> – (optional) priority for executing <cite>task</cite> (tasks with lower priority will be executed earlier)</p></li>
+<li><p><strong>parent</strong> – (optional) only for child tasks, oid/_ROWID_ of the task that spawned this task</p></li>
 </ul>
 </dd>
 </dl>
@@ -1139,12 +1139,7 @@ condition occurs if the queue is processed in parallel)</p>
 <dl class="py method">
 <dt id="qop.tasks.TaskQueue.reset_active_tasks">
 <code class="sig-name descname">reset_active_tasks</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.reset_active_tasks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mark the operation with one status as another status</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>oid</strong> (<em>int</em>) – ID of the task to mark</p>
-</dd>
-</dl>
+<dd><p>Reset all active tasks to <a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status"><code class="xref py py-class docutils literal notranslate"><span class="pre">Status.PENDING</span></code></a></p>
 </dd></dl>
 
 <dl class="py method">
@@ -1156,13 +1151,13 @@ condition occurs if the queue is processed in parallel)</p>
 <dl class="py method">
 <dt id="qop.tasks.TaskQueue.set_status">
 <code class="sig-name descname">set_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">oid</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status">qop.constants.Status</a></span></em>, <em class="sig-param"><span class="n">lock</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.set_status" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mark the operation with the _ROWID_ <cite>oid</cite> as “pending” (0)</p>
+<dd><p>Set the <code class="xref py py-class docutils literal notranslate"><span class="pre">&lt;~qop.constants.Status&gt;</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">queued</span> <span class="pre">task</span> <span class="pre">with</span> <span class="pre">_ROWID_</span> <span class="pre">`oid</span></code></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>oid</strong> (<em>int</em>) – ID of the task to mark</p></li>
-<li><p><strong>status</strong> (<a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status"><em>Status</em></a>) – Status see enums.Status</p></li>
-<li><p><strong>lock</strong> (<em>int</em>) – python object-id of the Task that executes the queued task. Must be <cite>None</cite> except for switching
+<li><p><strong>oid</strong> – ID of the task to mark</p></li>
+<li><p><strong>status</strong> – Status see enums.Status</p></li>
+<li><p><strong>lock</strong> – python object-id of the Task that executes the queued task. Must be <cite>None</cite> except for switching
 tasks to <em>active</em>.</p></li>
 </ul>
 </dd>
