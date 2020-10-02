@@ -24,4 +24,4 @@ Indices and tables
 Links
 -----
 
-* `Github <http://www.github.com/s-fleck>`_
+* `Github <http://www.github.com/s-fleck/qop>`_
