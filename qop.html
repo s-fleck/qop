@@ -173,7 +173,7 @@ sqlite3 database.</p>
 <dt id="qop.constants.Command">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">Command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.Command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>Commands codes that can be sent to the daemon via a CommandMessage. See <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a> for usage examples.</p>
+<p>Commands codes that can be sent to the <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> via a <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessage</span></code></a>. See <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a> for usage examples.</p>
 <dl class="py attribute">
 <dt id="qop.constants.Command.DAEMON_FACTS">
 <code class="sig-name descname">DAEMON_FACTS</code><em class="property"> = 104</em><a class="headerlink" href="#qop.constants.Command.DAEMON_FACTS" title="Permalink to this definition">¶</a></dt>
@@ -250,7 +250,7 @@ sqlite3 database.</p>
 <dt id="qop.constants.ConverterType">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">ConverterType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.ConverterType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>Types of converters; used when serializing converters to json</p>
+<p>Types of converters. Corresponds to the subclasses of <a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Converter</span></code></a>.</p>
 <dl class="py attribute">
 <dt id="qop.constants.ConverterType.COPY">
 <code class="sig-name descname">COPY</code><em class="property"> = 0</em><a class="headerlink" href="#qop.constants.ConverterType.COPY" title="Permalink to this definition">¶</a></dt>
@@ -272,7 +272,7 @@ sqlite3 database.</p>
 <dt id="qop.constants.PayloadClass">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">PayloadClass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.PayloadClass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>Types of Payloads that can be part of CommandMessage or StatusMessage</p>
+<p>Types of Payloads that can be part of <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessage</span></code></a> or <a class="reference internal" href="#qop.daemon.StatusMessage" title="qop.daemon.StatusMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusMessage</span></code></a>.</p>
 <dl class="py attribute">
 <dt id="qop.constants.PayloadClass.DAEMON_FACTS">
 <code class="sig-name descname">DAEMON_FACTS</code><em class="property"> = 5</em><a class="headerlink" href="#qop.constants.PayloadClass.DAEMON_FACTS" title="Permalink to this definition">¶</a></dt>
@@ -307,8 +307,18 @@ sqlite3 database.</p>
 <p>Status codes are used by</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>TaskQueue to represent the status of a task in the queue, and</p></li>
-<li><p>StatusMessage to indicate whether a command sent to the server was successful or not</p></li>
+<li><dl class="field-list simple">
+<dt class="field-odd">class</dt>
+<dd class="field-odd"><p><cite>~qop.tasks.TaskQueue</cite> to represent the status of a task in the queue, and</p>
+</dd>
+</dl>
+</li>
+<li><dl class="field-list simple">
+<dt class="field-odd">class</dt>
+<dd class="field-odd"><p><cite>~qop.tasks.StatusMessage</cite> to indicate whether a command sent to the server was successful or not</p>
+</dd>
+</dl>
+</li>
 </ul>
 </div></blockquote>
 <dl class="py attribute">
@@ -342,7 +352,7 @@ sqlite3 database.</p>
 <dt id="qop.constants.TaskType">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">TaskType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.TaskType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>Types of Tasks. Corresponds to the subclasses of tasks.Task</p>
+<p>Types of Tasks. Corresponds to the subclasses of <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a>.</p>
 <dl class="py attribute">
 <dt id="qop.constants.TaskType.CONVERT">
 <code class="sig-name descname">CONVERT</code><em class="property"> = 9</em><a class="headerlink" href="#qop.constants.TaskType.CONVERT" title="Permalink to this definition">¶</a></dt>
