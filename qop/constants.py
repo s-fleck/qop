@@ -14,6 +14,7 @@ Pathish = Union[Path, str]
 class Status(IntEnum):
     """
     Status codes are used by
+    
       - TaskQueue to represent the status of a task in the queue, and
       - StatusMessage to indicate whether a command sent to the server was successful or not
     """
