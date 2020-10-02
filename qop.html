@@ -530,6 +530,14 @@ receives, it responds with a single <a class="reference internal" href="#qop.dae
 <dt id="qop.daemon.QopClient">
 <em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">QopClient</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ip</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'127.0.0.1'</span></em>, <em class="sig-param"><span class="n">port</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">9393</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopClient" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A simple client for interacting with QopDaemon</p>
+<p>..code:: python</p>
+<blockquote>
+<div><p>tsk = tasks.EchoTask(“foo”)
+client = daemon.QopClient()
+client.send_command(Command.QUEUE_PUT, payload=tsk)
+client.send_command(Command.QUEUE_START)</p>
+</div></blockquote>
 <dl class="py method">
 <dt id="qop.daemon.QopClient.active_processes">
 <em class="property">property </em><code class="sig-name descname">active_processes</code><a class="headerlink" href="#qop.daemon.QopClient.active_processes" title="Permalink to this definition">¶</a></dt>
