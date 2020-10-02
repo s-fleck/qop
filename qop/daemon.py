@@ -240,6 +240,9 @@ class QopClient:
     """    
     A simple client for interacting with QopDaemon   
     
+    Examples
+    --------
+    
     .. code-block:: python
     
         tsk = tasks.EchoTask("foo")
