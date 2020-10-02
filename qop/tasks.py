@@ -739,8 +739,8 @@ class SimpleConvertTask(CopyTask):
 
 class ConvertTask(SimpleConvertTask):
     """
-        ConvertTask transcodes an audio file to a temporary directory and then adds a move task to the queue.
-        This makes it possible to cleanly separate transcode and transfer processes.
+    ConvertTask transcodes an audio file to a temporary directory and then adds a move task to the queue.
+    This makes it possible to cleanly separate transcode and transfer processes.
     """
     def __init__(self, src: Pathish, dst: Pathish, converter: converters.Converter, tempdir=CONVERT_CACHE_DIR) -> None:
         super().__init__(src=src, dst=dst, converter=converter)
@@ -753,9 +753,16 @@ class ConvertTask(SimpleConvertTask):
         self.converter.run(self.src, self.tmpdst)
 
     def spawn(self) -> MoveTask:
-        # spawn requires that the task was retrieved from the queue and therefore already as an oid that
-        # links it to a row in the queue
-        assert self.oid is not None
+        """
+        Spawns a follow-up task. If a task has a :func:`spawn` method, :class:`~qop.tasks.TaskQueue` calls it internally
+        after fetching the original Task. The follow-up task is then enqueued with maximum priority. If this newly
+        spawned task fails, the parent task will also be considered failed.
+        """
+        if self.oid is None:
+            raise ValueError(
+                "Spawn requires that the parent Task has an `oid` attribute that links it to a row in a TaskQueue. "
+            )
+
         return MoveTask(self.tmpdst, self.dst, parent_oid=self.oid)
 
     def color_repr(self, color=True) -> str:
