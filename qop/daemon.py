@@ -1,11 +1,15 @@
 """
-This module defines classes for the daemon and the client that the command line programs provided by qop are based on.
+This module defines classes for the daemon and the client that the command 
+line programs provided by qop are based on.
 
-  - The client sends :class:`CommandMessages <qop.daemon.CommandMessage>` via TCP to the daemon to enqueue new tasks,
+  - The client sends :class:`CommandMessages <qop.daemon.CommandMessage>` via 
+    TCP to the daemon to enqueue new tasks,
     tell it to start/stop processing the queue, query information, etc... .
-  - The daemon manages a single :class:`~qop.tasks.TaskQueue` that stores and processes Tasks. For every command it
-    receives, it responds with a single :class:`~qop.daemon.StatusMessage` that contains the status of the operation
-    (ok, fail, skip) as well as an optional JSON payload.
+  - The daemon manages a single :class:`~qop.tasks.TaskQueue` that stores and 
+    processes :class:`Tasks <qop.tasks.Task>`. For every command it receives, 
+    it responds with a :class:`~qop.daemon.StatusMessage` that contains 
+    the status of the operation (ok, fail, skip) as well as an optional JSON 
+    payload.
 
 Communication diagram::
 
@@ -48,15 +52,15 @@ class QopDaemon:
         persist_queue: bool = False
     ):
         """
-        QopDaemon manages a TaskQueue that stores and executes Tasks (such as file transfer of file convert operations).
-        It accepts Commands sent by QopClient.
+        QopDaemon manages a :class:`~qop.tasks.TaskQueue`. It can insert
+        tasks, tell the queue to start or stop processing tasks, and query
+        information about the queue.  It accepts 
+        :class:`CommandMessages <qop.daemon.CommandMessage>`, for example sent
+        by `~qop.daemon.QopClient`.
 
         :param port: Port to bind the daemon to
-        :type port: integer
         :param queue_path: Path for storing the transfer queue
-        :type queue_path: Path or str
         :param persist_queue: Whether or not to delete the queue when the daemon is stopped
-        :type persist_queue: bool
         """
         self.port = port
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # ADDRESS_FAMILY: INTERNET (ip4), tcp
@@ -304,11 +308,13 @@ class QopClient:
     Send a CommandMessage to the server
 
     :param command: Command to send
-    :type Command
     :param payload: Optional payload to send along with the command (usually a Task)
-    :type None, Dict, Task    
     """
-    def send_command(self, command: Command, payload: Union[None, Dict, tasks.Task, list] = None) -> Dict:
+    def send_command(
+      self, 
+      command: Command, 
+      payload: Union[None, Dict, tasks.Task, list] = None
+    ) -> Dict:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect((self.ip, self.port))
             req = CommandMessage(command, payload=payload)
@@ -328,7 +334,7 @@ class QopClient:
 
 
 class Message:
-    """Container for requests sent to the qop daemon"""
+    """Container for messages sent between :class:`~qop.daemon.QopDaemon` and :class:`~qop.daemon.QopClient`."""
     def __init__(
             self,
             body: Dict,
@@ -360,7 +366,10 @@ class Message:
 
 
 class RawMessage:
-    """Container for responses from the qop daemon"""
+    """
+    Class for parsing messages sent between :class:`~qop.daemon.QopDaemon` and 
+    :class:`~qop.daemon.QopClient`.
+    """
 
     def __init__(self, raw) -> None:
         assert isinstance(raw, bytes)
@@ -401,7 +410,10 @@ class RawMessage:
 
 
 class StatusMessage(Message):
-    """Messages sent from the daemon to the client to inform it on the status of an operation"""
+    """
+    Class responses sent by :class:`~qop.daemon.QopDaemon` to 
+    :class:`~qop.daemon.QopClient`.
+    """
 
     def __init__(self, status: int, msg: Optional[str] = None, payload=None, payload_class=None) -> None:
         """
@@ -437,17 +449,18 @@ class StatusMessage(Message):
         
 
 class CommandMessage(Message):
-    """Messages to send commands from the client to the server"""
+    """
+    Class for commands sent by :class:`~qop.daemon.QopClient` to 
+    :class:`~qop.daemon.QopDaemon`.
+    """
 
     def __init__(self, command: Command, payload=None, payload_class=None) -> None:
         """
-        :param command: Command-code to send to the server (see enums.Command)
-        :type command: Command
-        :param payload: Optional payload of the command. This can be a Dict or any Object that has a to_dict() Method.
-          Currently the only practical payload is a Task.
-        :type payload: tasks.Task, None
-
-        :rtype: object
+        :param command: :class:`Command <qop.constants.Command>` to send to the 
+            daemon
+        :param payload: Optional payload of the command. This can be a Dict or 
+            any Object that has a `to_dict()` method. Usually this is a
+            :class:`~qop.tasks.Task`.
         """
 
         body = {"command": int(command)}

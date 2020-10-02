@@ -4,3 +4,5 @@
 venv**
 docs/build**
 .run**
+.Rproj.user
+qop.Rproj

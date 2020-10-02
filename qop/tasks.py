@@ -1,5 +1,5 @@
 """
-This module defines classes for working with :class:`Tasks <qop.task.Task>`. A task is an atomic operation - such as copying,
+This module defines classes for working with :class:`Tasks <qop.tasks.Task>`. A task is an atomic operation - such as copying,
 moving or transcoding a file - that can be stored and executed at a later date (and usually only once).
 
 :class:`~qop.tasks.TaskQueue` is a persistent (via `sqlite3 <https://docs.python.org/3.8/library/sqlite3.html>`_),
@@ -90,14 +90,11 @@ class TaskQueue:
 
     def put(self, task: "Task", priority: int = 10, parent: Optional[int] = None) -> None:
         """
-        Enqueue a task
+        Enqueue a Task
 
         :param task: Task to be added to the queue
-        :type task: Task
         :param priority: (optional) priority for executing `task` (tasks with lower priority will be executed earlier)
-        :type priority: int
         :param parent: (optional) only for child tasks, oid/_ROWID_ of the task that spawned this task
-        :type parent: int
         """
 
         lg.debug(f"trying to inserted task {task.to_dict()}")
@@ -112,7 +109,7 @@ class TaskQueue:
 
     def pop(self, task_type_include: Optional[TaskType] = None, task_type_exclude: Optional[TaskType] = None) -> "Task":
         """
-        Retrieves Task object and sets status of Task in database to "in progress" (1)
+        Retrieves a :class:`~qop.tasks.Task` and sets its status in the queue to :class:`Status.ACTIVE <qop.constants.Status>`
 
         :raises AlreadyUnderEvaluationError: If trying to pop a tasks that is already being processed  (i.e. if a race
             condition occurs if the queue is processed in parallel)
@@ -152,7 +149,7 @@ class TaskQueue:
 
     def peek(self) -> "Task":
         """
-        Retrieves Task object without changing its status in the queue
+        Retrieves a :class:`~qop.tasks.Task` without changing its status in the queue
         """
         cur = self.con.cursor()
         cur.execute("SELECT lock, task from tasks ORDER BY priority LIMIT 1")
@@ -171,9 +168,7 @@ class TaskQueue:
         Print an overview of the queue
 
         :param n: number of tasks to fetch
-        :type n: int
         :param status: If not None, only fetch Tasks of the given status(es)
-        :type status: `int`, `None` or a `tuple` of `int`
         """
         assert isinstance(n, int) and (n > 0)
         records = self.fetch(n=n, status=status)
@@ -185,9 +180,7 @@ class TaskQueue:
         Retrieve the queue
 
         :param n: number of tasks to fetch
-        :type n: int
         :param status: If not None, only fetch Tasks of the given status(es)
-        :type status: `int`, `None` or a `tuple` of `int`
 
         :return a dict containing n queued tasks
         """
@@ -231,10 +224,7 @@ class TaskQueue:
 
     def reset_active_tasks(self) -> None:
         """
-        Mark the operation with one status as another status
-
-        :param oid: ID of the task to mark
-        :type oid: int
+        Reset all active tasks to :class:`Status.PENDING <qop.constants.Status>`
         """
         lg.info(f"set all active tasks to pending")
         cur = self.con.cursor()
@@ -244,15 +234,14 @@ class TaskQueue:
 
     def set_status(self, oid: int, status: Status, lock: str = None) -> None:
         """
-        Mark the operation with the _ROWID_ `oid` as "pending" (0)
+        Set the :class:`~qop.constants.Status` of the queued task with _ROWID_ `oid`
 
-        :param oid: ID of the task to mark
-        :type oid: int
-        :param status: Status see enums.Status
-        :type status: Status
-        :param lock: python object-id of the Task that executes the queued task. Must be `None` except for switching
-          tasks to *active*.
-        :type lock: int
+        :param oid: _ROWID_ of the task to mark
+        :param status: :class:`~qop.constants.Status` to set
+        :param lock: Unique ID for locking queued tasks. The lock value
+            can be querried by the executing task to verify that it is the
+            only tasks that attempts to run this specific task.
+            Must be `None` except for switching tasks to *active*.
         """
         lg.info(f"mark {oid} {status.name}")
         cur = self.con.cursor()
@@ -311,18 +300,13 @@ class TaskQueue:
         daemon is running. This is relevant in case the daemon is not closed via `qop daemon stop` but killed
         or simply crashes.
 
-        *task_type_include* and *task_type_exclude* are passed to `TaskQueue.pop()`
+        *task_type_include* and *task_type_exclude* are passed to 
+        :func:`qop.tasks.TaskQueue.pop`
 
         :param ip: (optional)ip of the daemon that runs this queue
-        :type ip: str
         :param port: port of the daemon
-        :type port:
         :param task_type_include: see .pop()
-        :type task_type_include: Optional[TaskType]
         :param task_type_exclude: see .pop()
-        :type task_type_exclude: Optional[TaskType]
-        :return:
-        :rtype:
         """
         progress = self.progress()
         while progress.pending > 0 or progress.active > 0:

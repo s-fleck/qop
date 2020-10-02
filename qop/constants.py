@@ -51,7 +51,7 @@ class Command(IntEnum):
 
 
 class PayloadClass(IntEnum):
-    """Types of Payloads that can be part of :class:`~qop.daemon.CommandMessage` or :class:`~qop.daemon.StatusMessage`."""
+    """Types of payloads that can be part of a :class:`~qop.daemon.CommandMessage` or a :class:`~qop.daemon.StatusMessage`."""
     VALUE = 1  # a single value {"value": <value>}
     TASK = 2
     QUEUE_PROGRESS = 3
@@ -60,7 +60,7 @@ class PayloadClass(IntEnum):
 
 
 class TaskType(IntEnum):
-    """Types of Tasks. Corresponds to the subclasses of :class:`~qop.tasks.Task`."""
+    """Types of tasks. Corresponds to the subclasses of :class:`~qop.tasks.Task`."""
     ECHO = 1
     FILE = 2
     DELETE = 3

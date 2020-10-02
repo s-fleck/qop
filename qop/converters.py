@@ -1,5 +1,5 @@
 """
-Converters are used by tasks.ConvertTask and tasks.SimpleConvertTask to transcode audiofiles
+Converters are used by :class:`~qop.tasks.ConvertTask` and :class:`~qop.tasks.SimpleConvertTask` to transcode audiofiles
 """
 
 
@@ -68,7 +68,7 @@ class Converter:
 
 
 class CopyConverter(Converter):
-    """Dummy converter that only copies a file without any processing"""
+    """Converter that copies a file without transcoding (but may modify the files tags!)"""
 
     def __init__(self, remove_art: bool = False) -> None:
         self.remove_art = remove_art
