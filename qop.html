@@ -170,83 +170,6 @@
 are used to represent the respective value when serializing qop objects into a <a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a>
 sqlite3 database.</p>
 <dl class="py class">
-<dt id="qop.constants.Command">
-<em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">Command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.Command" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
-<p>Commands codes that can be sent to the <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> via a <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessage</span></code></a>. See <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a> for usage examples.</p>
-<dl class="py attribute">
-<dt id="qop.constants.Command.DAEMON_FACTS">
-<code class="sig-name descname">DAEMON_FACTS</code><em class="property"> = 104</em><a class="headerlink" href="#qop.constants.Command.DAEMON_FACTS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.DAEMON_IS_ACTIVE">
-<code class="sig-name descname">DAEMON_IS_ACTIVE</code><em class="property"> = 103</em><a class="headerlink" href="#qop.constants.Command.DAEMON_IS_ACTIVE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.DAEMON_START">
-<code class="sig-name descname">DAEMON_START</code><em class="property"> = 101</em><a class="headerlink" href="#qop.constants.Command.DAEMON_START" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.DAEMON_STOP">
-<code class="sig-name descname">DAEMON_STOP</code><em class="property"> = 102</em><a class="headerlink" href="#qop.constants.Command.DAEMON_STOP" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_ACTIVE_PROCESSES">
-<code class="sig-name descname">QUEUE_ACTIVE_PROCESSES</code><em class="property"> = 208</em><a class="headerlink" href="#qop.constants.Command.QUEUE_ACTIVE_PROCESSES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_FLUSH_ALL">
-<code class="sig-name descname">QUEUE_FLUSH_ALL</code><em class="property"> = 206</em><a class="headerlink" href="#qop.constants.Command.QUEUE_FLUSH_ALL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_FLUSH_PENDING">
-<code class="sig-name descname">QUEUE_FLUSH_PENDING</code><em class="property"> = 205</em><a class="headerlink" href="#qop.constants.Command.QUEUE_FLUSH_PENDING" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_IS_ACTIVE">
-<code class="sig-name descname">QUEUE_IS_ACTIVE</code><em class="property"> = 203</em><a class="headerlink" href="#qop.constants.Command.QUEUE_IS_ACTIVE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_MAX_PROCESSES">
-<code class="sig-name descname">QUEUE_MAX_PROCESSES</code><em class="property"> = 210</em><a class="headerlink" href="#qop.constants.Command.QUEUE_MAX_PROCESSES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_PROGRESS">
-<code class="sig-name descname">QUEUE_PROGRESS</code><em class="property"> = 207</em><a class="headerlink" href="#qop.constants.Command.QUEUE_PROGRESS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_PUT">
-<code class="sig-name descname">QUEUE_PUT</code><em class="property"> = 204</em><a class="headerlink" href="#qop.constants.Command.QUEUE_PUT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_SHOW">
-<code class="sig-name descname">QUEUE_SHOW</code><em class="property"> = 209</em><a class="headerlink" href="#qop.constants.Command.QUEUE_SHOW" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_START">
-<code class="sig-name descname">QUEUE_START</code><em class="property"> = 201</em><a class="headerlink" href="#qop.constants.Command.QUEUE_START" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Command.QUEUE_STOP">
-<code class="sig-name descname">QUEUE_STOP</code><em class="property"> = 202</em><a class="headerlink" href="#qop.constants.Command.QUEUE_STOP" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt id="qop.constants.ConverterType">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">ConverterType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.ConverterType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
@@ -269,18 +192,91 @@ sqlite3 database.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt id="qop.constants.Command">
+<em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">Command</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.Command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>Commands codes that can be sent to the <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> via a <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessage</span></code></a>.
+See <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a> for usage examples.</p>
+<dl class="py attribute">
+<dt id="qop.constants.Command.DAEMON_START">
+<code class="sig-name descname">DAEMON_START</code><em class="property"> = 101</em><a class="headerlink" href="#qop.constants.Command.DAEMON_START" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.DAEMON_STOP">
+<code class="sig-name descname">DAEMON_STOP</code><em class="property"> = 102</em><a class="headerlink" href="#qop.constants.Command.DAEMON_STOP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.DAEMON_IS_ACTIVE">
+<code class="sig-name descname">DAEMON_IS_ACTIVE</code><em class="property"> = 103</em><a class="headerlink" href="#qop.constants.Command.DAEMON_IS_ACTIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.DAEMON_FACTS">
+<code class="sig-name descname">DAEMON_FACTS</code><em class="property"> = 104</em><a class="headerlink" href="#qop.constants.Command.DAEMON_FACTS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_START">
+<code class="sig-name descname">QUEUE_START</code><em class="property"> = 201</em><a class="headerlink" href="#qop.constants.Command.QUEUE_START" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_STOP">
+<code class="sig-name descname">QUEUE_STOP</code><em class="property"> = 202</em><a class="headerlink" href="#qop.constants.Command.QUEUE_STOP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_IS_ACTIVE">
+<code class="sig-name descname">QUEUE_IS_ACTIVE</code><em class="property"> = 203</em><a class="headerlink" href="#qop.constants.Command.QUEUE_IS_ACTIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_PUT">
+<code class="sig-name descname">QUEUE_PUT</code><em class="property"> = 204</em><a class="headerlink" href="#qop.constants.Command.QUEUE_PUT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_FLUSH_PENDING">
+<code class="sig-name descname">QUEUE_FLUSH_PENDING</code><em class="property"> = 205</em><a class="headerlink" href="#qop.constants.Command.QUEUE_FLUSH_PENDING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_FLUSH_ALL">
+<code class="sig-name descname">QUEUE_FLUSH_ALL</code><em class="property"> = 206</em><a class="headerlink" href="#qop.constants.Command.QUEUE_FLUSH_ALL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_PROGRESS">
+<code class="sig-name descname">QUEUE_PROGRESS</code><em class="property"> = 207</em><a class="headerlink" href="#qop.constants.Command.QUEUE_PROGRESS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_ACTIVE_PROCESSES">
+<code class="sig-name descname">QUEUE_ACTIVE_PROCESSES</code><em class="property"> = 208</em><a class="headerlink" href="#qop.constants.Command.QUEUE_ACTIVE_PROCESSES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_SHOW">
+<code class="sig-name descname">QUEUE_SHOW</code><em class="property"> = 209</em><a class="headerlink" href="#qop.constants.Command.QUEUE_SHOW" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Command.QUEUE_MAX_PROCESSES">
+<code class="sig-name descname">QUEUE_MAX_PROCESSES</code><em class="property"> = 210</em><a class="headerlink" href="#qop.constants.Command.QUEUE_MAX_PROCESSES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="qop.constants.PayloadClass">
 <em class="property">class </em><code class="sig-prename descclassname">qop.constants.</code><code class="sig-name descname">PayloadClass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.constants.PayloadClass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
 <p>Types of payloads that can be part of a <a class="reference internal" href="#qop.daemon.CommandMessage" title="qop.daemon.CommandMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">CommandMessage</span></code></a> or a <a class="reference internal" href="#qop.daemon.StatusMessage" title="qop.daemon.StatusMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">StatusMessage</span></code></a>.</p>
 <dl class="py attribute">
-<dt id="qop.constants.PayloadClass.DAEMON_FACTS">
-<code class="sig-name descname">DAEMON_FACTS</code><em class="property"> = 5</em><a class="headerlink" href="#qop.constants.PayloadClass.DAEMON_FACTS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.PayloadClass.QUEUE_PROGRESS">
-<code class="sig-name descname">QUEUE_PROGRESS</code><em class="property"> = 3</em><a class="headerlink" href="#qop.constants.PayloadClass.QUEUE_PROGRESS" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.constants.PayloadClass.VALUE">
+<code class="sig-name descname">VALUE</code><em class="property"> = 1</em><a class="headerlink" href="#qop.constants.PayloadClass.VALUE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -289,13 +285,18 @@ sqlite3 database.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt id="qop.constants.PayloadClass.QUEUE_PROGRESS">
+<code class="sig-name descname">QUEUE_PROGRESS</code><em class="property"> = 3</em><a class="headerlink" href="#qop.constants.PayloadClass.QUEUE_PROGRESS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt id="qop.constants.PayloadClass.TASK_LIST">
 <code class="sig-name descname">TASK_LIST</code><em class="property"> = 4</em><a class="headerlink" href="#qop.constants.PayloadClass.TASK_LIST" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="qop.constants.PayloadClass.VALUE">
-<code class="sig-name descname">VALUE</code><em class="property"> = 1</em><a class="headerlink" href="#qop.constants.PayloadClass.VALUE" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.constants.PayloadClass.DAEMON_FACTS">
+<code class="sig-name descname">DAEMON_FACTS</code><em class="property"> = 5</em><a class="headerlink" href="#qop.constants.PayloadClass.DAEMON_FACTS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -312,18 +313,8 @@ sqlite3 database.</p>
 </ul>
 </div></blockquote>
 <dl class="py attribute">
-<dt id="qop.constants.Status.ACTIVE">
-<code class="sig-name descname">ACTIVE</code><em class="property"> = 3</em><a class="headerlink" href="#qop.constants.Status.ACTIVE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt id="qop.constants.Status.FAIL">
 <code class="sig-name descname">FAIL</code><em class="property"> = -1</em><a class="headerlink" href="#qop.constants.Status.FAIL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.Status.OK">
-<code class="sig-name descname">OK</code><em class="property"> = 1</em><a class="headerlink" href="#qop.constants.Status.OK" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -332,8 +323,18 @@ sqlite3 database.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt id="qop.constants.Status.OK">
+<code class="sig-name descname">OK</code><em class="property"> = 1</em><a class="headerlink" href="#qop.constants.Status.OK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt id="qop.constants.Status.SKIP">
 <code class="sig-name descname">SKIP</code><em class="property"> = 2</em><a class="headerlink" href="#qop.constants.Status.SKIP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.Status.ACTIVE">
+<code class="sig-name descname">ACTIVE</code><em class="property"> = 3</em><a class="headerlink" href="#qop.constants.Status.ACTIVE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -344,33 +345,8 @@ sqlite3 database.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
 <p>Types of tasks. Corresponds to the subclasses of <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a>.</p>
 <dl class="py attribute">
-<dt id="qop.constants.TaskType.CONVERT">
-<code class="sig-name descname">CONVERT</code><em class="property"> = 9</em><a class="headerlink" href="#qop.constants.TaskType.CONVERT" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.TaskType.CONVERT_SIMPLE">
-<code class="sig-name descname">CONVERT_SIMPLE</code><em class="property"> = 6</em><a class="headerlink" href="#qop.constants.TaskType.CONVERT_SIMPLE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.TaskType.COPY">
-<code class="sig-name descname">COPY</code><em class="property"> = 4</em><a class="headerlink" href="#qop.constants.TaskType.COPY" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.TaskType.DELETE">
-<code class="sig-name descname">DELETE</code><em class="property"> = 3</em><a class="headerlink" href="#qop.constants.TaskType.DELETE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt id="qop.constants.TaskType.ECHO">
 <code class="sig-name descname">ECHO</code><em class="property"> = 1</em><a class="headerlink" href="#qop.constants.TaskType.ECHO" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.TaskType.FAIL">
-<code class="sig-name descname">FAIL</code><em class="property"> = 7</em><a class="headerlink" href="#qop.constants.TaskType.FAIL" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -379,13 +355,38 @@ sqlite3 database.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt id="qop.constants.TaskType.DELETE">
+<code class="sig-name descname">DELETE</code><em class="property"> = 3</em><a class="headerlink" href="#qop.constants.TaskType.DELETE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.TaskType.COPY">
+<code class="sig-name descname">COPY</code><em class="property"> = 4</em><a class="headerlink" href="#qop.constants.TaskType.COPY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt id="qop.constants.TaskType.MOVE">
 <code class="sig-name descname">MOVE</code><em class="property"> = 5</em><a class="headerlink" href="#qop.constants.TaskType.MOVE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt id="qop.constants.TaskType.CONVERT_SIMPLE">
+<code class="sig-name descname">CONVERT_SIMPLE</code><em class="property"> = 6</em><a class="headerlink" href="#qop.constants.TaskType.CONVERT_SIMPLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.TaskType.FAIL">
+<code class="sig-name descname">FAIL</code><em class="property"> = 7</em><a class="headerlink" href="#qop.constants.TaskType.FAIL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt id="qop.constants.TaskType.SLEEP">
 <code class="sig-name descname">SLEEP</code><em class="property"> = 8</em><a class="headerlink" href="#qop.constants.TaskType.SLEEP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.constants.TaskType.CONVERT">
+<code class="sig-name descname">CONVERT</code><em class="property"> = 9</em><a class="headerlink" href="#qop.constants.TaskType.CONVERT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -398,9 +399,14 @@ sqlite3 database.</p>
 <dt id="qop.converters.Converter">
 <em class="property">class </em><code class="sig-prename descclassname">qop.converters.</code><code class="sig-name descname">Converter</code><a class="headerlink" href="#qop.converters.Converter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="qop.converters.Converter.remove_art">
+<code class="sig-name descname">remove_art</code><em class="property"> = False</em><a class="headerlink" href="#qop.converters.Converter.remove_art" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
-<dt id="qop.converters.Converter.do_remove_art">
-<code class="sig-name descname">do_remove_art</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.Converter.do_remove_art" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.converters.Converter.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.converters.Converter.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -418,19 +424,14 @@ sqlite3 database.</p>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt id="qop.converters.Converter.remove_art">
-<code class="sig-name descname">remove_art</code><em class="property"> = False</em><a class="headerlink" href="#qop.converters.Converter.remove_art" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="qop.converters.Converter.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.Converter.start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="qop.converters.Converter.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.Converter.run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.converters.Converter.to_dict">
-<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.converters.Converter.to_dict" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.converters.Converter.do_remove_art">
+<code class="sig-name descname">do_remove_art</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.Converter.do_remove_art" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -441,8 +442,8 @@ sqlite3 database.</p>
 <dd><p>Bases: <a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.converters.Converter</span></code></a></p>
 <p>Converter that copies a file without transcoding (but may modify the files tags!)</p>
 <dl class="py method">
-<dt id="qop.converters.CopyConverter.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.CopyConverter.run" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.converters.CopyConverter.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.CopyConverter.start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -458,8 +459,8 @@ sqlite3 database.</p>
 <dd><p>Bases: <a class="reference internal" href="#qop.converters.CopyConverter" title="qop.converters.CopyConverter"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.converters.CopyConverter</span></code></a></p>
 <p>Convert audio files to mp3</p>
 <dl class="py method">
-<dt id="qop.converters.Mp3Converter.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.converters.Mp3Converter.run" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.converters.Mp3Converter.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.converters.Mp3Converter.start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -475,8 +476,8 @@ sqlite3 database.</p>
 <dd><p>Bases: <a class="reference internal" href="#qop.converters.CopyConverter" title="qop.converters.CopyConverter"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.converters.CopyConverter</span></code></a></p>
 <p>Convert audio files to ogg vorbis</p>
 <dl class="py method">
-<dt id="qop.converters.OggConverter.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.converters.OggConverter.run" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.converters.OggConverter.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.converters.OggConverter.start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -512,21 +513,52 @@ payload.</p></li>
 </pre></div>
 </div>
 <dl class="py class">
-<dt id="qop.daemon.CommandMessage">
-<em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">CommandMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.constants.Command" title="qop.constants.Command">qop.constants.Command</a></span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload_class</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.CommandMessage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.daemon.Message</span></code></a></p>
-<p>Class for commands sent by <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a> to 
-<a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a>.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.daemon.Message">
-<em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">Message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">body</span><span class="p">:</span> <span class="n">Dict</span></em>, <em class="sig-param"><span class="n">extra_headers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.Message" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.daemon.QopDaemon">
+<em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">QopDaemon</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">9393</span></em>, <em class="sig-param"><span class="n">queue_path</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">PosixPath('/tmp/qop-temp.sqlite3')</span></em>, <em class="sig-param"><span class="n">persist_queue</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Container for messages sent between <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> and <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a>.</p>
+<dl class="py attribute">
+<dt id="qop.daemon.QopDaemon.stats">
+<code class="sig-name descname">stats</code><em class="property"> = None</em><a class="headerlink" href="#qop.daemon.QopDaemon.stats" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.daemon.QopDaemon.queue">
+<code class="sig-name descname">queue</code><em class="property"> = None</em><a class="headerlink" href="#qop.daemon.QopDaemon.queue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.daemon.QopDaemon.port">
+<code class="sig-name descname">port</code><em class="property"> = None</em><a class="headerlink" href="#qop.daemon.QopDaemon.port" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
-<dt id="qop.daemon.Message.encode">
-<code class="sig-name descname">encode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bytes<a class="headerlink" href="#qop.daemon.Message.encode" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.daemon.QopDaemon.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.QopDaemon.listen">
+<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">9393</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon.listen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.QopDaemon.is_listening">
+<em class="property">property </em><code class="sig-name descname">is_listening</code><a class="headerlink" href="#qop.daemon.QopDaemon.is_listening" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.QopDaemon.handle_request">
+<em class="property">static </em><code class="sig-name descname">handle_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">req</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon.handle_request" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.QopDaemon.new_queue">
+<code class="sig-name descname">new_queue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon.new_queue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.QopDaemon.facts">
+<code class="sig-name descname">facts</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.daemon.QopDaemon.facts" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -543,16 +575,6 @@ payload.</p></li>
 </pre></div>
 </div>
 <dl class="py method">
-<dt id="qop.daemon.QopClient.active_processes">
-<em class="property">property </em><code class="sig-name descname">active_processes</code><a class="headerlink" href="#qop.daemon.QopClient.active_processes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.QopClient.active_tasks">
-<em class="property">property </em><code class="sig-name descname">active_tasks</code><a class="headerlink" href="#qop.daemon.QopClient.active_tasks" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt id="qop.daemon.QopClient.gather_facts">
 <code class="sig-name descname">gather_facts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_tries</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.daemon.QopClient.gather_facts" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -568,13 +590,23 @@ payload.</p></li>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="qop.daemon.QopClient.is_queue_active">
-<code class="sig-name descname">is_queue_active</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#qop.daemon.QopClient.is_queue_active" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.daemon.QopClient.max_processes">
+<em class="property">property </em><code class="sig-name descname">max_processes</code><a class="headerlink" href="#qop.daemon.QopClient.max_processes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="qop.daemon.QopClient.max_processes">
-<em class="property">property </em><code class="sig-name descname">max_processes</code><a class="headerlink" href="#qop.daemon.QopClient.max_processes" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.daemon.QopClient.active_tasks">
+<em class="property">property </em><code class="sig-name descname">active_tasks</code><a class="headerlink" href="#qop.daemon.QopClient.active_tasks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.QopClient.active_processes">
+<em class="property">property </em><code class="sig-name descname">active_processes</code><a class="headerlink" href="#qop.daemon.QopClient.active_processes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.QopClient.is_queue_active">
+<code class="sig-name descname">is_queue_active</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#qop.daemon.QopClient.is_queue_active" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -585,85 +617,13 @@ payload.</p></li>
 </dd></dl>
 
 <dl class="py class">
-<dt id="qop.daemon.QopDaemon">
-<em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">QopDaemon</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">9393</span></em>, <em class="sig-param"><span class="n">queue_path</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">PosixPath('/tmp/qop-temp.sqlite3')</span></em>, <em class="sig-param"><span class="n">persist_queue</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.daemon.Message">
+<em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">Message</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">body</span><span class="p">:</span> <span class="n">Dict</span></em>, <em class="sig-param"><span class="n">extra_headers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.Message" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Container for messages sent between <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> and <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a>.</p>
 <dl class="py method">
-<dt id="qop.daemon.QopDaemon.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon.close" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.QopDaemon.facts">
-<code class="sig-name descname">facts</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.daemon.QopDaemon.facts" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.QopDaemon.handle_request">
-<em class="property">static </em><code class="sig-name descname">handle_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">req</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon.handle_request" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.QopDaemon.is_listening">
-<em class="property">property </em><code class="sig-name descname">is_listening</code><a class="headerlink" href="#qop.daemon.QopDaemon.is_listening" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.QopDaemon.listen">
-<code class="sig-name descname">listen</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">9393</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon.listen" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.QopDaemon.new_queue">
-<code class="sig-name descname">new_queue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon.new_queue" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.daemon.QopDaemon.port">
-<code class="sig-name descname">port</code><em class="property"> = None</em><a class="headerlink" href="#qop.daemon.QopDaemon.port" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.daemon.QopDaemon.queue">
-<code class="sig-name descname">queue</code><em class="property"> = None</em><a class="headerlink" href="#qop.daemon.QopDaemon.queue" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.daemon.QopDaemon.stats">
-<code class="sig-name descname">stats</code><em class="property"> = None</em><a class="headerlink" href="#qop.daemon.QopDaemon.stats" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.daemon.RawMessage">
-<em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">RawMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.RawMessage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Class for parsing messages sent between <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> and 
-<a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a>.</p>
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.body">
-<em class="property">property </em><code class="sig-name descname">body</code><a class="headerlink" href="#qop.daemon.RawMessage.body" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.decode">
-<code class="sig-name descname">decode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message">qop.daemon.Message</a><a class="headerlink" href="#qop.daemon.RawMessage.decode" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.encode">
-<code class="sig-name descname">encode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bytes<a class="headerlink" href="#qop.daemon.RawMessage.encode" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.header">
-<em class="property">property </em><code class="sig-name descname">header</code><a class="headerlink" href="#qop.daemon.RawMessage.header" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.header_len">
-<em class="property">property </em><code class="sig-name descname">header_len</code><a class="headerlink" href="#qop.daemon.RawMessage.header_len" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.daemon.Message.encode">
+<code class="sig-name descname">encode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bytes<a class="headerlink" href="#qop.daemon.Message.encode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -674,6 +634,47 @@ payload.</p></li>
 <dd><p>Bases: <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.daemon.Message</span></code></a></p>
 <p>Class responses sent by <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> to 
 <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.daemon.CommandMessage">
+<em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">CommandMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.constants.Command" title="qop.constants.Command">qop.constants.Command</a></span></em>, <em class="sig-param"><span class="n">payload</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">payload_class</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.CommandMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.daemon.Message</span></code></a></p>
+<p>Class for commands sent by <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a> to 
+<a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.daemon.RawMessage">
+<em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">RawMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.RawMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for parsing messages sent between <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> and
+<a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a>.</p>
+<dl class="py method">
+<dt id="qop.daemon.RawMessage.encode">
+<code class="sig-name descname">encode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bytes<a class="headerlink" href="#qop.daemon.RawMessage.encode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.RawMessage.decode">
+<code class="sig-name descname">decode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message">qop.daemon.Message</a><a class="headerlink" href="#qop.daemon.RawMessage.decode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.RawMessage.header_len">
+<em class="property">property </em><code class="sig-name descname">header_len</code><a class="headerlink" href="#qop.daemon.RawMessage.header_len" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.RawMessage.header">
+<em class="property">property </em><code class="sig-name descname">header</code><a class="headerlink" href="#qop.daemon.RawMessage.header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.daemon.RawMessage.body">
+<em class="property">property </em><code class="sig-name descname">body</code><a class="headerlink" href="#qop.daemon.RawMessage.body" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
@@ -688,9 +689,9 @@ payload.</p></li>
 </dd></dl>
 
 <dl class="py exception">
-<dt id="qop.exceptions.FileExistsAndCannotBeComparedError">
-<em class="property">exception </em><code class="sig-prename descclassname">qop.exceptions.</code><code class="sig-name descname">FileExistsAndCannotBeComparedError</code><a class="headerlink" href="#qop.exceptions.FileExistsAndCannotBeComparedError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.exceptions.FileExistsAndShouldBeSkippedError" title="qop.exceptions.FileExistsAndShouldBeSkippedError"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.exceptions.FileExistsAndShouldBeSkippedError</span></code></a></p>
+<dt id="qop.exceptions.FileExistsAndShouldBeSkippedError">
+<em class="property">exception </em><code class="sig-prename descclassname">qop.exceptions.</code><code class="sig-name descname">FileExistsAndShouldBeSkippedError</code><a class="headerlink" href="#qop.exceptions.FileExistsAndShouldBeSkippedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="py exception">
@@ -700,9 +701,9 @@ payload.</p></li>
 </dd></dl>
 
 <dl class="py exception">
-<dt id="qop.exceptions.FileExistsAndShouldBeSkippedError">
-<em class="property">exception </em><code class="sig-prename descclassname">qop.exceptions.</code><code class="sig-name descname">FileExistsAndShouldBeSkippedError</code><a class="headerlink" href="#qop.exceptions.FileExistsAndShouldBeSkippedError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<dt id="qop.exceptions.FileExistsAndCannotBeComparedError">
+<em class="property">exception </em><code class="sig-prename descclassname">qop.exceptions.</code><code class="sig-name descname">FileExistsAndCannotBeComparedError</code><a class="headerlink" href="#qop.exceptions.FileExistsAndCannotBeComparedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.exceptions.FileExistsAndShouldBeSkippedError" title="qop.exceptions.FileExistsAndShouldBeSkippedError"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.exceptions.FileExistsAndShouldBeSkippedError</span></code></a></p>
 </dd></dl>
 
 </div>
@@ -710,12 +711,12 @@ payload.</p></li>
 <span id="qop-scanners-module"></span><h2>qop.scanners module<a class="headerlink" href="#module-qop.scanners" title="Permalink to this headline">¶</a></h2>
 <p>Used by qop.py to traverse the directory tree when looking for files to transfer</p>
 <dl class="py class">
-<dt id="qop.scanners.BlacklistScanner">
-<em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">BlacklistScanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">extensions</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.BlacklistScanner" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.scanners.Scanner">
+<em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">Scanner</code><a class="headerlink" href="#qop.scanners.Scanner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt id="qop.scanners.BlacklistScanner.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Generator<span class="p">[</span>pathlib.Path<span class="p">, </span>None<span class="p">, </span>None<span class="p">]</span><a class="headerlink" href="#qop.scanners.BlacklistScanner.run" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.scanners.Scanner.scan">
+<code class="sig-name descname">scan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; pathlib.Path<a class="headerlink" href="#qop.scanners.Scanner.scan" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -723,21 +724,21 @@ payload.</p></li>
 <dl class="py class">
 <dt id="qop.scanners.PassScanner">
 <em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">PassScanner</code><a class="headerlink" href="#qop.scanners.PassScanner" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#qop.scanners.Scanner" title="qop.scanners.Scanner"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.scanners.Scanner</span></code></a></p>
 <dl class="py method">
-<dt id="qop.scanners.PassScanner.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Generator<span class="p">[</span>pathlib.Path<span class="p">, </span>None<span class="p">, </span>None<span class="p">]</span><a class="headerlink" href="#qop.scanners.PassScanner.run" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.scanners.PassScanner.scan">
+<code class="sig-name descname">scan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Generator<span class="p">[</span>pathlib.Path<span class="p">, </span>None<span class="p">, </span>None<span class="p">]</span><a class="headerlink" href="#qop.scanners.PassScanner.scan" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="qop.scanners.Scanner">
-<em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">Scanner</code><a class="headerlink" href="#qop.scanners.Scanner" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dt id="qop.scanners.BlacklistScanner">
+<em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">BlacklistScanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">extensions</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.BlacklistScanner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.scanners.Scanner" title="qop.scanners.Scanner"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.scanners.Scanner</span></code></a></p>
 <dl class="py method">
-<dt id="qop.scanners.Scanner.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; pathlib.Path<a class="headerlink" href="#qop.scanners.Scanner.run" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.scanners.BlacklistScanner.scan">
+<code class="sig-name descname">scan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Generator<span class="p">[</span>pathlib.Path<span class="p">, </span>None<span class="p">, </span>None<span class="p">]</span><a class="headerlink" href="#qop.scanners.BlacklistScanner.scan" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -745,10 +746,10 @@ payload.</p></li>
 <dl class="py class">
 <dt id="qop.scanners.WhitelistScanner">
 <em class="property">class </em><code class="sig-prename descclassname">qop.scanners.</code><code class="sig-name descname">WhitelistScanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">extensions</span><span class="p">:</span> <span class="n">list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.scanners.WhitelistScanner" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#qop.scanners.Scanner" title="qop.scanners.Scanner"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.scanners.Scanner</span></code></a></p>
 <dl class="py method">
-<dt id="qop.scanners.WhitelistScanner.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Generator<span class="p">[</span>pathlib.Path<span class="p">, </span>None<span class="p">, </span>None<span class="p">]</span><a class="headerlink" href="#qop.scanners.WhitelistScanner.run" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.scanners.WhitelistScanner.scan">
+<code class="sig-name descname">scan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Generator<span class="p">[</span>pathlib.Path<span class="p">, </span>None<span class="p">, </span>None<span class="p">]</span><a class="headerlink" href="#qop.scanners.WhitelistScanner.scan" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -756,254 +757,11 @@ payload.</p></li>
 </div>
 <div class="section" id="module-qop.tasks">
 <span id="qop-tasks-module"></span><h2>qop.tasks module<a class="headerlink" href="#module-qop.tasks" title="Permalink to this headline">¶</a></h2>
-<p>This module defines classes for working with <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tasks</span></code></a>. A task is an atomic operation - such as copying,
-moving or transcoding a file - that can be stored and executed at a later date (and usually only once).</p>
+<p>This module defines classes for working with <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tasks</span></code></a>. A task is an atomic operation - such as
+copying, moving or transcoding a file - that can be stored and executed at a later date (and usually only once).</p>
 <p><a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a> is a persistent (via <a class="reference external" href="https://docs.python.org/3.8/library/sqlite3.html">sqlite3</a>),
 prioritized queue with <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html">multiprocessing</a> support that can
 store and execute an arbitrary number of tasks.</p>
-<dl class="py class">
-<dt id="qop.tasks.ConvertTask">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">ConvertTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">converter</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter">qop.converters.Converter</a></span></em>, <em class="sig-param"><span class="n">tempdir</span><span class="o">=</span><span class="default_value">PosixPath('/home/runner/.cache/qop/convert_temp')</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.ConvertTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.tasks.SimpleConvertTask" title="qop.tasks.SimpleConvertTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.SimpleConvertTask</span></code></a></p>
-<p>ConvertTask transcodes an audio file to a temporary directory and then adds a move task to the queue.
-This makes it possible to cleanly separate transcode and transfer processes.</p>
-<dl class="py method">
-<dt id="qop.tasks.ConvertTask.color_repr">
-<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.tasks.ConvertTask.color_repr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.ConvertTask.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.ConvertTask.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.ConvertTask.spawn">
-<code class="sig-name descname">spawn</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.MoveTask" title="qop.tasks.MoveTask">qop.tasks.MoveTask</a><a class="headerlink" href="#qop.tasks.ConvertTask.spawn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Spawns a follow-up task. If a task has a <a class="reference internal" href="#qop.tasks.ConvertTask.spawn" title="qop.tasks.ConvertTask.spawn"><code class="xref py py-func docutils literal notranslate"><span class="pre">spawn()</span></code></a> method, <a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a> calls it internally
-after fetching the original Task. The follow-up task is then enqueued with maximum priority. If this newly
-spawned task fails, the parent task will also be considered failed.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.ConvertTask.to_dict">
-<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.ConvertTask.to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.CopyTask">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">CopyTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.CopyTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.tasks.FileTask" title="qop.tasks.FileTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.FileTask</span></code></a></p>
-<p>Copy a file</p>
-<dl class="py method">
-<dt id="qop.tasks.CopyTask.color_repr">
-<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.tasks.CopyTask.color_repr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.CopyTask.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.CopyTask.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.DeleteTask">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">DeleteTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">validate</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.DeleteTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.tasks.FileTask" title="qop.tasks.FileTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.FileTask</span></code></a></p>
-<p>Delete a file</p>
-<dl class="py method">
-<dt id="qop.tasks.DeleteTask.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.DeleteTask.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.EchoTask">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">EchoTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.EchoTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.Task</span></code></a></p>
-<p>Log a message</p>
-<dl class="py method">
-<dt id="qop.tasks.EchoTask.color_repr">
-<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.EchoTask.color_repr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.EchoTask.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.EchoTask.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.FailTask">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">FailTask</code><a class="headerlink" href="#qop.tasks.FailTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.Task</span></code></a></p>
-<p>Log a message</p>
-<dl class="py method">
-<dt id="qop.tasks.FailTask.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.FailTask.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.FileTask">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">FileTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.FileTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.Task</span></code></a></p>
-<p>Abstract class for all file-based tasks</p>
-<dl class="py method">
-<dt id="qop.tasks.FileTask.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.FileTask.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.MoveTask">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">MoveTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">parent_oid</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.MoveTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.tasks.CopyTask" title="qop.tasks.CopyTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.CopyTask</span></code></a></p>
-<p>Move a file</p>
-<dl class="py method">
-<dt id="qop.tasks.MoveTask.color_repr">
-<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.tasks.MoveTask.color_repr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.MoveTask.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.MoveTask.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.QueueProgress">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">QueueProgress</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pending</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">ok</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">skip</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">fail</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">active</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.QueueProgress" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Info on the current status of the Queue</p>
-<dl class="py method">
-<dt id="qop.tasks.QueueProgress.fmt_summary">
-<code class="sig-name descname">fmt_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.QueueProgress.fmt_summary" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.QueueProgress.from_dict">
-<em class="property">static </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.QueueProgress" title="qop.tasks.QueueProgress">qop.tasks.QueueProgress</a><a class="headerlink" href="#qop.tasks.QueueProgress.from_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.QueueProgress.from_list">
-<em class="property">static </em><code class="sig-name descname">from_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">List</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.QueueProgress" title="qop.tasks.QueueProgress">qop.tasks.QueueProgress</a><a class="headerlink" href="#qop.tasks.QueueProgress.from_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a list (for example as returned by an SQL SELECT statement) to a QueueProgress object</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.QueueProgress.to_dict">
-<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.QueueProgress.to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.QueueProgress.total">
-<em class="property">property </em><code class="sig-name descname">total</code><a class="headerlink" href="#qop.tasks.QueueProgress.total" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.SimpleConvertTask">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">SimpleConvertTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">converter</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter">qop.converters.Converter</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.SimpleConvertTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.tasks.CopyTask" title="qop.tasks.CopyTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.CopyTask</span></code></a></p>
-<p>convert an audio file</p>
-<dl class="py method">
-<dt id="qop.tasks.SimpleConvertTask.color_repr">
-<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.tasks.SimpleConvertTask.color_repr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.SimpleConvertTask.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.SimpleConvertTask.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.SimpleConvertTask.to_dict">
-<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.SimpleConvertTask.to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.SleepTask">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">SleepTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seconds</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.SleepTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.Task</span></code></a></p>
-<p>Log a message</p>
-<dl class="py method">
-<dt id="qop.tasks.SleepTask.color_repr">
-<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.SleepTask.color_repr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.SleepTask.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.SleepTask.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.tasks.Task">
-<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">Task</code><a class="headerlink" href="#qop.tasks.Task" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Abstract class for qop Tasks. Should not be instantiated directly.</p>
-<dl class="py method">
-<dt id="qop.tasks.Task.color_repr">
-<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.Task.color_repr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.Task.from_dict">
-<em class="property">static </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a><a class="headerlink" href="#qop.tasks.Task.from_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a Task of the appropriate subclass from a python dict</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.tasks.Task.oid">
-<code class="sig-name descname">oid</code><em class="property"> = None</em><a class="headerlink" href="#qop.tasks.Task.oid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.tasks.Task.parent_oid">
-<code class="sig-name descname">parent_oid</code><em class="property"> = None</em><a class="headerlink" href="#qop.tasks.Task.parent_oid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.Task.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.Task.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run a task</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.Task.to_dict">
-<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.Task.to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.Task.to_json">
-<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.Task.to_json" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
 <dl class="py class">
 <dt id="qop.tasks.TaskQueue">
 <em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">TaskQueue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">max_transfer_processes</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_convert_processes</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.TaskQueue" title="Permalink to this definition">¶</a></dt>
@@ -1017,118 +775,14 @@ spawned task fails, the parent task will also be considered failed.</p>
 </ul>
 </dd>
 </dl>
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.active_processes">
-<code class="sig-name descname">active_processes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.TaskQueue.active_processes" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt id="qop.tasks.TaskQueue.transfer_processes">
+<code class="sig-name descname">transfer_processes</code><em class="property"> = []</em><a class="headerlink" href="#qop.tasks.TaskQueue.transfer_processes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="qop.tasks.TaskQueue.convert_processes">
 <code class="sig-name descname">convert_processes</code><em class="property"> = []</em><a class="headerlink" href="#qop.tasks.TaskQueue.convert_processes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.facts">
-<code class="sig-name descname">facts</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.TaskQueue.facts" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.fetch">
-<code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Tuple<span class="p">, </span>int<span class="p">, </span><a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status">qop.constants.Status</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">n</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<a class="headerlink" href="#qop.tasks.TaskQueue.fetch" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve the queue</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>n</strong> – number of tasks to fetch</p></li>
-<li><p><strong>status</strong> – If not None, only fetch Tasks of the given status(es)</p></li>
-</ul>
-</dd>
-</dl>
-<p>:return a dict containing n queued tasks</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.flush">
-<code class="sig-name descname">flush</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status">qop.constants.Status</a><span class="p">, </span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.flush" title="Permalink to this definition">¶</a></dt>
-<dd><p>empty the queue</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.is_active">
-<code class="sig-name descname">is_active</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#qop.tasks.TaskQueue.is_active" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.n_active">
-<em class="property">property </em><code class="sig-name descname">n_active</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_active" title="Permalink to this definition">¶</a></dt>
-<dd><p>Count of currently active tasks</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.n_fail">
-<em class="property">property </em><code class="sig-name descname">n_fail</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_fail" title="Permalink to this definition">¶</a></dt>
-<dd><p>count of completed tasks</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.n_ok">
-<em class="property">property </em><code class="sig-name descname">n_ok</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_ok" title="Permalink to this definition">¶</a></dt>
-<dd><p>count of completed tasks</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.n_pending">
-<em class="property">property </em><code class="sig-name descname">n_pending</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_pending" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of pending tasks</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.n_skip">
-<em class="property">property </em><code class="sig-name descname">n_skip</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_skip" title="Permalink to this definition">¶</a></dt>
-<dd><p>count of completed tasks</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.n_total">
-<em class="property">property </em><code class="sig-name descname">n_total</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_total" title="Permalink to this definition">¶</a></dt>
-<dd><p>Count of all tasks in queue (including failed and completed)</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.peek">
-<code class="sig-name descname">peek</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a><a class="headerlink" href="#qop.tasks.TaskQueue.peek" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves a <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> without changing its status in the queue</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.pop">
-<code class="sig-name descname">pop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_type_include</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="#qop.constants.TaskType" title="qop.constants.TaskType">qop.constants.TaskType</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">task_type_exclude</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="#qop.constants.TaskType" title="qop.constants.TaskType">qop.constants.TaskType</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a><a class="headerlink" href="#qop.tasks.TaskQueue.pop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves a <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> and sets its status in the queue to <a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status"><code class="xref py py-class docutils literal notranslate"><span class="pre">Status.ACTIVE</span></code></a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#qop.exceptions.AlreadyUnderEvaluationError" title="qop.exceptions.AlreadyUnderEvaluationError"><strong>AlreadyUnderEvaluationError</strong></a> – If trying to pop a tasks that is already being processed  (i.e. if a race
-condition occurs if the queue is processed in parallel)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.print">
-<code class="sig-name descname">print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Tuple<span class="p">, </span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">n</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">10</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.print" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print an overview of the queue</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>n</strong> – number of tasks to fetch</p></li>
-<li><p><strong>status</strong> – If not None, only fetch Tasks of the given status(es)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.progress">
-<code class="sig-name descname">progress</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">include_children</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.QueueProgress" title="qop.tasks.QueueProgress">qop.tasks.QueueProgress</a><a class="headerlink" href="#qop.tasks.TaskQueue.progress" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1147,15 +801,56 @@ condition occurs if the queue is processed in parallel)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="qop.tasks.TaskQueue.reset_active_tasks">
-<code class="sig-name descname">reset_active_tasks</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.reset_active_tasks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset all active tasks to <a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status"><code class="xref py py-class docutils literal notranslate"><span class="pre">Status.PENDING</span></code></a></p>
+<dt id="qop.tasks.TaskQueue.pop">
+<code class="sig-name descname">pop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_type_include</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="#qop.constants.TaskType" title="qop.constants.TaskType">qop.constants.TaskType</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">task_type_exclude</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="#qop.constants.TaskType" title="qop.constants.TaskType">qop.constants.TaskType</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a><a class="headerlink" href="#qop.tasks.TaskQueue.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves a <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> and sets its status in the queue to <a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status"><code class="xref py py-class docutils literal notranslate"><span class="pre">Status.ACTIVE</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#qop.exceptions.AlreadyUnderEvaluationError" title="qop.exceptions.AlreadyUnderEvaluationError"><strong>AlreadyUnderEvaluationError</strong></a> – If trying to pop a tasks that is already being processed  (i.e. if a race
+condition occurs if the queue is processed in parallel)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="qop.tasks.TaskQueue.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ip</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute all pending tasks</p>
+<dt id="qop.tasks.TaskQueue.peek">
+<code class="sig-name descname">peek</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a><a class="headerlink" href="#qop.tasks.TaskQueue.peek" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves a <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a> without changing its status in the queue</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.print">
+<code class="sig-name descname">print</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Tuple<span class="p">, </span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">n</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">10</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.print" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print an overview of the queue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – number of tasks to fetch</p></li>
+<li><p><strong>status</strong> – If not None, only fetch Tasks of the given status(es)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.fetch">
+<code class="sig-name descname">fetch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Tuple<span class="p">, </span>int<span class="p">, </span><a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status">qop.constants.Status</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">n</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<a class="headerlink" href="#qop.tasks.TaskQueue.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the queue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – number of tasks to fetch</p></li>
+<li><p><strong>status</strong> – If not None, only fetch Tasks of the given status(es)</p></li>
+</ul>
+</dd>
+</dl>
+<p>:return a dict containing n queued tasks</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.reset_active_tasks">
+<code class="sig-name descname">reset_active_tasks</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.reset_active_tasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset all active tasks to <a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status"><code class="xref py py-class docutils literal notranslate"><span class="pre">Status.PENDING</span></code></a></p>
 </dd></dl>
 
 <dl class="py method">
@@ -1177,13 +872,286 @@ Must be <cite>None</cite> except for switching tasks to <em>active</em>.</p></li
 </dd></dl>
 
 <dl class="py method">
+<dt id="qop.tasks.TaskQueue.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ip</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute all pending tasks</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="qop.tasks.TaskQueue.stop">
 <code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.stop" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.flush">
+<code class="sig-name descname">flush</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="#qop.constants.Status" title="qop.constants.Status">qop.constants.Status</a><span class="p">, </span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.TaskQueue.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>empty the queue</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.facts">
+<code class="sig-name descname">facts</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.TaskQueue.facts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.is_active">
+<code class="sig-name descname">is_active</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#qop.tasks.TaskQueue.is_active" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.active_processes">
+<code class="sig-name descname">active_processes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">type</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.TaskQueue.active_processes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.n_total">
+<em class="property">property </em><code class="sig-name descname">n_total</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_total" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count of all tasks in queue (including failed and completed)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.n_pending">
+<em class="property">property </em><code class="sig-name descname">n_pending</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_pending" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of pending tasks</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.n_active">
+<em class="property">property </em><code class="sig-name descname">n_active</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count of currently active tasks</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.n_ok">
+<em class="property">property </em><code class="sig-name descname">n_ok</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_ok" title="Permalink to this definition">¶</a></dt>
+<dd><p>count of completed tasks</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.n_fail">
+<em class="property">property </em><code class="sig-name descname">n_fail</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_fail" title="Permalink to this definition">¶</a></dt>
+<dd><p>count of completed tasks</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.n_skip">
+<em class="property">property </em><code class="sig-name descname">n_skip</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_skip" title="Permalink to this definition">¶</a></dt>
+<dd><p>count of completed tasks</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.TaskQueue.progress">
+<code class="sig-name descname">progress</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">include_children</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.QueueProgress" title="qop.tasks.QueueProgress">qop.tasks.QueueProgress</a><a class="headerlink" href="#qop.tasks.TaskQueue.progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.Task">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">Task</code><a class="headerlink" href="#qop.tasks.Task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract class for qop Tasks. Should not be instantiated directly.</p>
 <dl class="py attribute">
-<dt id="qop.tasks.TaskQueue.transfer_processes">
-<code class="sig-name descname">transfer_processes</code><em class="property"> = []</em><a class="headerlink" href="#qop.tasks.TaskQueue.transfer_processes" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.tasks.Task.oid">
+<code class="sig-name descname">oid</code><em class="property"> = None</em><a class="headerlink" href="#qop.tasks.Task.oid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="qop.tasks.Task.parent_oid">
+<code class="sig-name descname">parent_oid</code><em class="property"> = None</em><a class="headerlink" href="#qop.tasks.Task.parent_oid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.Task.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.Task.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.Task.from_dict">
+<em class="property">static </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a><a class="headerlink" href="#qop.tasks.Task.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Task of the appropriate subclass from a python dict</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.Task.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.Task.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.Task.color_repr">
+<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.Task.color_repr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.Task.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.Task.to_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.EchoTask">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">EchoTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">msg</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.EchoTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.Task</span></code></a></p>
+<p>Log a message</p>
+<dl class="py method">
+<dt id="qop.tasks.EchoTask.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.EchoTask.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.EchoTask.color_repr">
+<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.EchoTask.color_repr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.SleepTask">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">SleepTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seconds</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.SleepTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.Task</span></code></a></p>
+<p>Log a message</p>
+<dl class="py method">
+<dt id="qop.tasks.SleepTask.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.SleepTask.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.SleepTask.color_repr">
+<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.SleepTask.color_repr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.FailTask">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">FailTask</code><a class="headerlink" href="#qop.tasks.FailTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.Task</span></code></a></p>
+<p>Log a message</p>
+<dl class="py method">
+<dt id="qop.tasks.FailTask.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.FailTask.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.FileTask">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">FileTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.FileTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.Task</span></code></a></p>
+<p>Abstract class for all file-based tasks</p>
+<dl class="py method">
+<dt id="qop.tasks.FileTask.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.FileTask.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.DeleteTask">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">DeleteTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">validate</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.DeleteTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.tasks.FileTask" title="qop.tasks.FileTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.FileTask</span></code></a></p>
+<p>Delete a file</p>
+<dl class="py method">
+<dt id="qop.tasks.DeleteTask.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.DeleteTask.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.CopyTask">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">CopyTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.CopyTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.tasks.FileTask" title="qop.tasks.FileTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.FileTask</span></code></a></p>
+<p>Copy a file</p>
+<dl class="py method">
+<dt id="qop.tasks.CopyTask.color_repr">
+<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.tasks.CopyTask.color_repr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.CopyTask.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.CopyTask.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.MoveTask">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">MoveTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">parent_oid</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.MoveTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.tasks.CopyTask" title="qop.tasks.CopyTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.CopyTask</span></code></a></p>
+<p>Move a file</p>
+<dl class="py method">
+<dt id="qop.tasks.MoveTask.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.MoveTask.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.MoveTask.color_repr">
+<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.tasks.MoveTask.color_repr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.SimpleConvertTask">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">SimpleConvertTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">converter</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter">qop.converters.Converter</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.SimpleConvertTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.tasks.CopyTask" title="qop.tasks.CopyTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.CopyTask</span></code></a></p>
+<p>convert an audio file</p>
+<dl class="py method">
+<dt id="qop.tasks.SimpleConvertTask.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.SimpleConvertTask.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.SimpleConvertTask.color_repr">
+<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.tasks.SimpleConvertTask.color_repr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.SimpleConvertTask.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.SimpleConvertTask.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.ConvertTask">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">ConvertTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">converter</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter">qop.converters.Converter</a></span></em>, <em class="sig-param"><span class="n">tempdir</span><span class="o">=</span><span class="default_value">PosixPath('/home/runner/.cache/qop/convert_temp')</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.ConvertTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qop.tasks.SimpleConvertTask" title="qop.tasks.SimpleConvertTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.tasks.SimpleConvertTask</span></code></a></p>
+<p>ConvertTask transcodes an audio file to a temporary directory and then adds a move task to the queue.
+This makes it possible to cleanly separate transcode and transfer processes.</p>
+<dl class="py method">
+<dt id="qop.tasks.ConvertTask.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.tasks.ConvertTask.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a task</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.ConvertTask.spawn">
+<code class="sig-name descname">spawn</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.MoveTask" title="qop.tasks.MoveTask">qop.tasks.MoveTask</a><a class="headerlink" href="#qop.tasks.ConvertTask.spawn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spawns a follow-up task. If a task has a <a class="reference internal" href="#qop.tasks.ConvertTask.spawn" title="qop.tasks.ConvertTask.spawn"><code class="xref py py-func docutils literal notranslate"><span class="pre">spawn()</span></code></a> method, <a class="reference internal" href="#qop.tasks.TaskQueue" title="qop.tasks.TaskQueue"><code class="xref py py-class docutils literal notranslate"><span class="pre">TaskQueue</span></code></a> calls it internally
+after fetching the original Task. The follow-up task is then enqueued with maximum priority. If this newly
+spawned task fails, the parent task will also be considered failed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.ConvertTask.color_repr">
+<code class="sig-name descname">color_repr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#qop.tasks.ConvertTask.color_repr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.ConvertTask.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.ConvertTask.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1193,12 +1161,6 @@ Must be <cite>None</cite> except for switching tasks to <em>active</em>.</p></li
 <em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">TaskQueueElement</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#qop.tasks.Task" title="qop.tasks.Task">qop.tasks.Task</a></span></em>, <em class="sig-param"><span class="n">priority</span><span class="p">:</span> <span class="n">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.TaskQueueElement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>An enqueued Task</p>
-<dl class="py attribute">
-<dt id="qop.tasks.TaskQueueElement.priority">
-<code class="sig-name descname">priority</code><em class="property"> = None</em><a class="headerlink" href="#qop.tasks.TaskQueueElement.priority" title="Permalink to this definition">¶</a></dt>
-<dd><p>Priority of the queued Task</p>
-</dd></dl>
-
 <dl class="py attribute">
 <dt id="qop.tasks.TaskQueueElement.status">
 <code class="sig-name descname">status</code><em class="property"> = None</em><a class="headerlink" href="#qop.tasks.TaskQueueElement.status" title="Permalink to this definition">¶</a></dt>
@@ -1211,18 +1173,57 @@ Must be <cite>None</cite> except for switching tasks to <em>active</em>.</p></li
 <dd><p>A Task</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt id="qop.tasks.TaskQueueElement.priority">
+<code class="sig-name descname">priority</code><em class="property"> = None</em><a class="headerlink" href="#qop.tasks.TaskQueueElement.priority" title="Permalink to this definition">¶</a></dt>
+<dd><p>Priority of the queued Task</p>
 </dd></dl>
 
-<dl class="py exception">
-<dt id="qop.tasks.UnknownTaskTypeError">
-<em class="property">exception </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">UnknownTaskTypeError</code><a class="headerlink" href="#qop.tasks.UnknownTaskTypeError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="qop.tasks.QueueProgress">
+<em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">QueueProgress</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pending</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">ok</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">skip</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">fail</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">active</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.QueueProgress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Info on the current status of the Queue</p>
+<dl class="py method">
+<dt id="qop.tasks.QueueProgress.total">
+<em class="property">property </em><code class="sig-name descname">total</code><a class="headerlink" href="#qop.tasks.QueueProgress.total" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.QueueProgress.from_dict">
+<em class="property">static </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.QueueProgress" title="qop.tasks.QueueProgress">qop.tasks.QueueProgress</a><a class="headerlink" href="#qop.tasks.QueueProgress.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.QueueProgress.from_list">
+<em class="property">static </em><code class="sig-name descname">from_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">List</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.tasks.QueueProgress" title="qop.tasks.QueueProgress">qop.tasks.QueueProgress</a><a class="headerlink" href="#qop.tasks.QueueProgress.from_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a list (for example as returned by an SQL SELECT statement) to a QueueProgress object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.QueueProgress.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.tasks.QueueProgress.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="qop.tasks.QueueProgress.fmt_summary">
+<code class="sig-name descname">fmt_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.QueueProgress.fmt_summary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
 <dt id="qop.tasks.hammer_commit">
 <code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">hammer_commit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">con</span></em>, <em class="sig-param"><span class="n">max_tries</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.hammer_commit" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py exception">
+<dt id="qop.tasks.UnknownTaskTypeError">
+<em class="property">exception </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">UnknownTaskTypeError</code><a class="headerlink" href="#qop.tasks.UnknownTaskTypeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+</dd></dl>
 
 </div>
 </div>
