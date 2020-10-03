@@ -61,7 +61,7 @@ def test_DeleteTask(tmp_path):
 
     op = tasks.DeleteTask(src)
     assert Path(op.src).exists()
-    op.run()
+    op.start()
     assert not Path(op.src).exists()
 
 
@@ -75,7 +75,7 @@ def test_CopyTask(tmp_path):
 
     assert Path(op.src).exists()
     assert not Path(op.dst).exists()
-    op.run()
+    op.start()
     assert Path(op.src).exists()
     assert Path(op.dst).exists()
 
@@ -98,9 +98,9 @@ def test_CopyTask_fails_on_existing_dst(tmp_path):
     src.touch()
 
     op = tasks.CopyTask(src, dst)
-    op.run()
+    op.start()
     with pytest.raises(FileExistsAndIsIdenticalError):
-        op.run()
+        op.start()
 
     with pytest.raises(FileExistsAndIsIdenticalError):
         tasks.CopyTask(src, dst).__validate__()
@@ -116,7 +116,7 @@ def test_MoveTask(tmp_path):
 
     assert Path(op.src).exists()
     assert not Path(op.dst).exists()
-    op.run()
+    op.start()
     assert not Path(op.src).exists()
     assert Path(op.dst).exists()
 
@@ -142,7 +142,7 @@ def test_SimpleConvertTask(tmp_path):
     sound.export(src, format="flac")
 
     tsk = tasks.SimpleConvertTask(src, dst, converter=converters.Mp3Converter())
-    tsk.run()
+    tsk.start()
 
     assert src.exists()
     assert dst.exists()
@@ -170,14 +170,14 @@ def test_SimpleConvertTask_can_keep_or_remove_album_art(tmp_path):
 
     # by default, the converters preserve the album art
     # .. for Mp3Converter
-    tasks.SimpleConvertTask(src, mp3_art, converter=converters.Mp3Converter()).run()
+    tasks.SimpleConvertTask(src, mp3_art, converter=converters.Mp3Converter()).start()
     g = MediaFile(mp3_art)
     assert f.images[0].data == cover.data
     assert f.images[0].mime_type == 'image/jpeg'
     assert f.images[0].data == g.images[0].data
 
     # ... for OggConverter
-    tasks.SimpleConvertTask(src, ogg_art, converter=converters.OggConverter()).run()
+    tasks.SimpleConvertTask(src, ogg_art, converter=converters.OggConverter()).start()
     g = MediaFile(ogg_art)
     assert f.images[0].data == cover.data
     assert f.images[0].mime_type == 'image/jpeg'
@@ -185,14 +185,14 @@ def test_SimpleConvertTask_can_keep_or_remove_album_art(tmp_path):
 
     # remove_art=True removes art
     # ... for Mp3Converter
-    tasks.SimpleConvertTask(src, mp3_noart, converter=converters.Mp3Converter(remove_art=True)).run()
+    tasks.SimpleConvertTask(src, mp3_noart, converter=converters.Mp3Converter(remove_art=True)).start()
     g = MediaFile(mp3_noart)
     assert f.images[0].data == cover.data
     assert g.images == []
 
     # remove_art=True removes art
     # ... for OggConverter
-    tasks.SimpleConvertTask(src, ogg_noart, converter=converters.OggConverter(remove_art=True)).run()
+    tasks.SimpleConvertTask(src, ogg_noart, converter=converters.OggConverter(remove_art=True)).start()
     g = MediaFile(ogg_noart)
     assert f.images[0].data == cover.data
     assert g.images == []
@@ -207,14 +207,14 @@ def test_ConvertTask(tmp_path):
     sound.export(src, format="flac")
 
     tsk = tasks.ConvertTask(src, dst, converter=converters.Mp3Converter(), tempdir=tmp_path)
-    tsk.run()
+    tsk.start()
     assert src.exists()
     assert not dst.exists()
 
     # mock `oid` that is used to match a task to its follow_up_task under production conditions. oid fulfils no function
     # if the follow_up_task is not executed by a TaskQueue.
     tsk.oid = 1
-    tsk.spawn().run()
+    tsk.spawn().start()
     assert src.exists()
     assert dst.exists()
 

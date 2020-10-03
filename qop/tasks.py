@@ -323,7 +323,7 @@ class TaskQueue:
                 sleep(1)
                 continue
             try:
-                op.run()
+                op.start()
                 lg.info(f"task finished: {op}")
                 self.set_status(op.oid, Status.OK)
                 try:
@@ -479,7 +479,7 @@ class Task:
     def __init__(self) -> None:
         self.type = 0
 
-    def run(self) -> None:
+    def start(self) -> None:
         """Run a task"""
         raise NotImplementedError
 
@@ -546,7 +546,7 @@ class EchoTask(Task):
         self.msg = msg
         self.type = TaskType.ECHO
 
-    def run(self) -> None:
+    def start(self) -> None:
         print(self.msg)
 
     def __repr__(self) -> str:
@@ -568,7 +568,7 @@ class SleepTask(Task):
         self.seconds = seconds
         self.type = TaskType.SLEEP
 
-    def run(self) -> None:
+    def start(self) -> None:
         lg.debug(f"sleeping for {self.seconds} seconds")
         sleep(self.seconds)
         lg.debug("woke up")
@@ -592,7 +592,7 @@ class FailTask(Task):
         self.msg = "This task always fails"
         self.type = TaskType.FAIL
 
-    def run(self) -> None:
+    def start(self) -> None:
         raise AssertionError
 
     def __repr__(self) -> str:
@@ -606,7 +606,7 @@ class FileTask(Task):
         self.src = Path(src).resolve()
         self.type = None
 
-    def run(self) -> None:
+    def start(self) -> None:
         pass
 
     def __validate__(self) -> None:
@@ -622,7 +622,7 @@ class DeleteTask(FileTask):
         super().__init__(src=src)
         self.type = TaskType.DELETE
 
-    def run(self) -> None:
+    def start(self) -> None:
         os.unlink(self.src)
 
     def __repr__(self) -> str:
@@ -657,7 +657,7 @@ class CopyTask(FileTask):
             else:
                 raise FileExistsError
 
-    def run(self) -> None:
+    def start(self) -> None:
         self.__validate__()
         if not self.dst.parent.exists():
             self.dst.parent.mkdir(parents=True)
@@ -675,7 +675,7 @@ class MoveTask(CopyTask):
         self.type = TaskType.MOVE
         self.parent_oid = parent_oid
 
-    def run(self) -> None:
+    def start(self) -> None:
         super().__validate__()
         if not self.dst.parent.exists():
             self.dst.parent.mkdir(parents=True)
@@ -705,7 +705,7 @@ class SimpleConvertTask(CopyTask):
         self.src = Path(src).resolve()
         self.dst = Path(dst).resolve()
 
-    def run(self) -> None:
+    def start(self) -> None:
         super().__validate__()
         self.converter.run(self.src, self.dst)
 
@@ -747,7 +747,7 @@ class ConvertTask(SimpleConvertTask):
         self.type = TaskType.CONVERT
         self.tmpdst = tempdir.joinpath(uuid.uuid4().hex)
 
-    def run(self) -> None:
+    def start(self) -> None:
         super().__validate__()
         lg.debug(f"converting file to temporary destination: {self.tmpdst}")
         self.converter.run(self.src, self.tmpdst)
