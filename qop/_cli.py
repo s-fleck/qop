@@ -105,7 +105,7 @@ def handle_copy_convert_move(args, client) -> Dict:
 
     for source in sources:
         root = Path(source).resolve().parent
-        children = scanner.run(source)
+        children = scanner.scan(source)
 
         for src in children:
             lg.debug(f"inserting {src}")

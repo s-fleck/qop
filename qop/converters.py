@@ -42,7 +42,7 @@ class Converter:
         dd = json.loads(s=s)
         return Converter.from_dict(dd)
 
-    def run(self, src: Union[Path, str], dst: Union[Path, str]):
+    def start(self, src: Union[Path, str], dst: Union[Path, str]):
         raise NotImplementedError()
 
     def __eq__(self, other) -> bool:
@@ -73,7 +73,7 @@ class CopyConverter(Converter):
     def __init__(self, remove_art: bool = False) -> None:
         self.remove_art = remove_art
 
-    def run(self, src: Pathish, dst: Pathish):
+    def start(self, src: Pathish, dst: Pathish):
         src = Path(src).resolve()
         dst = Path(dst).resolve()
         if not dst.parent.exists():
@@ -96,7 +96,7 @@ class OggConverter(CopyConverter):
         self.remove_art = remove_art
         self.ext = "ogg"
 
-    def run(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
+    def start(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         src = Path(src).resolve()
         dst = Path(dst).resolve()
         if not dst.parent.exists():
@@ -119,7 +119,7 @@ class Mp3Converter(CopyConverter):
         super().__init__(remove_art=remove_art)
         self.ext = "mp3"
 
-    def run(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
+    def start(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         src = Path(src).resolve()
         dst = Path(dst).resolve()
         if not dst.parent.exists():

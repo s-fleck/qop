@@ -13,7 +13,7 @@ class Scanner:
     def __init__(self) -> None:
         pass
 
-    def run(self, root: Pathish) -> Path:
+    def scan(self, root: Pathish) -> Path:
         root = Path(root).resolve()
         if not root.is_dir():
             yield root
@@ -22,16 +22,16 @@ class Scanner:
                 yield p.resolve()
 
 
-class PassScanner:
-    def run(self, root: Pathish) -> Generator[Path, None, None]:
+class PassScanner(Scanner):
+    def scan(self, root: Pathish) -> Generator[Path, None, None]:
         yield Path(root).resolve()
 
 
-class BlacklistScanner:
+class BlacklistScanner(Scanner):
     def __init__(self, extensions: list) -> None:
         self.extensions = extensions
 
-    def run(self, root: Pathish) -> Generator[Path, None, None]:
+    def scan(self, root: Pathish) -> Generator[Path, None, None]:
         root = Path(root).resolve()
         logging.getLogger("qop.scanners").debug(f"collecting files without extensions {','.join(self.extensions)}")
         exts = ["." + e for e in self.extensions]
@@ -45,11 +45,11 @@ class BlacklistScanner:
                     yield p.resolve()
 
 
-class WhitelistScanner:
+class WhitelistScanner(Scanner):
     def __init__(self, extensions: list) -> None:
         self.extensions = extensions
 
-    def run(self, root: Pathish) -> Generator[Path, None, None]:
+    def scan(self, root: Pathish) -> Generator[Path, None, None]:
         root = Path(root).resolve()
         logging.getLogger("qop.scanners").debug(f"collecting files with extensions {','.join(self.extensions)}")
         exts = ["." + e for e in self.extensions]

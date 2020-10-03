@@ -239,16 +239,16 @@ def test_TaskQueue_can_run_baisc_tasks(tmp_path):
 
     q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
     q.put(tasks.CopyTask(src, tmp_path.joinpath("copied_file")))
-    q.run()
+    q.start()
     wait_for_queue(q)
     assert tmp_path.joinpath("copied_file").is_file()
     q.put(tasks.MoveTask(tmp_path.joinpath("copied_file"), tmp_path.joinpath("moved_file")))
-    q.run()
+    q.start()
     wait_for_queue(q)
     assert not tmp_path.joinpath("copied_file").is_file()
     assert tmp_path.joinpath("moved_file").is_file()
     q.put(tasks.DeleteTask(tmp_path.joinpath("moved_file")))
-    q.run()
+    q.start()
     wait_for_queue(q)
     assert not tmp_path.joinpath("moved_file").is_file()
     assert src.is_file()
@@ -266,7 +266,7 @@ def test_TaskQueue_can_run_convert_tasks(tmp_path):
     sound.export(src, format="flac")
     q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
     q.put(tasks.ConvertTask(src, dst, converter=converters.OggConverter()))
-    q.run()
+    q.start()
     wait_for_queue(q)
 
     assert src.exists()
@@ -353,7 +353,7 @@ def test_TaskQueue_fetch(tmp_path):
     assert len(q.fetch(status=None, n=None)) == 3
     assert len(q.fetch(status=(Status.PENDING,), n=None)) == 3
 
-    q.run()
+    q.start()
     sleep(0.5)
     assert len(q.fetch(status=None, n=5)) == 3
     assert len(q.fetch(status=Status.FAIL, n=5)) == 0
@@ -369,7 +369,7 @@ def test_TaskQueue_runs_nonblocking(tmp_path):
 
     tick = datetime.datetime.now().timestamp()
     q.put(tasks.SleepTask(2))
-    q.run()
+    q.start()
     tock = datetime.datetime.now().timestamp()
     sleep(1)
 

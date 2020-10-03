@@ -256,7 +256,7 @@ class TaskQueue:
         hammer_commit(self.con)
         cur.close()
 
-    def run(self, ip=None, port=None) -> None:
+    def start(self, ip=None, port=None) -> None:
         """Execute all pending tasks"""
 
         # remove finished que runs
@@ -707,7 +707,7 @@ class SimpleConvertTask(CopyTask):
 
     def start(self) -> None:
         super().__validate__()
-        self.converter.run(self.src, self.dst)
+        self.converter.start(self.src, self.dst)
 
     def color_repr(self, color=True) -> str:
         if color:
@@ -750,7 +750,7 @@ class ConvertTask(SimpleConvertTask):
     def start(self) -> None:
         super().__validate__()
         lg.debug(f"converting file to temporary destination: {self.tmpdst}")
-        self.converter.run(self.src, self.tmpdst)
+        self.converter.start(self.src, self.tmpdst)
 
     def spawn(self) -> MoveTask:
         """

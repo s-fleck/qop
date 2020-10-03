@@ -98,15 +98,15 @@ class QopDaemon:
 
             if self.queue.is_active():
                 if len(self.queue.convert_processes) < self.queue.max_convert_processes:
-                    self.queue.run()
+                    self.queue.start()
                 elif len(self.queue.transfer_processes) < self.queue.max_transfer_processes:
-                    self.queue.run()
+                    self.queue.start()
                 elif len(self.queue.convert_processes) > self.queue.max_convert_processes:
                     self.queue.stop()
-                    self.queue.run()
+                    self.queue.start()
                 elif len(self.queue.transfer_processes) > self.queue.max_transfer_processes:
                     self.queue.stop()
-                    self.queue.run()
+                    self.queue.start()
 
             if not req:
                 continue
@@ -132,7 +132,7 @@ class QopDaemon:
                     client.sendall(StatusMessage(Status.OK, payload=self.facts(), payload_class=PayloadClass.DAEMON_FACTS).encode())
 
                 elif command == Command.QUEUE_START:
-                    self.queue.run(ip="127.0.0.1", port=self.port)
+                    self.queue.start(ip="127.0.0.1", port=self.port)
                     lg.info("starting queue")
                     client.sendall(StatusMessage(Status.OK, "start processing queue").encode())
 
