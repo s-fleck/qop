@@ -362,50 +362,6 @@ class Message:
         return f"Message: {self.body.__repr__()}"
 
 
-class RawMessage:
-    """
-    Class for parsing messages sent between :class:`~qop.daemon.QopDaemon` and 
-    :class:`~qop.daemon.QopClient`.
-    """
-
-    def __init__(self, raw) -> None:
-        assert isinstance(raw, bytes)
-        self.raw: bytes = raw
-
-    def encode(self) -> bytes:
-        return self.raw
-
-    def decode(self) -> Message:
-        logging.getLogger("qop.daemon").debug(f'decoding message with header_length={self.header_len}')
-        return Message(self.body)
-
-    @property
-    def header_len(self) -> int:
-        return int(struct.unpack("!H", self.raw[:PREHEADER_LEN])[0])
-
-    @property
-    def _header(self) -> bytes:
-        return self.raw[PREHEADER_LEN:(self.header_len + PREHEADER_LEN)]
-
-    @property
-    def header(self) -> Dict:
-        header = json.loads(self._header.decode("utf-8"))
-        assert header is not None
-        return header
-
-    @property
-    def _body(self) -> bytes:
-        start = PREHEADER_LEN + self.header_len
-        return self.raw[start:start + self.header["content-length"]]
-
-    @property
-    def body(self) -> Dict:
-        return json.loads(self._body.decode("utf-8"))
-
-    def __repr__(self) -> str:
-        return f"RawMessage: {self.decode().__repr__()}"
-
-
 class StatusMessage(Message):
     """
     Class responses sent by :class:`~qop.daemon.QopDaemon` to 
@@ -477,3 +433,47 @@ class CommandMessage(Message):
             body=body,
             extra_headers={"message-class": "CommandMessage"}
         )
+
+
+class RawMessage:
+    """
+    Class for parsing messages sent between :class:`~qop.daemon.QopDaemon` and
+    :class:`~qop.daemon.QopClient`.
+    """
+
+    def __init__(self, raw) -> None:
+        assert isinstance(raw, bytes)
+        self.raw: bytes = raw
+
+    def encode(self) -> bytes:
+        return self.raw
+
+    def decode(self) -> Message:
+        logging.getLogger("qop.daemon").debug(f'decoding message with header_length={self.header_len}')
+        return Message(self.body)
+
+    @property
+    def header_len(self) -> int:
+        return int(struct.unpack("!H", self.raw[:PREHEADER_LEN])[0])
+
+    @property
+    def _header(self) -> bytes:
+        return self.raw[PREHEADER_LEN:(self.header_len + PREHEADER_LEN)]
+
+    @property
+    def header(self) -> Dict:
+        header = json.loads(self._header.decode("utf-8"))
+        assert header is not None
+        return header
+
+    @property
+    def _body(self) -> bytes:
+        start = PREHEADER_LEN + self.header_len
+        return self.raw[start:start + self.header["content-length"]]
+
+    @property
+    def body(self) -> Dict:
+        return json.loads(self._body.decode("utf-8"))
+
+    def __repr__(self) -> str:
+        return f"RawMessage: {self.decode().__repr__()}"

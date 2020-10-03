@@ -87,6 +87,29 @@ class CopyConverter(Converter):
         return {"type": ConverterType.COPY, "remove_art": self.remove_art}
 
 
+class Mp3Converter(CopyConverter):
+    """Convert audio files to mp3"""
+
+    def __init__(self, remove_art: bool = False) -> None:
+        super().__init__(remove_art=remove_art)
+        self.ext = "mp3"
+
+    def start(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
+        src = Path(src).resolve()
+        dst = Path(dst).resolve()
+        if not dst.parent.exists():
+            dst.parent.mkdir(parents=True)
+
+        x = pydub.AudioSegment.from_file(src)
+        x.export(dst, format="mp3", parameters=["-q:a", "0"])
+        _utils.transfer_tags(src, dst, remove_art=self.remove_art)
+        if self.remove_art:
+            self.do_remove_art(dst)
+
+    def to_dict(self) -> Dict:
+        return {"type": ConverterType.MP3, "remove_art": self.remove_art}
+
+
 class OggConverter(CopyConverter):
     """Convert audio files to ogg vorbis"""
 
@@ -110,29 +133,6 @@ class OggConverter(CopyConverter):
 
     def to_dict(self) -> Dict:
         return {"type": ConverterType.OGG, "bitrate": self.bitrate, "remove_art": self.remove_art}
-
-
-class Mp3Converter(CopyConverter):
-    """Convert audio files to mp3"""
-
-    def __init__(self, remove_art: bool = False) -> None:
-        super().__init__(remove_art=remove_art)
-        self.ext = "mp3"
-
-    def start(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
-        src = Path(src).resolve()
-        dst = Path(dst).resolve()
-        if not dst.parent.exists():
-            dst.parent.mkdir(parents=True)
-
-        x = pydub.AudioSegment.from_file(src)
-        x.export(dst, format="mp3", parameters=["-q:a", "0"])
-        _utils.transfer_tags(src, dst, remove_art=self.remove_art)
-        if self.remove_art:
-            self.do_remove_art(dst)
-
-    def to_dict(self) -> Dict:
-        return {"type": ConverterType.MP3, "remove_art": self.remove_art}
 
 
 Converter_ = Union[Converter, OggConverter, Mp3Converter]

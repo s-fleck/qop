@@ -11,20 +11,6 @@ from pathlib import Path
 Pathish = Union[Path, str]
 
 
-class Status(IntEnum):
-    """
-    Status codes are used by
-    
-      - :class:`~qop.tasks.TaskQueue` to represent the status of a task in the queue, and
-      - :class:`~qop.tasks.StatusMessage` to indicate whether a command sent to the server was successful or not
-    """
-    FAIL = -1
-    PENDING = 0
-    OK = 1
-    SKIP = 2
-    ACTIVE = 3
-
-
 class ConverterType(IntEnum):
     """Types of converters. Corresponds to the subclasses of :class:`~qop.converters.Converter`."""
     COPY = 0
@@ -60,6 +46,20 @@ class PayloadClass(IntEnum):
     QUEUE_PROGRESS = 3
     TASK_LIST = 4
     DAEMON_FACTS = 5
+
+
+class Status(IntEnum):
+    """
+    Status codes are used by
+
+      - :class:`~qop.tasks.TaskQueue` to represent the status of a task in the queue, and
+      - :class:`~qop.tasks.StatusMessage` to indicate whether a command sent to the server was successful or not
+    """
+    FAIL = -1
+    PENDING = 0
+    OK = 1
+    SKIP = 2
+    ACTIVE = 3
 
 
 class TaskType(IntEnum):

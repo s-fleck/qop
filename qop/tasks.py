@@ -1,6 +1,6 @@
 """
-This module defines classes for working with :class:`Tasks <qop.tasks.Task>`. A task is an atomic operation - such as copying,
-moving or transcoding a file - that can be stored and executed at a later date (and usually only once).
+This module defines classes for working with :class:`Tasks <qop.tasks.Task>`. A task is an atomic operation - such as
+copying, moving or transcoding a file - that can be stored and executed at a later date (and usually only once).
 
 :class:`~qop.tasks.TaskQueue` is a persistent (via `sqlite3 <https://docs.python.org/3.8/library/sqlite3.html>`_),
 prioritized queue with `multiprocessing <https://docs.python.org/3/library/multiprocessing.html>`_ support that can
