@@ -180,13 +180,8 @@ sqlite3 database.</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="qop.constants.ConverterType.MP3">
-<code class="sig-name descname">MP3</code><em class="property"> = 1</em><a class="headerlink" href="#qop.constants.ConverterType.MP3" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="qop.constants.ConverterType.OGG">
-<code class="sig-name descname">OGG</code><em class="property"> = 2</em><a class="headerlink" href="#qop.constants.ConverterType.OGG" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.constants.ConverterType.PYDUB">
+<code class="sig-name descname">PYDUB</code><em class="property"> = 1</em><a class="headerlink" href="#qop.constants.ConverterType.PYDUB" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -399,6 +394,7 @@ See <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon
 <dt id="qop.converters.Converter">
 <em class="property">class </em><code class="sig-prename descclassname">qop.converters.</code><code class="sig-name descname">Converter</code><a class="headerlink" href="#qop.converters.Converter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract base class for Converters</p>
 <dl class="py attribute">
 <dt id="qop.converters.Converter.remove_art">
 <code class="sig-name descname">remove_art</code><em class="property"> = False</em><a class="headerlink" href="#qop.converters.Converter.remove_art" title="Permalink to this definition">¶</a></dt>
@@ -432,7 +428,8 @@ See <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon
 <dl class="py method">
 <dt id="qop.converters.Converter.do_remove_art">
 <code class="sig-name descname">do_remove_art</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.Converter.do_remove_art" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Remove album art durring conversion</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -454,35 +451,34 @@ See <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon
 </dd></dl>
 
 <dl class="py class">
-<dt id="qop.converters.Mp3Converter">
-<em class="property">class </em><code class="sig-prename descclassname">qop.converters.</code><code class="sig-name descname">Mp3Converter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">remove_art</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.Mp3Converter" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.converters.PydubConverter">
+<em class="property">class </em><code class="sig-prename descclassname">qop.converters.</code><code class="sig-name descname">PydubConverter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">remove_art</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">format</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'mp3'</span></em>, <em class="sig-param"><span class="n">codec</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bitrate</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">parameters</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>List<span class="p">[</span>str<span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>str<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">'-q:a', '0'</span></em>, <em class="sig-param"><span class="n">tags</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">id3v2_version</span><span class="o">=</span><span class="default_value">'4'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.PydubConverter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qop.converters.CopyConverter" title="qop.converters.CopyConverter"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.converters.CopyConverter</span></code></a></p>
-<p>Convert audio files to mp3</p>
+<p>Convert audio files using pydub. See <code class="xref py py-meth docutils literal notranslate"><span class="pre">pydub.AudioSegment.export()</span></code>
+(<a class="reference external" href="https://github.com/jiaaro/pydub/blob/master/API.markdown">link</a>) for more details on the meaning of
+the parameters. Defaults to mp3 via lame with V0 quality (best possible VBR quality).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param</dt>
+<dd class="field-odd"><p>remove_art Remove all album art (image) tags during conversion</p>
+</dd>
+<dt class="field-even">Param</dt>
+<dd class="field-even"><p>parameters named arguments passed on to <code class="xref py py-func docutils literal notranslate"><span class="pre">pydub.AudioSegment.export()</span></code> (and from there to ffmpeg)
+when starting the conversion.</p>
+</dd>
+</dl>
 <dl class="py method">
-<dt id="qop.converters.Mp3Converter.start">
-<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.converters.Mp3Converter.start" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.converters.PydubConverter.ext">
+<em class="property">property </em><code class="sig-name descname">ext</code><a class="headerlink" href="#qop.converters.PydubConverter.ext" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="qop.converters.Mp3Converter.to_dict">
-<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.converters.Mp3Converter.to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.converters.OggConverter">
-<em class="property">class </em><code class="sig-prename descclassname">qop.converters.</code><code class="sig-name descname">OggConverter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bitrate</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'192k'</span></em>, <em class="sig-param"><span class="n">remove_art</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.OggConverter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#qop.converters.CopyConverter" title="qop.converters.CopyConverter"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.converters.CopyConverter</span></code></a></p>
-<p>Convert audio files to ogg vorbis</p>
-<dl class="py method">
-<dt id="qop.converters.OggConverter.start">
-<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.converters.OggConverter.start" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.converters.PydubConverter.start">
+<code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#qop.converters.PydubConverter.start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="qop.converters.OggConverter.to_dict">
-<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.converters.OggConverter.to_dict" title="Permalink to this definition">¶</a></dt>
+<dt id="qop.converters.PydubConverter.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#qop.converters.PydubConverter.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
