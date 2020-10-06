@@ -141,7 +141,7 @@ def test_SimpleConvertTask(tmp_path):
     sound = generators.Sine(440).to_audio_segment()
     sound.export(src, format="flac")
 
-    tsk = tasks.SimpleConvertTask(src, dst, converter=converters.Mp3Converter())
+    tsk = tasks.SimpleConvertTask(src, dst, converter=converters.PydubConverter())
     tsk.start()
 
     assert src.exists()
@@ -169,30 +169,30 @@ def test_SimpleConvertTask_can_keep_or_remove_album_art(tmp_path):
     f.save()
 
     # by default, the converters preserve the album art
-    # .. for Mp3Converter
-    tasks.SimpleConvertTask(src, mp3_art, converter=converters.Mp3Converter()).start()
+    # .. for PydubConverter
+    tasks.SimpleConvertTask(src, mp3_art, converter=converters.PydubConverter()).start()
     g = MediaFile(mp3_art)
     assert f.images[0].data == cover.data
     assert f.images[0].mime_type == 'image/jpeg'
     assert f.images[0].data == g.images[0].data
 
-    # ... for OggConverter
-    tasks.SimpleConvertTask(src, ogg_art, converter=converters.OggConverter()).start()
+    # ... for PydubConverter
+    tasks.SimpleConvertTask(src, ogg_art, converter=converters.PydubConverter()).start()
     g = MediaFile(ogg_art)
     assert f.images[0].data == cover.data
     assert f.images[0].mime_type == 'image/jpeg'
     assert f.images[0].data == g.images[0].data
 
     # remove_art=True removes art
-    # ... for Mp3Converter
-    tasks.SimpleConvertTask(src, mp3_noart, converter=converters.Mp3Converter(remove_art=True)).start()
+    # ... for PydubConverter
+    tasks.SimpleConvertTask(src, mp3_noart, converter=converters.PydubConverter(remove_art=True)).start()
     g = MediaFile(mp3_noart)
     assert f.images[0].data == cover.data
     assert g.images == []
 
     # remove_art=True removes art
-    # ... for OggConverter
-    tasks.SimpleConvertTask(src, ogg_noart, converter=converters.OggConverter(remove_art=True)).start()
+    # ... for PydubConverter
+    tasks.SimpleConvertTask(src, ogg_noart, converter=converters.PydubConverter(remove_art=True)).start()
     g = MediaFile(ogg_noart)
     assert f.images[0].data == cover.data
     assert g.images == []
@@ -206,7 +206,7 @@ def test_ConvertTask(tmp_path):
     sound = generators.Sine(440).to_audio_segment()
     sound.export(src, format="flac")
 
-    tsk = tasks.ConvertTask(src, dst, converter=converters.Mp3Converter(), tempdir=tmp_path)
+    tsk = tasks.ConvertTask(src, dst, converter=converters.PydubConverter(), tempdir=tmp_path)
     tsk.start()
     assert src.exists()
     assert not dst.exists()
@@ -265,7 +265,7 @@ def test_TaskQueue_can_run_convert_tasks(tmp_path):
 
     sound.export(src, format="flac")
     q = tasks.TaskQueue(tmp_path.joinpath("qop.db"))
-    q.put(tasks.ConvertTask(src, dst, converter=converters.OggConverter()))
+    q.put(tasks.ConvertTask(src, dst, converter=converters.PydubConverter()))
     q.start()
     wait_for_queue(q)
 

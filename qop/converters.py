@@ -6,7 +6,7 @@ Converters are used by :class:`~qop.tasks.ConvertTask` and :class:`~qop.tasks.Si
 import shutil
 import json
 from pathlib import Path
-from typing import Union, Dict
+from typing import Union, Dict, Tuple, List, Optional
 
 import pydub
 from mediafile import MediaFile
@@ -16,6 +16,8 @@ from qop import _utils
 
 
 class Converter:
+    """Abstract base class for Converters"""
+
     remove_art = False
 
     def to_dict(self) -> Dict:
@@ -25,13 +27,15 @@ class Converter:
     def from_dict(x: Dict) -> "Converter":
         t = ConverterType(x['type'])
         if t == ConverterType.COPY:
-            return CopyConverter(remove_art=x['remove_art'])
-        if t == ConverterType.MP3:
-            return Mp3Converter(remove_art=x['remove_art'])
-        elif t == ConverterType.OGG:
-            return OggConverter(bitrate=x['bitrate'], remove_art=x['remove_art'])
+            conv = CopyConverter()
+        elif t == ConverterType.PYDUB:
+            conv = PydubConverter()
         else:
-            raise ImportError("Unknown 'type': {}")
+            raise ImportError("Unknown 'ConverterType': {}")
+
+        conv.__dict__.update(x)
+        return conv
+
 
     @staticmethod
     def from_json(s: str) -> "Converter":
@@ -52,6 +56,7 @@ class Converter:
         return self.__dict__ != other.__dict__
 
     def do_remove_art(self, file: Path):
+        """Remove album art durring conversion"""
         f = MediaFile(file)
 
         try:
@@ -87,37 +92,37 @@ class CopyConverter(Converter):
         return {"type": ConverterType.COPY, "remove_art": self.remove_art}
 
 
-class Mp3Converter(CopyConverter):
-    """Convert audio files to mp3"""
+class PydubConverter(CopyConverter):
+    """
+    Convert audio files using pydub. See :meth:`pydub.AudioSegment.export`
+    (`link <https://github.com/jiaaro/pydub/blob/master/API.markdown>`_) for more details on the meaning of
+    the parameters. Defaults to mp3 via lame with V0 quality (best possible VBR quality).
 
-    def __init__(self, remove_art: bool = False) -> None:
+    :param: remove_art Remove all album art (image) tags during conversion
+    :param: parameters named arguments passed on to :func:`pydub.AudioSegment.export` (and from there to ffmpeg)
+      when starting the conversion.
+    """
+    def __init__(
+            self,
+            remove_art: bool = False,
+            format: str = "mp3",
+            codec: Optional[str] = None,
+            bitrate: Optional[str] = None,
+            parameters: Union[List[str], Tuple[str], None] = ("-q:a", "0"),  # lame V0
+            tags: Optional[str] = None,
+            id3v2_version='4'
+    ) -> None:
         super().__init__(remove_art=remove_art)
-        self.ext = "mp3"
-
-    def start(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
-        src = Path(src).resolve()
-        dst = Path(dst).resolve()
-        if not dst.parent.exists():
-            dst.parent.mkdir(parents=True)
-
-        x = pydub.AudioSegment.from_file(src)
-        x.export(dst, format="mp3", parameters=["-q:a", "0"])
-        _utils.transfer_tags(src, dst, remove_art=self.remove_art)
-        if self.remove_art:
-            self.do_remove_art(dst)
-
-    def to_dict(self) -> Dict:
-        return {"type": ConverterType.MP3, "remove_art": self.remove_art}
-
-
-class OggConverter(CopyConverter):
-    """Convert audio files to ogg vorbis"""
-
-    def __init__(self, bitrate: str = "192k", remove_art: bool = False) -> None:
-        super().__init__(remove_art=remove_art)
+        self.format = format
+        self.codec = codec
         self.bitrate = bitrate
-        self.remove_art = remove_art
-        self.ext = "ogg"
+        self.parameters = list(parameters)
+        self.tags = tags
+        self.id3v2_version = id3v2_version
+
+    @property
+    def ext(self) -> str:
+        return self.format
 
     def start(self, src: Union[Path, str], dst: Union[Path, str]) -> None:
         src = Path(src).resolve()
@@ -126,13 +131,30 @@ class OggConverter(CopyConverter):
             dst.parent.mkdir(parents=True)
 
         x = pydub.AudioSegment.from_file(src)
-        x.export(dst, format="ogg")
+        x.export(
+            dst,
+            format=self.format,
+            codec=self.codec,
+            bitrate=self.bitrate,
+            parameters=self.parameters,
+            tags=self.tags,
+            id3v2_version=self.id3v2_version
+        )
         _utils.transfer_tags(src, dst, remove_art=self.remove_art)
         if self.remove_art:
             self.do_remove_art(dst)
 
     def to_dict(self) -> Dict:
-        return {"type": ConverterType.OGG, "bitrate": self.bitrate, "remove_art": self.remove_art}
+        return {
+            "type": ConverterType.PYDUB,
+            "remove_art": self.remove_art,
+            "format": self.format,
+            "codec": self.codec,
+            "bitrate": self.bitrate,
+            "tags": self.tags,
+            "id3v2_version": self.id3v2_version,
+            'parameters': self.parameters
+        }
 
 
-Converter_ = Union[Converter, OggConverter, Mp3Converter]
+Converter_ = Union[Converter, PydubConverter]

@@ -14,8 +14,7 @@ Pathish = Union[Path, str]
 class ConverterType(IntEnum):
     """Types of converters. Corresponds to the subclasses of :class:`~qop.converters.Converter`."""
     COPY = 0
-    MP3 = 1
-    OGG = 2
+    PYDUB = 1
 
 
 class Command(IntEnum):

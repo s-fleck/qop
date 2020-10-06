@@ -82,7 +82,7 @@ def handle_copy_convert_move(args, client) -> Dict:
 
     # setup converter (if necessary)
     if args.mode == "convert":
-        conv = converters.Mp3Converter(remove_art=args.remove_art)  # TODO
+        conv = converters.PydubConverter(remove_art=args.remove_art, parameters=args.parameters)  # TODO
         conv_copy = converters.CopyConverter(remove_art=args.remove_art)
 
         if args.convert_only is not None:

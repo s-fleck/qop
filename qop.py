@@ -32,7 +32,11 @@ parser_convert.add_argument("-a", "--remove-art", action="store_true", help="rem
 g = parser_convert.add_mutually_exclusive_group()
 g.add_argument("-c", "--convert-only", nargs="+", type=str, help="extensions of files to convert")
 g.add_argument("-C", "--convert-not", nargs="+", type=str, help="extensions of files not to convert")
-g.add_argument("-K", "--convert-none", action="store_true", help="copy all files without transcoding (useful in combination with --remove-art)", default=False)
+g.add_argument("-K", "--convert-none", action="store_true", help="copy all files without transcoding (useful if you only want --remove-art)", default=False)
+g.add_argument("-f", "--format", type=str, default="mp3", help="output format ogg or mp3. (defaults to mp3)")
+g.add_argument("-b", "--bitrate", type=str, default="auto", help="output bitrate, defaults to V0 (VBR ~245) for mp3")
+g.add_argument("-p", "--parameters", type=str, default=("-q:a", "0"), help="extra parameters passed on to the codec (see pydub help)")
+
 
 # shared copy/convert/move arguments
 for p in [parser_copy, parser_convert, parser_move]:
