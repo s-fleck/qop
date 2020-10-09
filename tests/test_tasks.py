@@ -198,6 +198,25 @@ def test_SimpleConvertTask_can_keep_or_remove_album_art(tmp_path):
     assert g.images == []
 
 
+def test_SimpleConvertTask_passes_on_params(tmp_path):
+    """ConvertTask can convert an audio file in a two-step process"""
+    src = tmp_path.joinpath("sine.flac")
+    dst_lq = tmp_path.joinpath("sine-lq.mp3")
+    dst_hq = tmp_path.joinpath("sine-hq.mp3")
+
+    sound = generators.Sine(440).to_audio_segment()
+    sound.export(src, format="flac")
+
+    tasks.SimpleConvertTask(src, dst_lq, converter=converters.PydubConverter(parameters=['-q:a', '9'])).start()
+    assert dst_lq.exists()
+
+    tasks.SimpleConvertTask(src, dst_hq, converter=converters.PydubConverter(parameters=['-q:a', '0'])).start()
+    assert dst_hq.exists()
+
+    assert src.exists()
+    assert MediaFile(dst_lq).bitrate < MediaFile(dst_hq).bitrate
+
+
 def test_ConvertTask(tmp_path):
     """ConvertTask can convert an audio file in a two-step process"""
     src = tmp_path.joinpath("sine.flac")
