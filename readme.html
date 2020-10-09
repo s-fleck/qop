@@ -194,7 +194,8 @@ while leaving files that are already in a lossy format untouched.</p>
 
 <span class="c1"># copy two songs to a portable media player</span>
 <span class="c1"># - inlcude only flac and mp3 files (ignore cover.jpg)</span>
-<span class="c1"># - transcoe flac files and leave mp3 files untouched</span>
+<span class="c1"># - transcode flac files and leave mp3 files untouched</span>
+<span class="c1"># - by default convert produces VBR mp3s of the highest quality (lame V0).</span>
 <span class="n">qop</span> <span class="n">convert</span> <span class="n">song</span><span class="o">.</span><span class="n">mp3</span> <span class="n">fugue</span><span class="o">.</span><span class="n">flac</span> <span class="n">cover</span><span class="o">.</span><span class="n">jpg</span> <span class="o">/</span><span class="n">media</span><span class="o">/</span><span class="n">mp3player</span> <span class="o">--</span><span class="n">include</span> <span class="n">mp3</span> <span class="n">flac</span> <span class="o">--</span><span class="n">convert</span><span class="o">-</span><span class="n">only</span> <span class="n">flac</span>
 
 <span class="c1"># repeat the last command for your whole music directory</span>
@@ -205,6 +206,9 @@ while leaving files that are already in a lossy format untouched.</p>
 
 <span class="c1"># display a progress bar</span>
 <span class="n">qop</span> <span class="n">progress</span>
+
+<span class="c1"># show more examples</span>
+<span class="n">qop</span> <span class="o">--</span><span class="n">examples</span>
 </pre></div>
 </div>
 </div>
