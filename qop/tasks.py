@@ -308,9 +308,9 @@ class TaskQueue:
         :param task_type_include: see .pop()
         :param task_type_exclude: see .pop()
         """
-        progress = self.progress()
+        progress = self.progress(include_children=True)
         while progress.pending > 0 or progress.active > 0:
-            progress = self.progress()
+            progress = self.progress(include_children=True)
 
             if ip is not None:
                 if _utils.is_daemon_active(ip=ip, port=port) is False:
@@ -330,7 +330,7 @@ class TaskQueue:
                     follow_up = op.spawn()
                     self.put(follow_up, priority=-1, parent=op.oid)
                     lg.info(f"spawned childtask: {follow_up}")
-                except:
+                except AttributeError:
                     pass
 
                 if op.parent_oid is not None:
@@ -344,16 +344,17 @@ class TaskQueue:
                     self.set_status(op.parent_oid, Status.FAIL)
                     lg.info(f"parent task completed: {op.parent_oid}")
 
-        try:
-            shutil.rmtree(CONVERT_CACHE_DIR)
-        except:
-            pass
-
         lg.info("queue is finished")
 
     def stop(self) -> None:
         for p in self.convert_processes + self.transfer_processes:
             p.terminate()
+
+        try:
+            shutil.rmtree(CONVERT_CACHE_DIR)
+        except:
+            pass
+
         self.reset_active_tasks()
 
     def flush(self, status: Union[Status, int, None] = None) -> None:
@@ -667,6 +668,9 @@ class CopyTask(FileTask):
         else:
             shutil.copy(self.src, self.dst)
 
+        assert self.dst.exists()
+        assert self.src.exists()
+
 
 class MoveTask(CopyTask):
     """Move a file"""
@@ -681,6 +685,9 @@ class MoveTask(CopyTask):
             self.dst.parent.mkdir(parents=True)
 
         shutil.move(self.src, self.dst)
+        assert self.dst.exists()
+        assert not self.src.exists()
+
 
     def color_repr(self, color=True) -> str:
         if color:
@@ -708,6 +715,8 @@ class SimpleConvertTask(CopyTask):
     def start(self) -> None:
         super().__validate__()
         self.converter.start(self.src, self.dst)
+        assert self.dst.exists()
+        assert self.src.exists()
 
     def color_repr(self, color=True) -> str:
         if color:

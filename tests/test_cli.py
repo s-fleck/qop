@@ -4,9 +4,7 @@ import re
 
 from pathlib import Path
 from time import sleep
-from qop import _utils
-import pydub
-from pydub import generators
+from qop import _utils, _utils_tests
 from mediafile import MediaFile
 
 QOP = _utils.get_project_root("qop.py")
@@ -53,16 +51,11 @@ def testfile_tree(tmp_path):
     dst = Path(root).joinpath("dst")
     dst.mkdir()
 
-    def make_dummy_file(path):
-        if not path.parent.exists():
-            path.parent.mkdir(parents=True)
-        f = open(path, "w+")
-        f.write("foobar")
-
-    make_dummy_file(src.joinpath("foo/bar.txt"))
-    make_dummy_file(src.joinpath("foo/bar.flac"))
-    make_dummy_file(src.joinpath("baz.txt"))
-    make_dummy_file(src.joinpath("baz.flac"))
+    _utils_tests.make_dummy_file(src.joinpath("foo/bar.txt"))
+    _utils_tests.make_dummy_flac(src.joinpath("foo/bar.flac"))
+    _utils_tests.make_dummy_file(src.joinpath("baz.txt"))
+    _utils_tests.make_dummy_flac(src.joinpath("baz.flac"))
+    _utils_tests.make_dummy_flac(root.joinpath("nocopy.flac"))
 
     yield root, src, dst
 
@@ -95,8 +88,7 @@ def test_convert_an_audio_file(testfile_tree):
     src = src_dir.joinpath("sine.flac")
     dst = dst_dir.joinpath("sine.mp3")  # expected destination name
 
-    sound = pydub.generators.Sine(10).to_audio_segment()
-    sound.export(src, format="flac")
+    _utils_tests.make_dummy_flac(src)
     f = MediaFile(src)
     f.artist = "foobar"
     f.save()
@@ -107,6 +99,44 @@ def test_convert_an_audio_file(testfile_tree):
     assert src.exists()
     assert dst.exists()
     assert MediaFile(dst).artist == f.artist
+
+
+def test_convert_an_audio_file_with_quality_settings(testfile_tree):
+    """qop can copy a file"""
+    root, src_dir, dst_dir = testfile_tree
+
+    src = src_dir.joinpath("sine.flac")
+    dst = dst_dir.joinpath("sine.mp3")
+
+    _utils_tests.make_dummy_flac(src)
+
+    subprocess.run(["python3", QOP, "-v", "--log-file", "/dev/null", "convert", src, dst_dir, '--parameters', '-q:a', '4'], cwd=root)
+    wait_for_queue()
+
+    assert src.exists()
+    assert dst.exists()
+
+
+def test_convert_a_directory_recursively(testfile_tree):
+    """qop can copy a file"""
+    root, src, dst = testfile_tree
+
+    subprocess.run(["python3", QOP, "-v", "--log-file", "/dev/null", "convert", src, dst, "--include", "flac", "--convert-only", "flac"], cwd=root)
+    wait_for_queue()
+    subprocess.run(["python3", QOP, "-v", "queue", "start"], cwd=root)
+    wait_for_queue()
+    assert src.joinpath("baz.flac").exists()
+    assert src.joinpath("foo/bar.flac").exists()
+    assert dst.joinpath("src/baz.mp3").exists()
+    assert dst.joinpath("src/foo/bar.mp3").exists()
+    assert not dst.joinpath("src/nocopy.mp3").exists()
+
+    # filters have excluded unnecessary files
+    assert not dst.joinpath("src/baz.txt").exists()
+    assert not dst.joinpath("src/foo/bar.txt").exists()
+    assert not dst.joinpath("baz.txt").exists()
+    assert not dst.joinpath("src/baz.txt").exists()
+    assert not dst.joinpath("src/foo/bar.txt").exists()
 
 
 def test_manage_the_queue(testfile_tree):
