@@ -38,7 +38,8 @@ qop re file3 file4
 
 # copy two songs to a portable media player
 # - inlcude only flac and mp3 files (ignore cover.jpg)
-# - transcoe flac files and leave mp3 files untouched
+# - transcode flac files and leave mp3 files untouched
+# - by default convert produces VBR mp3s of the highest quality (lame V0).
 qop convert song.mp3 fugue.flac cover.jpg /media/mp3player --include mp3 flac --convert-only flac 
 
 # repeat the last command for your whole music directory
@@ -49,7 +50,11 @@ qop convert * /media/m3player --convert-none --remove-art
 
 # display a progress bar
 qop progress 
+
+# show more examples
+qop --examples
 ```
+
 
 ## Architecture
 

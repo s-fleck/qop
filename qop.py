@@ -17,6 +17,9 @@ parser = argparse.ArgumentParser()
 parser.set_defaults(fun=_cli.handle_missing_args, start_daemon=False, parser=parser)
 subparsers = parser.add_subparsers()
 
+# help
+
+
 # copy
 parser_copy = subparsers.add_parser("copy", help="copy a file")
 parser_copy.set_defaults(fun=_cli.handle_copy_convert_move, mode="copy", start_daemon=True)
@@ -35,7 +38,7 @@ g.add_argument("-C", "--convert-not", nargs="+", type=str, help="extensions of f
 g.add_argument("-K", "--convert-none", action="store_true", help="copy all files without transcoding (useful if you only want --remove-art)", default=False)
 g.add_argument("-f", "--format", type=str, default="mp3", help="output format ogg or mp3. (defaults to mp3)")
 g.add_argument("-b", "--bitrate", type=str, default="auto", help="output bitrate, defaults to V0 (VBR ~245) for mp3")
-g.add_argument("-p", "--parameters", type=str, default=("-q:a", "0"), help="extra parameters passed on to the codec (see pydub help)")
+g.add_argument("-p", "--parameters", type=str, nargs=argparse.REMAINDER, default=("-q:a", "0"), help="everything after --paramters is passed on to ffmpeg via pydub.")
 
 
 # shared copy/convert/move arguments
@@ -89,9 +92,45 @@ parser_daemon_sub.add_parser("facts", help="return information about the daemon"
 parser.add_argument("--log-level", type=str, help="python-logging log level: DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50)", default="WARNING")
 parser.add_argument("--log-file", type=str, help="optional path to redirect logging to")
 parser.add_argument("-v", "--verbose", action="store_true", help="Enqueue only without starting the queue. Note that this does not stop the queue if it is already active.")
+parser.add_argument("--examples", action="store_true", help="show usage examples")
 
 args = parser.parse_args()
 
+if args.examples:
+    print("""    
+  basic usage
+  -----------
+    
+    qop copy file1 file2 /media/mp3player
+    qop move file1 file2 /media/mp3player
+    qop convert file1 file2 /media/mp3player
+        
+    # repeat the last command with the same paramters and output directory on different inputs
+    qop re file3 file4
+    
+    # display a progress bar for the ongoing transfers
+    qop progress 
+    
+        
+  convert
+  ------- 
+        
+    # copy two songs to a portable media player
+    # - inlcude only flac and mp3 files (ignore cover.jpg)
+    # - transcode flac files and leave mp3 files untouched
+    # - by default convert produces VBR mp3s of the highest quality (lame V0)
+    qop convert song.mp3 fugue.flac cover.jpg /media/mp3player --include mp3 flac --convert-only flac 
+    
+    # Produce medium-quality VBR mp3s (lame V4). NOTE: --paramters must always be the last argument.
+    qop convert *.flac /media/mp3player --paramters -q:a 4
+            
+    # repeat the last command for your whole music directory
+    qop re ~/music
+        
+    # copy files to a media player and remove album art tags (without audio-transcoding)
+    qop convert * /media/m3player --convert-none --remove-art   
+    """)
+    exit(0)
 
 # init logging
 if args.log_level.isdigit():
