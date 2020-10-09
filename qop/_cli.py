@@ -72,9 +72,9 @@ def handle_copy_convert_move(args, client) -> Dict:
 
     # setup scanner
     if args.include is not None:
-        scanner = scanners.WhitelistScanner(args.include)
+        scanner = scanners.IncludeScanner(args.include)
     elif args.exclude is not None:
-        scanner = scanners.BlacklistScanner(args.exclude)
+        scanner = scanners.ExcludeScanner(args.exclude)
     elif args.mode == "convert":
         scanner = scanners.Scanner()
     else:
