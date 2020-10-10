@@ -7,8 +7,12 @@ sqlite3 database.
 from enum import IntEnum
 from typing import Union
 from pathlib import Path
+import appdirs
 
 Pathish = Union[Path, str]
+
+
+CONVERT_CACHE_DIR = Path(appdirs.user_cache_dir("qop")).joinpath("convert_temp")
 
 
 class ConverterType(IntEnum):

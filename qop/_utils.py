@@ -2,8 +2,11 @@
 Internal utility functions
 """
 
+from qop import constants
 from pathlib import Path
 import socket
+import shutil
+
 from mediafile import MediaFile
 from qop.constants import Pathish
 
@@ -37,3 +40,10 @@ def transfer_tags(src: Pathish, dst: Pathish, remove_art: bool = False) -> None:
             pass
 
     g.save()
+
+
+def purge_convert_cache():
+    try:
+        shutil.rmtree(constants.CONVERT_CACHE_DIR)
+    except:
+        pass

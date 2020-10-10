@@ -55,3 +55,4 @@ if not queue_path.parent.exists():
 # launch daemon
 with daemon.QopDaemon(port=9393, queue_path=queue_path, persist_queue=(args.queue != "<temp>")) as qopd:
     qopd.listen()
+

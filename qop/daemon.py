@@ -74,6 +74,8 @@ class QopDaemon:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.queue.stop()
+
         if self.is_listening:
             self.close()
 

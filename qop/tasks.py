@@ -20,11 +20,9 @@ import logging
 from pathlib import Path
 from typing import Union, Optional, Dict, Tuple, List
 from time import sleep
-
-import appdirs
 from colorama import init, Fore
 
-from qop.constants import Status, TaskType, Pathish
+from qop.constants import Status, TaskType, Pathish, CONVERT_CACHE_DIR
 from qop.exceptions import AlreadyUnderEvaluationError, FileExistsAndIsIdenticalError, FileExistsAndCannotBeComparedError
 from qop import converters, _utils
 
@@ -32,11 +30,10 @@ from qop import converters, _utils
 init()
 
 lg = logging.getLogger(__name__)
-CONVERT_CACHE_DIR = Path(appdirs.user_cache_dir("qop")).joinpath("convert_temp")
 
 
 class TaskQueue:
-    """
+    """CONVERT_CACHE_DIR = Path(appdirs.user_cache_dir("qop")).joinpath("convert_temp")
     A persistent, prioritized queue with multi process support. Use sqlite3 as a storage backend.
 
     :param transfer_processes: A list of file transfer processes
@@ -344,17 +341,14 @@ class TaskQueue:
                     self.set_status(op.parent_oid, Status.FAIL)
                     lg.info(f"parent task completed: {op.parent_oid}")
 
+        _utils.purge_convert_cache()
         lg.info("queue is finished")
 
     def stop(self) -> None:
         for p in self.convert_processes + self.transfer_processes:
             p.terminate()
 
-        try:
-            shutil.rmtree(CONVERT_CACHE_DIR)
-        except:
-            pass
-
+        _utils.purge_convert_cache()
         self.reset_active_tasks()
 
     def flush(self, status: Union[Status, int, None] = None) -> None:
@@ -447,14 +441,6 @@ class TaskQueue:
         """count of completed tasks"""
         cur = self.con.cursor()
         res = cur.execute("SELECT COUNT(1) from tasks WHERE status = ?", (int(Status.FAIL),)).fetchall()[0][0]
-        cur.close()
-        return res
-
-    @property
-    def n_skip(self) -> int:
-        """count of completed tasks"""
-        cur = self.con.cursor()
-        res = cur.execute("SELECT COUNT(1) from tasks WHERE status = ?", (int(Status.SKIP),)).fetchall()[0][0]
         cur.close()
         return res
 
@@ -687,7 +673,6 @@ class MoveTask(CopyTask):
         shutil.move(self.src, self.dst)
         assert self.dst.exists()
         assert not self.src.exists()
-
 
     def color_repr(self, color=True) -> str:
         if color:

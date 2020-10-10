@@ -4,7 +4,7 @@ import argparse
 import logging
 import shutil
 
-from qop import daemon, tasks, _cli
+from qop import daemon, tasks, _cli, _utils
 from qop.constants import Command
 
 # globals
@@ -16,9 +16,6 @@ AUDIO_FILES = (LOSSY_AUDIO, LOSSLESS_AUDIO)
 parser = argparse.ArgumentParser()
 parser.set_defaults(fun=_cli.handle_missing_args, start_daemon=False, parser=parser)
 subparsers = parser.add_subparsers()
-
-# help
-
 
 # copy
 parser_copy = subparsers.add_parser("copy", help="copy a file")
@@ -96,6 +93,8 @@ parser.add_argument("--examples", action="store_true", help="show usage examples
 
 args = parser.parse_args()
 
+
+# example usage
 if args.examples:
     print("""    
   basic usage
@@ -151,10 +150,7 @@ if args.start_daemon:
     _cli.wait_for_daemon(client, timeout=10)
 
 if not client.is_daemon_active():
-    try:
-        shutil.rmtree(tasks.CONVERT_CACHE_DIR)
-    except:
-        pass
+    _utils.purge_convert_cache()
 
 
 # execute the command
