@@ -762,7 +762,8 @@ store and execute an arbitrary number of tasks.</p>
 <dt id="qop.tasks.TaskQueue">
 <em class="property">class </em><code class="sig-prename descclassname">qop.tasks.</code><code class="sig-name descname">TaskQueue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">max_transfer_processes</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_convert_processes</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.tasks.TaskQueue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>A persistent, prioritized queue with multi process support. Use sqlite3 as a storage backend.</p>
+<p>CONVERT_CACHE_DIR = Path(appdirs.user_cache_dir(“qop”)).joinpath(“convert_temp”)
+A persistent, prioritized queue with multi process support. Use sqlite3 as a storage backend.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -926,12 +927,6 @@ Must be <cite>None</cite> except for switching tasks to <em>active</em>.</p></li
 <dl class="py method">
 <dt id="qop.tasks.TaskQueue.n_fail">
 <em class="property">property </em><code class="sig-name descname">n_fail</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_fail" title="Permalink to this definition">¶</a></dt>
-<dd><p>count of completed tasks</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="qop.tasks.TaskQueue.n_skip">
-<em class="property">property </em><code class="sig-name descname">n_skip</code><a class="headerlink" href="#qop.tasks.TaskQueue.n_skip" title="Permalink to this definition">¶</a></dt>
 <dd><p>count of completed tasks</p>
 </dd></dl>
 
