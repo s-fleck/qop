@@ -158,6 +158,9 @@ def handle_daemon_stop(args, client) -> Dict:
 
 
 def handle_daemon_destroy(args, client) -> Dict:
+    if not client.is_daemon_active():
+        return {"status": Status.FAIL, "msg": "daemon is not active", "payload": {"value": False}, "payload_class": PayloadClass.VALUE}
+
     client.send_command(Command.QUEUE_FLUSH_ALL)
     return client.send_command(Command.DAEMON_STOP)
 
