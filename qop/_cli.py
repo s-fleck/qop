@@ -319,3 +319,4 @@ def wait_for_daemon(client, timeout: int = 10, status: int = 1) -> None:
             raise ValueError("status must be `0` or `1`")
 
     raise TimeoutError("could not connect to daemon")
+ 

@@ -21,10 +21,14 @@ class Converter:
     remove_art = False
 
     def to_dict(self) -> Dict:
-        return {}
+        raise NotImplementedError
+
 
     @staticmethod
     def from_dict(x: Dict) -> "Converter":
+        """
+        Create a Converter object from python dict that contains the necessary keys
+        """
         t = ConverterType(x['type'])
         if t == ConverterType.COPY:
             conv = CopyConverter()
@@ -40,8 +44,7 @@ class Converter:
     @staticmethod
     def from_json(s: str) -> "Converter":
         """
-
-        :rtype: object
+        Deserialize a Converter from JSON
         """
         dd = json.loads(s=s)
         return Converter.from_dict(dd)
@@ -55,18 +58,18 @@ class Converter:
     def __ne__(self, other) -> bool:
         return self.__dict__ != other.__dict__
 
-    def do_remove_art(self, file: Path):
-        """Remove album art durring conversion"""
+    def _do_remove_art(self, file: Path):
+        """Remove album art during conversion"""
         f = MediaFile(file)
 
         try:
             delattr(f, "art")
-        except:
+        except AttributeError:
             pass
 
         try:
-            delattr(f, "iamges")
-        except:
+            delattr(f, "images")
+        except AttributeError:
             pass
 
         f.save()
@@ -86,7 +89,7 @@ class CopyConverter(Converter):
 
         shutil.copy(src, dst)
         if self.remove_art:
-            self.do_remove_art(dst)
+            self._do_remove_art(dst)
 
     def to_dict(self) -> Dict:
         return {"type": ConverterType.COPY, "remove_art": self.remove_art}
@@ -142,7 +145,7 @@ class PydubConverter(CopyConverter):
         )
         _utils.transfer_tags(src, dst, remove_art=self.remove_art)
         if self.remove_art:
-            self.do_remove_art(dst)
+            self._do_remove_art(dst)
 
     def to_dict(self) -> Dict:
         return {
