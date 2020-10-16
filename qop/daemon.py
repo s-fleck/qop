@@ -20,6 +20,7 @@ Communication diagram::
     +-------------+                        +-------------+   +-------------+
 """
 
+# https://realpython.com/python-sockets/#application-client-and-server
 
 import tempfile
 import socket
@@ -43,7 +44,6 @@ class QopDaemon:
     port = None
     stats = None  # container that implements transfer statistics
     queue = None
-    __is_listening = False
 
     def __init__(
         self,
@@ -71,13 +71,16 @@ class QopDaemon:
 
     def __enter__(self):
         self._socket.bind(("127.0.0.1", self.port))
+        lg.info(f"QopDaemon listening on port {self.port}")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.queue.stop()
 
-        if self.is_listening:
+        try:
             self.close()
+        except:
+            pass
 
         if not self.persist_queue:
             self.queue.path.unlink()
@@ -85,12 +88,10 @@ class QopDaemon:
     def close(self):
         self._socket.shutdown(socket.SHUT_RDWR)
         self._socket.close()
-        self.is_listening = False
 
     def listen(self, port=9393):
         lg = logging.getLogger(__name__)
         self._socket.listen(10)
-        self.is_listening = True
 
         while True:
             client, address = self._socket.accept()
@@ -211,24 +212,9 @@ class QopDaemon:
                 lg.error(info, exc_info=info)
                 client.sendall(StatusMessage(Status.FAIL, msg=str(info[0]) + str(info[1])).encode())
 
-    @property
-    def is_listening(self) -> bool:
-        return self.__is_listening
-
-    @is_listening.setter
-    def is_listening(self, x: bool) -> None:
-        lg = logging.getLogger(__name__)
-
-        if x:
-            lg.info(f"qop-daemon listening on port {self.port}")
-        else:
-            lg.debug("socket closed")
-
-        self.__is_listening = x
-
     @staticmethod
     def handle_request(req):
-        return RawMessage(req).decode()
+        return Message.from_bytes(req)
 
     def new_queue(self, path: Path):
         self.queue = tasks.TaskQueue(path=path)
@@ -318,7 +304,7 @@ class QopClient:
             client.connect((self.ip, self.port))
             req = CommandMessage(command, payload=payload)
             client.sendall(req.encode())
-            res = RawMessage(client.recv(2048)).decode().body
+            res = Message.from_bytes(client.recv(2048)).body
 
             # track enqueued tasks of this client
             if command == Command.QUEUE_PUT:
@@ -359,6 +345,22 @@ class Message:
 
         lg.debug(f'encoding message {body} with header_length={int(struct.unpack("!H", header_len)[0])} and content_length={len(body)}')
         return header_len + header + body
+
+
+    @staticmethod
+    def from_bytes(x: bytes) -> "Message":
+        logging.getLogger("qop.daemon").debug(f"decoding message '{x}'")
+
+        header_len = int(struct.unpack("!H", x[:PREHEADER_LEN])[0])
+        raw_header = x[PREHEADER_LEN:(header_len + PREHEADER_LEN)]
+        header = json.loads(raw_header.decode("utf-8"))
+
+        body_start = PREHEADER_LEN + header_len
+        raw_body = x[body_start:body_start + header["content-length"]]
+        body = json.loads(raw_body.decode("utf-8"))
+
+        del header['content-length']
+        return Message(body=body, extra_headers=header)
 
     def __repr__(self) -> str:
         return f"Message: {self.body.__repr__()}"
@@ -435,47 +437,3 @@ class CommandMessage(Message):
             body=body,
             extra_headers={"message-class": "CommandMessage"}
         )
-
-
-class RawMessage:
-    """
-    Class for parsing messages sent between :class:`~qop.daemon.QopDaemon` and
-    :class:`~qop.daemon.QopClient`.
-    """
-
-    def __init__(self, raw) -> None:
-        assert isinstance(raw, bytes)
-        self.raw: bytes = raw
-
-    def encode(self) -> bytes:
-        return self.raw
-
-    def decode(self) -> Message:
-        logging.getLogger("qop.daemon").debug(f'decoding message with header_length={self.header_len}')
-        return Message(self.body)
-
-    @property
-    def header_len(self) -> int:
-        return int(struct.unpack("!H", self.raw[:PREHEADER_LEN])[0])
-
-    @property
-    def _header(self) -> bytes:
-        return self.raw[PREHEADER_LEN:(self.header_len + PREHEADER_LEN)]
-
-    @property
-    def header(self) -> Dict:
-        header = json.loads(self._header.decode("utf-8"))
-        assert header is not None
-        return header
-
-    @property
-    def _body(self) -> bytes:
-        start = PREHEADER_LEN + self.header_len
-        return self.raw[start:start + self.header["content-length"]]
-
-    @property
-    def body(self) -> Dict:
-        return json.loads(self._body.decode("utf-8"))
-
-    def __repr__(self) -> str:
-        return f"RawMessage: {self.decode().__repr__()}"
