@@ -408,28 +408,19 @@ See <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon
 <dl class="py method">
 <dt id="qop.converters.Converter.from_dict">
 <em class="property">static </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter">qop.converters.Converter</a><a class="headerlink" href="#qop.converters.Converter.from_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Create a Converter object from python dict that contains the necessary keys</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="qop.converters.Converter.from_json">
 <em class="property">static </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.converters.Converter" title="qop.converters.Converter">qop.converters.Converter</a><a class="headerlink" href="#qop.converters.Converter.from_json" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>object</p>
-</dd>
-</dl>
+<dd><p>Deserialize a Converter from JSON</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="qop.converters.Converter.start">
 <code class="sig-name descname">start</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dst</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.Converter.start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.converters.Converter.do_remove_art">
-<code class="sig-name descname">do_remove_art</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.converters.Converter.do_remove_art" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove album art durring conversion</p>
-</dd></dl>
 
 </dd></dl>
 
@@ -538,11 +529,6 @@ payload.</p></li>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="qop.daemon.QopDaemon.is_listening">
-<em class="property">property </em><code class="sig-name descname">is_listening</code><a class="headerlink" href="#qop.daemon.QopDaemon.is_listening" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt id="qop.daemon.QopDaemon.handle_request">
 <em class="property">static </em><code class="sig-name descname">handle_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">req</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.QopDaemon.handle_request" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -622,6 +608,11 @@ payload.</p></li>
 <code class="sig-name descname">encode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bytes<a class="headerlink" href="#qop.daemon.Message.encode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt id="qop.daemon.Message.from_bytes">
+<em class="property">static </em><code class="sig-name descname">from_bytes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">bytes</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message">qop.daemon.Message</a><a class="headerlink" href="#qop.daemon.Message.from_bytes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -638,39 +629,6 @@ payload.</p></li>
 <dd><p>Bases: <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">qop.daemon.Message</span></code></a></p>
 <p>Class for commands sent by <a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a> to 
 <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a>.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="qop.daemon.RawMessage">
-<em class="property">class </em><code class="sig-prename descclassname">qop.daemon.</code><code class="sig-name descname">RawMessage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw</span></em><span class="sig-paren">)</span><a class="headerlink" href="#qop.daemon.RawMessage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Class for parsing messages sent between <a class="reference internal" href="#qop.daemon.QopDaemon" title="qop.daemon.QopDaemon"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopDaemon</span></code></a> and
-<a class="reference internal" href="#qop.daemon.QopClient" title="qop.daemon.QopClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">QopClient</span></code></a>.</p>
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.encode">
-<code class="sig-name descname">encode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bytes<a class="headerlink" href="#qop.daemon.RawMessage.encode" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.decode">
-<code class="sig-name descname">decode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#qop.daemon.Message" title="qop.daemon.Message">qop.daemon.Message</a><a class="headerlink" href="#qop.daemon.RawMessage.decode" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.header_len">
-<em class="property">property </em><code class="sig-name descname">header_len</code><a class="headerlink" href="#qop.daemon.RawMessage.header_len" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.header">
-<em class="property">property </em><code class="sig-name descname">header</code><a class="headerlink" href="#qop.daemon.RawMessage.header" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="qop.daemon.RawMessage.body">
-<em class="property">property </em><code class="sig-name descname">body</code><a class="headerlink" href="#qop.daemon.RawMessage.body" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 </div>
