@@ -21,7 +21,7 @@ while leaving files that are already in a lossy format untouched.
 
 ## Development status
 
-qop is in a beta stage and under active development. While the core functionality is stable, the user interface is still being refined. A public release fit for general usage is planned for early 2021.
+qop is functional but not super polished. It's in maintancne mode so don't expect any new features.
 
 ## Usage 
 
